@@ -7,6 +7,9 @@ use actix_web::{App, Responder, HttpRequest, HttpResponse, server, http};
 use actix::System;
 
 
+pub mod document;
+
+
 /// Per-thread application state
 pub struct State {}
 
