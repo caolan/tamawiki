@@ -1,0 +1,6 @@
+[package]
+name = "tamawiki"
+version = "0.1.0"
+authors = ["Caolan McMahon <caolan.mcmahon@gmail.com>"]
+
+[dependencies]
