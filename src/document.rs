@@ -8,27 +8,76 @@ use std::fmt;
 /// Represents the current state of a document
 #[derive(Debug, PartialEq, Default)]
 pub struct Document {
+    pub seq: usize,
     pub content: String
 }
 
 impl Document {
-    /// Applies an Operation to the Document's content, updating the
-    /// Document struct in-place. If the Operation cannot be applied
-    /// cleanly and OperationError is returned.
-    fn apply(&mut self, op: &Operation) -> Result<(), OperationError> {
+    /// Applies an Update to the Document's content. Either all
+    /// Operations contained in the Update are applied, or no
+    /// Operations are applied and an UpdateError is returned.
+    pub fn apply(&mut self, update: &Update) -> Result<(), UpdateError> {
+        self.can_apply(&update)?;
+        
+        for op in &update.operations {
+            self.perform_operation(op);
+        }
+        
+        self.seq = update.seq;
+        Ok(())
+    }
+
+    /// Checks that every operation inside the update can be cleanly
+    /// applied to the document, without making any changes to the
+    /// document content.
+    pub fn can_apply(&self, update: &Update) -> Result<(), UpdateError> {
+        if update.seq != self.seq + 1 {
+            return Err(UpdateError::OutOfSequence);
+        }
+        
+        let mut length = self.content.chars().count();
+
+        for op in &update.operations {
+            if !op.is_valid() {
+                return Err(UpdateError::InvalidOperation);
+            }
+            match *op {
+                Operation::Insert(Insert {pos, ref content}) => {
+                    if pos > length {
+                        return Err(UpdateError::OutsideDocument);
+                    } else {
+                        length += content.chars().count();
+                    }
+                },
+                Operation::Delete(Delete {start, end}) => {
+                    if start >= length || end > length {
+                        return Err(UpdateError::OutsideDocument);
+                    } else {
+                        length -= end - start;
+                    }
+                },
+            }
+        }
+        
+        Ok(())
+    }
+    
+    // Applies an Operation to the Document's content, updating the
+    // Document struct in-place. At this point we must already have
+    // validated that the operation can be applied_cleanly using
+    // can_apply_all(). If the operation cannot be applied this function will panic.
+    fn perform_operation(&mut self, op: &Operation) {
         match *op {
             Operation::Insert(ref op) => {
                 match self.content.char_indices().nth(op.pos) {
                     Some((byte_pos, _)) => {
                         self.content.insert_str(byte_pos, &op.content);
-                        Ok(())
                     },
                     None => {
                         if op.pos == self.content.chars().count() {
                             self.content.push_str(&op.content);
-                            Ok(())
                         } else {
-                            Err(OperationError::OutsideDocument)
+                            panic!("Attempted to apply an operation outside of the document")
                         }
                     },
                 }
@@ -48,9 +97,8 @@ impl Document {
                     let after = self.content.split_off(end_byte);
                     self.content.truncate(start_byte);
                     self.content.push_str(&after);
-                    Ok(())
                 } else {
-                    Err(OperationError::OutsideDocument)
+                    panic!("Attempted to apply an operation outside of the document")
                 }
             }
         }
@@ -84,27 +132,79 @@ pub enum Operation {
     Delete(Delete),
 }
 
-/// Errors conditions which may occur when applying an Operation to a
-/// Document
-#[derive(Debug, PartialEq)]
-pub enum OperationError {
-    /// The Operation's position or range falls outside the Document
-    OutsideDocument,
-}
+impl Operation {
+    /// Checks if performing the operation would have any effect on a
+    /// Document's content.
+    pub fn has_effect(&self) -> bool {
+        match self {
+            Operation::Insert(Insert { ref content, .. }) =>
+                content.chars().count() > 0,
+            Operation::Delete(Delete { start, end }) =>
+                start != end,
+        }
+    }
 
-impl fmt::Display for OperationError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            OperationError::OutsideDocument =>
-                write!(f, "The operation's area of effect falls outside the document"),
+    /// Returns false if the Operation would never describe a
+    /// meaningful change for any given Document. Operations which
+    /// have no effect according to has_effect() are also considered
+    /// invalid.
+    ///
+    /// Note that an Operation for which is_valid() returns true might
+    /// still raise an UpdateError when applied to a specific Document
+    /// (e.g. it references an index outside the target document's
+    /// content size).
+    
+    // Making operations with no effect invalid aids the discovery and
+    // removal of irrelevant operations at the earliest opportunity,
+    // so they don't clutter storage and communication channels.
+    pub fn is_valid(&self) -> bool {
+        self.has_effect() && match self {
+            Operation::Insert(_) => true,
+            Operation::Delete(Delete { start, end }) => end > start
         }
     }
 }
 
-impl error::Error for OperationError {
+/// Error conditions which may occur when applying an Operation to a
+/// Document.
+#[derive(Debug, PartialEq)]
+pub enum UpdateError {
+    /// The Operation's position or range falls outside the Document.
+    OutsideDocument,
+    /// The operation is invalid and could not be applied meaningfully
+    /// to any document.
+    InvalidOperation,
+    /// The Update's sequence number does not equal the Document's
+    /// current sequence number + 1
+    OutOfSequence,
+}
+
+impl fmt::Display for UpdateError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            UpdateError::OutsideDocument =>
+                write!(f, "The operation's area of effect falls outside the document"),
+            UpdateError::InvalidOperation =>
+                write!(f, "The operation is invalid"),
+            UpdateError::OutOfSequence =>
+                write!(f, "Attempted to apply an update out of sequence"),
+        }
+    }
+}
+
+impl error::Error for UpdateError {
     fn cause(&self) -> Option<&error::Error> {
         None
     }
+}
+
+/// An Update combines multiple operations into a single Document
+/// change (i.e. all the operations are applied together, or not at
+/// all).
+#[derive(Debug, PartialEq)]
+pub struct Update {
+    pub seq: usize,
+    pub operations: Vec<Operation>,
 }
 
 
@@ -114,10 +214,18 @@ mod tests {
 
     fn operation_test(initial: &'static str, op: Operation, expected: &'static str) {
         let mut doc = Document {
+            seq: 1,
             content: String::from(initial),
         };
-        doc.apply(&op).unwrap();
-        assert_eq!(doc.content, expected);
+        doc.apply(&Update {
+            seq: 2,
+            operations: vec![op]
+        }).unwrap();
+        
+        assert_eq!(doc, Document {
+            seq: 2,
+            content: String::from(expected),
+        });
     }
     
     #[test]
@@ -258,43 +366,407 @@ mod tests {
     #[test]
     fn delete_outside_of_bounds() {
         let mut doc = Document {
+            seq: 1,
             content: String::from("foobar"),
         };
         assert_eq!(
-            doc.apply(&Operation::Delete(Delete {
-                start: 3,
-                end: 7
-            })),
-            Err(OperationError::OutsideDocument)
+            doc.apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Delete(Delete {
+                        start: 3,
+                        end: 7
+                    })
+                ],
+            }),
+            Err(UpdateError::OutsideDocument)
         );
-        // content should be unchanged
-        assert_eq!(doc.content, String::from("foobar"));
+        // document should remain unchanged
+        assert_eq!(doc, Document {
+            seq: 1,
+            content: String::from("foobar")
+        });
         assert_eq!(
-            doc.apply(&Operation::Delete(Delete {
-                start: 7,
-                end: 10
-            })),
-            Err(OperationError::OutsideDocument)
+            doc.apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Delete(Delete {
+                        start: 7,
+                        end: 10
+                    })
+                ],
+            }),
+            Err(UpdateError::OutsideDocument)
         );
-        // content should be unchanged
-        assert_eq!(doc.content, String::from("foobar"));
+        // document should remain unchanged
+        assert_eq!(doc, Document {
+            seq: 1,
+            content: String::from("foobar")
+        });
     }
 
     
     #[test]
     fn insert_outside_of_bounds() {
         let mut doc = Document {
+            seq: 1,
             content: String::from("foobar"),
         };
         assert_eq!(
-            doc.apply(&Operation::Insert(Insert {
-                pos: 8,
-                content: String::from("test")
-            })),
-            Err(OperationError::OutsideDocument)
+            doc.apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Insert(Insert {
+                        pos: 8,
+                        content: String::from("test")
+                    })
+                ],
+            }),
+            Err(UpdateError::OutsideDocument)
         );
-        // content should be unchanged
-        assert_eq!(doc.content, String::from("foobar"));
+        // document should be unchanged
+        assert_eq!(doc, Document {
+            seq: 1,
+            content: String::from("foobar")
+        });
+    }
+
+    #[test]
+    fn apply_multiple_operations_in_single_update() {
+        let mut doc = Document {
+            seq: 1,
+            content: String::from("Hello"),
+        };
+        doc.apply(&Update {
+            seq: 2,
+            operations: vec![
+                Operation::Insert(Insert {
+                    pos: 5,
+                    content: String::from(", ")
+                }),
+                Operation::Insert(Insert {
+                    pos: 7,
+                    content: String::from("world!!")
+                }),
+                Operation::Delete(Delete {
+                    start: 13,
+                    end: 14
+                })
+            ],
+        }).unwrap();
+        
+        assert_eq!(doc, Document {
+            seq: 2,
+            content: String::from("Hello, world!")
+        });
+    }
+
+    #[test]
+    fn apply_update_with_single_failing_operation() {
+        let mut doc = Document {
+            seq: 1,
+            content: String::from("a"),
+        };
+        assert_eq!(
+            doc.apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Insert(Insert {
+                        pos: 0,
+                        content: String::from("b")
+                    }),
+                    Operation::Insert(Insert {
+                        pos: 0,
+                        content: String::from("c")
+                    }),
+                    Operation::Delete(Delete {
+                        start: 20,
+                        end: 25
+                    })
+                ],
+            }),
+            Err(UpdateError::OutsideDocument)
+        );
+        
+        // document should remain unchanged
+        assert_eq!(doc, Document {
+            seq: 1,
+            content: String::from("a")
+        });
+    }
+
+    
+    #[test]
+    fn apply_previous_operation_makes_later_operation_valid() {
+        let mut doc = Document {
+            seq: 1,
+            content: String::from("Hello"),
+        };
+        doc.apply(&Update {
+            seq: 2,
+            operations: vec![
+                Operation::Insert(Insert {
+                    pos: 5,
+                    content: String::from(", world!")
+                }),
+                Operation::Delete(Delete {
+                    start: 7,
+                    end: 12
+                }),
+                Operation::Insert(Insert {
+                    pos: 7,
+                    content: String::from("galaxy")
+                }),
+            ],
+        }).unwrap();
+        
+        assert_eq!(doc, Document {
+            seq: 2,
+            content: String::from("Hello, galaxy!")
+        });
+    }
+
+    #[test]
+    fn apply_previous_operation_makes_later_operation_invalid() {
+        let mut doc = Document {
+            seq: 1,
+            content: String::from("Hello"),
+        };
+        assert_eq!(
+            doc.apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Delete(Delete {
+                        start: 0,
+                        end: 5
+                    }),
+                    Operation::Insert(Insert {
+                        pos: 5,
+                        content: String::from(", world!")
+                    })
+                ],
+            }),
+            Err(UpdateError::OutsideDocument)
+        );
+
+        // document should remain unchanged
+        assert_eq!(doc, Document {
+            seq: 1,
+            content: String::from("Hello")
+        });
+    }
+
+    #[test]
+    fn apply_operations_that_have_no_effect() {
+        let mut doc = Document {
+            seq: 1,
+            content: String::from("Hello"),
+        };
+        assert_eq!(
+            doc.apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Delete(Delete {
+                        start: 2,
+                        end: 2
+                    })
+                ],
+            }),
+            Err(UpdateError::InvalidOperation)
+        );
+
+        // document should remain unchanged
+        assert_eq!(doc, Document {
+            seq: 1,
+            content: String::from("Hello")
+        });
+
+        assert_eq!(
+            doc.apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Insert(Insert {
+                        pos: 0,
+                        content: String::new()
+                    })
+                ],
+            }),
+            Err(UpdateError::InvalidOperation)
+        );
+        
+        // document should remain unchanged
+        assert_eq!(doc, Document {
+            seq: 1,
+            content: String::from("Hello")
+        });
+    }
+    
+    #[test]
+    fn apply_update_out_of_sequence() {
+        let mut doc = Document {
+            seq: 1,
+            content: String::from("Hello"),
+        };
+        assert_eq!(
+            doc.apply(&Update {
+                seq: 3,
+                operations: vec![]
+            }),
+            Err(UpdateError::OutOfSequence)
+        );
+
+        // document should remain unchanged
+        assert_eq!(doc, Document {
+            seq: 1,
+            content: String::from("Hello")
+        });
+
+        assert_eq!(
+            doc.apply(&Update {
+                seq: 1,
+                operations: vec![]
+            }),
+            Err(UpdateError::OutOfSequence)
+        );
+
+        // document should remain unchanged
+        assert_eq!(doc, Document {
+            seq: 1,
+            content: String::from("Hello")
+        });
+    }
+
+    #[test]
+    fn can_apply() {
+        let doc = Document {
+            seq: 1,
+            content: String::from("Hello"),
+        };
+        assert_eq!(
+            doc.can_apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Insert (Insert {
+                        pos: 0,
+                        content: String::from("test")
+                    })
+                ]
+            }),
+            Ok(())
+        );
+        assert_eq!(
+            doc.can_apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Insert (Insert {
+                        pos: 100,
+                        content: String::from("test")
+                    })
+                ]
+            }),
+            Err(UpdateError::OutsideDocument)
+        );
+        assert_eq!(
+            doc.can_apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Insert (Insert {
+                        pos: 100,
+                        content: String::from("")
+                    })
+                ]
+            }),
+            Err(UpdateError::InvalidOperation)
+        );
+        assert_eq!(
+            doc.can_apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Delete (Delete {
+                        start: 0,
+                        end: 2,
+                    })
+                ]
+            }),
+            Ok(())
+        );
+        assert_eq!(
+            doc.can_apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Delete (Delete {
+                        start: 100,
+                        end: 102,
+                    })
+                ]
+            }),
+            Err(UpdateError::OutsideDocument)
+        );
+        assert_eq!(
+            doc.can_apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Delete (Delete {
+                        start: 0,
+                        end: 6,
+                    })
+                ]
+            }),
+            Err(UpdateError::OutsideDocument)
+        );
+        assert_eq!(
+            doc.can_apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Delete (Delete {
+                        start: 1,
+                        end: 1,
+                    })
+                ]
+            }),
+            Err(UpdateError::InvalidOperation)
+        );
+        assert_eq!(
+            doc.can_apply(&Update {
+                seq: 2,
+                operations: vec![
+                    Operation::Delete (Delete {
+                        start: 2,
+                        end: 1,
+                    })
+                ]
+            }),
+            Err(UpdateError::InvalidOperation)
+        );
+        assert_eq!(
+            doc.can_apply(&Update {
+                seq: 10,
+                operations: vec![
+                    Operation::Delete (Delete {
+                        start: 2,
+                        end: 1,
+                    })
+                ]
+            }),
+            Err(UpdateError::OutOfSequence)
+        );
+    }
+
+    #[test]
+    fn operation_has_effect() {
+        assert!(Operation::Insert (Insert {pos: 0, content: String::from("test")}).has_effect());
+        assert!(!Operation::Insert (Insert {pos: 0, content: String::from("")}).has_effect());
+        assert!(Operation::Delete (Delete {start: 0, end: 10}).has_effect());
+        assert!(!Operation::Delete (Delete {start: 0, end: 0}).has_effect());
+    }
+
+    #[test]
+    fn operation_is_valid() {
+        assert!(Operation::Insert (Insert {pos: 0, content: String::from("test")}).is_valid());
+        assert!(!Operation::Insert (Insert {pos: 0, content: String::from("")}).is_valid());
+        assert!(Operation::Delete (Delete {start: 0, end: 10}).is_valid());
+        assert!(!Operation::Delete (Delete {start: 0, end: 0}).is_valid());
+        assert!(!Operation::Delete (Delete {start: 10, end: 0}).is_valid());
     }
 
 }
