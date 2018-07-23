@@ -2,7 +2,7 @@ language: rust
 script:
   - cargo build --verbose --all
   - cargo test --verbose --all
-  - cargo doc --verbose --package tamawiki
+  - cargo doc --verbose --all
 rust:
   - stable
   - beta
@@ -17,6 +17,6 @@ deploy:
   skip-cleanup: true
   github-token: $GITHUB_TOKEN
   keep-history: true
-  local-dir: target/doc/tamawiki
+  local-dir: target/doc
   on:
     branch: master
