@@ -98,8 +98,16 @@ impl Document {
     }
 }
 
+impl<'a> From<&'a str> for Document {
+    fn from(content: &'a str) -> Self {
+        Document {
+            content: String::from(content)
+        }
+    }
+}
+
 /// Inserts new content at a single position in the Document
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Insert {
     /// Insert position as number of Unicode Scalar Values preceeding
     /// the Insert operation, from the beginning of the document (not
@@ -109,7 +117,7 @@ pub struct Insert {
 }
 
 /// Deletes a region of content from the Document
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Delete {
     /// First Unicode Scalar Value to remove in range
     pub start: usize,
@@ -119,7 +127,7 @@ pub struct Delete {
 }
 
 /// Describes incremental changes to a Document's content
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Operation {
     Insert(Insert),
     Delete(Delete),
@@ -190,7 +198,7 @@ impl error::Error for UpdateError {
 /// An Update combines multiple operations into a single Document
 /// change (i.e. all the operations are applied together, or not at
 /// all).
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Update {
     pub operations: Vec<Operation>,
 }

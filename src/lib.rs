@@ -8,6 +8,7 @@ use actix::System;
 
 
 pub mod document;
+pub mod store;
 
 
 /// Per-thread application state
