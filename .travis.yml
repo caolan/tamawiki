@@ -1,4 +1,8 @@
 language: rust
+script:
+  - cargo build --verbose --all
+  - cargo test --verbose --all
+  - cargo doc --verbose --package tamawiki
 rust:
   - stable
   - beta
@@ -8,3 +12,11 @@ matrix:
     - rust: nightly
   fast_finish: true
 cache: cargo
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  keep-history: true
+  local-dir: target/doc/tamawiki
+  on:
+    branch: master
