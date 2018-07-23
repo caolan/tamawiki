@@ -38,18 +38,18 @@ completed values.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="struct" href="struct.ExecuteError.html"
-                                  title='struct tokio::prelude::future::ExecuteError'>ExecuteError</a></td>
+                           <td><a class="struct" href="struct.Err.html"
+                                  title='struct tokio::prelude::future::Err'>Err</a></td>
                            <td class='docblock-short'>
-                                <p>Errors returned from the <code>Spawn::spawn</code> function.</p>
+                                <p>A future representing a value that is immediately ready.</p>
 
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="struct" href="struct.Failed.html"
-                                  title='struct tokio::prelude::future::Failed'>Failed</a></td>
+                           <td><a class="struct" href="struct.ExecuteError.html"
+                                  title='struct tokio::prelude::future::ExecuteError'>ExecuteError</a></td>
                            <td class='docblock-short'>
-                                <p>A future representing a value that is immediately ready.</p>
+                                <p>Errors returned from the <code>Spawn::spawn</code> function.</p>
 
                            </td>
                        </tr>
@@ -333,11 +333,10 @@ available at some later point in time.</p>
                        </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
 <table>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.collect.html"
-                                  title='fn tokio::prelude::future::collect'>collect</a></td>
+                           <td><a class="fn" href="fn.done.html"
+                                  title='fn tokio::prelude::future::done'>done</a></td>
                            <td class='docblock-short'>
-                                <p>Creates a future which represents a collection of the results of the futures
-given.</p>
+                                <p>Creates a new &quot;leaf future&quot; which will resolve with the given result.</p>
 
                            </td>
                        </tr>
@@ -355,6 +354,15 @@ finishes.</p>
                                   title='fn tokio::prelude::future::failed'>failed</a></td>
                            <td class='docblock-short'>
                                 <p>Creates a &quot;leaf future&quot; from an immediate value of a failed computation.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.join_all.html"
+                                  title='fn tokio::prelude::future::join_all'>join_all</a></td>
+                           <td class='docblock-short'>
+                                <p>Creates a future which represents a collection of the results of the futures
+given.</p>
 
                            </td>
                        </tr>
@@ -389,14 +397,6 @@ successful computation.</p>
                                   title='fn tokio::prelude::future::poll_fn'>poll_fn</a></td>
                            <td class='docblock-short'>
                                 <p>Creates a new future wrapping around a function returning <code>Poll</code>.</p>
-
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.result.html"
-                                  title='fn tokio::prelude::future::result'>result</a></td>
-                           <td class='docblock-short'>
-                                <p>Creates a new &quot;leaf future&quot; which will resolve with the given result.</p>
 
                            </td>
                        </tr>
