@@ -98,6 +98,7 @@ ALIASES['synstructure'] = {};
 ALIASES['tamawiki'] = {};
 ALIASES['tamawiki'] = {};
 ALIASES['tamawiki'] = {};
+ALIASES['tamawiki'] = {};
 ALIASES['thread_local'] = {};
 ALIASES['time'] = {};
 ALIASES['tokio'] = {};
