@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["MemoryStore","An in-memory Store, useful for testing."]]});
+initSidebarItems({"struct":[["MemoryStore","An in-memory Store, useful for testing."],["MemoryStoreStream","An asynchronous stream of Update objects"]]});
