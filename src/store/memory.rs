@@ -1,9 +1,11 @@
 //! An in-memory store, useful for testing.
 
 use super::{Store, StoreError};
+use document::Update;
+
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use document::Update;
+use std::vec;
 
 
 /// An in-memory Store, useful for testing.
@@ -12,20 +14,20 @@ pub struct MemoryStore {
     documents: HashMap<PathBuf, Vec<Update>>,
 }
 
-impl<'a> Store<'a> for MemoryStore {
-    type Iter = &'a[Update];
+impl Store for MemoryStore {
+    type Iter = vec::IntoIter<Update>;
     
-    fn push(&'a mut self, path: PathBuf, update: Update) -> Result<usize, StoreError> {
+    fn push(&mut self, path: PathBuf, update: Update) -> Result<usize, StoreError> {
         let history = self.documents.entry(path).or_insert_with(|| Vec::new());
         history.push(update);
         Ok(history.len())
     }
 
-    fn since(&'a self, path: &Path, seq: usize) -> Result<Self::Iter, StoreError> {
+    fn since(&self, path: &Path, seq: usize) -> Result<Self::Iter, StoreError> {
         match self.documents.get(path) {
             Some(history) => {
                 if seq <= history.len() {
-                    Ok(&history[seq..])
+                    Ok(Vec::from(&history[seq..]).into_iter())
                 } else {
                     Err(StoreError::InvalidSequenceNumber)
                 }
@@ -34,7 +36,7 @@ impl<'a> Store<'a> for MemoryStore {
         }
     }
 
-    fn seq(&'a self, path: &Path) -> Result<usize, StoreError> {
+    fn seq(&self, path: &Path) -> Result<usize, StoreError> {
         match self.documents.get(path) {
             Some(history) => Ok(history.len()),
             None => Err(StoreError::NotFound),
@@ -151,34 +153,34 @@ mod tests {
         store.push(path.clone(), c.clone()).unwrap();
         
         assert_eq!(
-            store.since(&path.as_path(), 0),
-            Ok(vec![a.clone(), b.clone(), c.clone()].as_slice())
+            store.since(&path.as_path(), 0).unwrap().collect::<Vec<Update>>(),
+            vec![a.clone(), b.clone(), c.clone()]
         );
         assert_eq!(
-            store.since(&path.as_path(), 1),
-            Ok(vec![b.clone(), c.clone()].as_slice())
+            store.since(&path.as_path(), 1).unwrap().collect::<Vec<Update>>(),
+            vec![b.clone(), c.clone()]
         );
         assert_eq!(
-            store.since(&path.as_path(), 2),
-            Ok(vec![c.clone()].as_slice())
+            store.since(&path.as_path(), 2).unwrap().collect::<Vec<Update>>(),
+            vec![c.clone()]
         );
         // requesting the last sequence number is valid, but would
         // return an empty iterator
         assert_eq!(
-            store.since(&path.as_path(), 3),
-            Ok(vec![].as_slice())
+            store.since(&path.as_path(), 3).unwrap().collect::<Vec<Update>>(),
+            vec![]
         );
         // requesting updates since a sequence number not in the store
         // is invalid, however
-        assert_eq!(
-            store.since(&path.as_path(), 4),
-            Err(StoreError::InvalidSequenceNumber)
-        );
+        match store.since(&path.as_path(), 4) {
+            Err(StoreError::InvalidSequenceNumber) => (),
+            _ => assert!(false),
+        }
         // requesting updates for a missing path is an error
-        assert_eq!(
-            store.since(&PathBuf::from("/missing").as_path(), 0),
-            Err(StoreError::NotFound)
-        );
+        match store.since(&PathBuf::from("/missing").as_path(), 0) {
+            Err(StoreError::NotFound) => (),
+            _ => assert!(false),
+        }
     }
 
     #[test]
