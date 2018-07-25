@@ -2,6 +2,7 @@
 
 extern crate actix_web;
 extern crate actix;
+extern crate futures;
 
 use actix_web::{App, Responder, HttpRequest, HttpResponse, server, http};
 use actix::System;
