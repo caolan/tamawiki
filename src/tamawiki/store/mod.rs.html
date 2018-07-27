@@ -117,10 +117,17 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! A store persists document updates using paths as keys. Every store</span>
 <span class="doccomment">//! implementation must define an Actor capable of handling the</span>
-<span class="doccomment">//! messages in this module.</span>
+<span class="doccomment">//! messages in this module by implementing the Store trait.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A document&#39;s content is calculated by the accumulated application</span>
 <span class="doccomment">//! of updates within the store up until a given point in time. A</span>
@@ -132,17 +139,24 @@
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">stream</span>::<span class="ident">Stream</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
-<span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">Message</span>;
+<span class="kw">use</span> <span class="ident">actix</span>::{<span class="ident">Message</span>, <span class="ident">Handler</span>, <span class="ident">Actor</span>, <span class="ident">Context</span>};
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">memory</span>;
+
+
+<span class="doccomment">/// Every Store backend must implement the Store trait, which ensures</span>
+<span class="doccomment">/// it can handle all the messages that can be sent to a Store</span>
+<span class="doccomment">/// implementation.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Store</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">=</span><span class="ident">Context</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">Push</span><span class="op">&gt;</span> <span class="op">+</span>
+    <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">Seq</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">Since</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">ContentAt</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">Content</span><span class="op">&gt;</span> {}
 
 
 <span class="doccomment">/// Adds a new Update to the document at &#39;path&#39; and increments the</span>
 <span class="doccomment">/// sequence number. If the document does not exist, the act of</span>
 <span class="doccomment">/// pushing an update creates it.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Push</span> {
-    <span class="ident">path</span>: <span class="ident">PathBuf</span>,
-    <span class="ident">update</span>: <span class="ident">Update</span>,
+    <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">PathBuf</span>,
+    <span class="kw">pub</span> <span class="ident">update</span>: <span class="ident">Update</span>,
 }
 <span class="kw">impl</span> <span class="ident">Message</span> <span class="kw">for</span> <span class="ident">Push</span> {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">StoreError</span><span class="op">&gt;</span>;
@@ -151,7 +165,7 @@
 <span class="doccomment">/// Requests the current sequence number for the document at &#39;path&#39;,</span>
 <span class="doccomment">/// or StoreError::NotFound if it does not exist.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Seq</span> {
-    <span class="ident">path</span>: <span class="ident">PathBuf</span>,
+    <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">PathBuf</span>,
 }
 <span class="kw">impl</span> <span class="ident">Message</span> <span class="kw">for</span> <span class="ident">Seq</span> {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">StoreError</span><span class="op">&gt;</span>;
@@ -163,8 +177,8 @@
 <span class="doccomment">/// sequence number that does not exist yet is a</span>
 <span class="doccomment">/// StoreError::InvalidSequenceNumber.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Since</span> {
-    <span class="ident">path</span>: <span class="ident">PathBuf</span>,
-    <span class="ident">seq</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">PathBuf</span>,
+    <span class="kw">pub</span> <span class="ident">seq</span>: <span class="ident">usize</span>,
 }
 <span class="kw">impl</span> <span class="ident">Message</span> <span class="kw">for</span> <span class="ident">Since</span> {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Update</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;&gt;</span>, <span class="ident">StoreError</span><span class="op">&gt;</span>;
@@ -174,7 +188,7 @@
 <span class="doccomment">/// (with all updates applied), or StoreError::NotFound if the</span>
 <span class="doccomment">/// document does not exist.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Content</span> {
-    <span class="ident">path</span>: <span class="ident">PathBuf</span>,
+    <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">PathBuf</span>,
 }
 <span class="kw">impl</span> <span class="ident">Message</span> <span class="kw">for</span> <span class="ident">Content</span> {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">Document</span>), <span class="ident">StoreError</span><span class="op">&gt;</span>;
@@ -186,14 +200,14 @@
 <span class="doccomment">/// and StoreError::InvalidSequenceNumber if the sequence number does</span>
 <span class="doccomment">/// not exist.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ContentAt</span> {
-    <span class="ident">path</span>: <span class="ident">PathBuf</span>,
-    <span class="ident">seq</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">PathBuf</span>,
+    <span class="kw">pub</span> <span class="ident">seq</span>: <span class="ident">usize</span>,
 }
 <span class="kw">impl</span> <span class="ident">Message</span> <span class="kw">for</span> <span class="ident">ContentAt</span> {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Document</span>, <span class="ident">StoreError</span><span class="op">&gt;</span>;
 }
 
-<span class="doccomment">/// Error conditions for reading data from or writing data to the</span>
+<span class="doccomment">/// Error conditions for reading data from, or writing data to, the</span>
 <span class="doccomment">/// store.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StoreError</span> {

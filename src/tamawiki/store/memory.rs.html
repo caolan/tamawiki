@@ -589,6 +589,8 @@
 <span id="589">589</span>
 <span id="590">590</span>
 <span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! An in-memory store, useful for testing.</span>
 
@@ -602,6 +604,8 @@
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">stream</span>::<span class="ident">Stream</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Poll</span>, <span class="ident">Async</span>};
 
+
+<span class="kw">impl</span> <span class="ident">Store</span> <span class="kw">for</span> <span class="ident">MemoryStore</span> {}
 
 <span class="doccomment">/// An asynchronous stream of Update objects</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MemoryStoreStream</span> {
