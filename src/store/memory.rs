@@ -11,6 +11,8 @@ use futures::stream::Stream;
 use futures::{Poll, Async};
 
 
+impl Store for MemoryStore {}
+
 /// An asynchronous stream of Update objects
 pub struct MemoryStoreStream {
     updates: Arc<Mutex<Vec<Update>>>,

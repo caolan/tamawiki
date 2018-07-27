@@ -4,37 +4,66 @@ extern crate actix_web;
 extern crate actix;
 extern crate futures;
 
-use actix_web::{App, Responder, HttpRequest, HttpResponse, server, http};
-use actix::System;
-
+use std::path::PathBuf;
+use futures::future::Future;
+use actix_web::{App, HttpRequest, HttpResponse, http, server};
+use actix_web::error::Error;
+use actix::prelude::*;
 
 pub mod document;
 pub mod store;
 
+use store::memory::MemoryStore;
+use store::*;
+
 
 /// Per-thread application state
-pub struct State {}
+pub struct State<T: Store> {
+    /// The actix address of the Store used to store document Updates
+    pub store: Addr<Syn, T>,
+}
 
 /// Creates a new TamaWiki actix_web App
-pub fn app(state: State) -> App<State> {
+pub fn app<T: Store>(state: State<T>) -> App<State<T>> {
     App::with_state(state)
         .handler("/", request_handler)
 }
 
-fn request_handler(_req: HttpRequest<State>) -> impl Responder {
-    HttpResponse::Ok()
-        .header(http::header::CONTENT_TYPE, "text/html")
-        .body("Hello, world!")
+fn request_handler<T: Store>(req: HttpRequest<State<T>>) ->
+    Box<Future<Item=HttpResponse, Error=Error>>
+{
+    let path: PathBuf = req.match_info().query("tail").unwrap();
+    
+    let res = req.state().store.send(Content { path })
+        .from_err()
+        .map(|result| {
+            match result {
+                Ok((_seq, doc)) => {
+                    HttpResponse::Ok()
+                        .header(http::header::CONTENT_TYPE, "text/html")
+                        .body(doc.content)
+                },
+                Err(StoreError::NotFound) => {
+                    HttpResponse::NotFound()
+                        .header(http::header::CONTENT_TYPE, "text/html")
+                        .body("Not found")
+                },
+                Err(_) => {
+                    HttpResponse::InternalServerError()
+                        .header(http::header::CONTENT_TYPE, "text/html")
+                        .body("Error")
+                },
+            }
+        });
+    Box::new(res)
 }
 
-/// Start the TamaWiki HTTP server running on the given address
-pub fn start(addr: &str) {
-    let sys = System::new("tamawiki");
-    server::new(|| app(State {}))
-        .bind(addr)
-        .unwrap()
-        .start();
-
-    println!("TamaWiki running at {}", addr);
-    sys.run();
+/// Creates a new TamaWiki HTTP server and binds to the given address
+pub fn server(addr: &str) -> server::HttpServer<impl server::HttpHandler>  {
+    let store: Addr<Syn, _> = MemoryStore::default().start();
+    let srv = server::new(move || app::<MemoryStore>(State {
+        store: store.clone(),
+    }));
+    srv.bind(addr).unwrap()
 }
+

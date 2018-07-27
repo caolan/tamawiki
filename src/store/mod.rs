@@ -1,6 +1,6 @@
 //! A store persists document updates using paths as keys. Every store
 //! implementation must define an Actor capable of handling the
-//! messages in this module.
+//! messages in this module by implementing the Store trait.
 //!
 //! A document's content is calculated by the accumulated application
 //! of updates within the store up until a given point in time. A
@@ -12,17 +12,24 @@ use std::path::PathBuf;
 use futures::stream::Stream;
 use std::fmt::{self, Display};
 use std::error::Error;
-use actix::Message;
+use actix::{Message, Handler, Actor, Context};
 
 pub mod memory;
+
+
+/// Every Store backend must implement the Store trait, which ensures
+/// it can handle all the messages that can be sent to a Store
+/// implementation.
+pub trait Store: Actor<Context=Context<Self>> + Handler<Push> +
+    Handler<Seq> + Handler<Since> + Handler<ContentAt> + Handler<Content> {}
 
 
 /// Adds a new Update to the document at 'path' and increments the
 /// sequence number. If the document does not exist, the act of
 /// pushing an update creates it.
 pub struct Push {
-    path: PathBuf,
-    update: Update,
+    pub path: PathBuf,
+    pub update: Update,
 }
 impl Message for Push {
     type Result = Result<usize, StoreError>;
@@ -31,7 +38,7 @@ impl Message for Push {
 /// Requests the current sequence number for the document at 'path',
 /// or StoreError::NotFound if it does not exist.
 pub struct Seq {
-    path: PathBuf,
+    pub path: PathBuf,
 }
 impl Message for Seq {
     type Result = Result<usize, StoreError>;
@@ -43,8 +50,8 @@ impl Message for Seq {
 /// sequence number that does not exist yet is a
 /// StoreError::InvalidSequenceNumber.
 pub struct Since {
-    path: PathBuf,
-    seq: usize,
+    pub path: PathBuf,
+    pub seq: usize,
 }
 impl Message for Since {
     type Result = Result<Box<Stream<Item=Update, Error=StoreError>>, StoreError>;
@@ -54,7 +61,7 @@ impl Message for Since {
 /// (with all updates applied), or StoreError::NotFound if the
 /// document does not exist.
 pub struct Content {
-    path: PathBuf,
+    pub path: PathBuf,
 }
 impl Message for Content {
     type Result = Result<(usize, Document), StoreError>;
@@ -66,14 +73,14 @@ impl Message for Content {
 /// and StoreError::InvalidSequenceNumber if the sequence number does
 /// not exist.
 pub struct ContentAt {
-    path: PathBuf,
-    seq: usize,
+    pub path: PathBuf,
+    pub seq: usize,
 }
 impl Message for ContentAt {
     type Result = Result<Document, StoreError>;
 }
 
-/// Error conditions for reading data from or writing data to the
+/// Error conditions for reading data from, or writing data to, the
 /// store.
 #[derive(Debug, PartialEq)]
 pub enum StoreError {
