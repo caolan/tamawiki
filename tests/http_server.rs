@@ -91,7 +91,10 @@ fn get_page_content_from_store() {
             response.body().map_err(|err| panic!("{}", err))
         })
         .map(|body| {
-            assert_eq!(body, "Testing 123");
+            assert!(
+                String::from_utf8(body.to_vec()).unwrap()
+                    .contains("Testing 123")
+            );
         });
 
     srv.start();

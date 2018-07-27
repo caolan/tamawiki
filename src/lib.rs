@@ -1,5 +1,15 @@
 //! A wiki implemented in Rust
 
+#[macro_use]
+extern crate tera;
+
+#[macro_use]
+extern crate lazy_static;
+
+#[macro_use]
+extern crate serde_json;
+extern crate serde;
+
 extern crate actix_web;
 extern crate actix;
 extern crate futures;
@@ -12,6 +22,7 @@ use actix::prelude::*;
 
 pub mod document;
 pub mod store;
+pub mod templates;
 
 use store::memory::MemoryStore;
 use store::*;
@@ -38,15 +49,28 @@ fn request_handler<T: Store>(req: HttpRequest<State<T>>) ->
         .from_err()
         .map(|result| {
             match result {
-                Ok((_seq, doc)) => {
-                    HttpResponse::Ok()
-                        .header(http::header::CONTENT_TYPE, "text/html")
-                        .body(doc.content)
+                Ok((seq, doc)) => {
+                    let mut res = HttpResponse::Ok();
+                    res.header(http::header::CONTENT_TYPE, "text/html");
+                    
+                    templates::render_response(
+                        res,
+                        "document.html",
+                        &json!({
+                            "seq": seq,
+                            "content": doc.content
+                        })
+                    )
                 },
                 Err(StoreError::NotFound) => {
-                    HttpResponse::NotFound()
-                        .header(http::header::CONTENT_TYPE, "text/html")
-                        .body("Not found")
+                    let mut res = HttpResponse::NotFound();
+                    res.header(http::header::CONTENT_TYPE, "text/html");
+
+                    templates::render_response(
+                        res,
+                        "404.html",
+                        &json!({})
+                    )
                 },
                 Err(_) => {
                     HttpResponse::InternalServerError()
