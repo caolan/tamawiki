@@ -16,7 +16,7 @@ extern crate futures;
 
 use std::path::PathBuf;
 use futures::future::Future;
-use actix_web::{App, HttpRequest, HttpResponse, http, server};
+use actix_web::{App, HttpRequest, HttpResponse, http, server, fs};
 use actix_web::error::Error;
 use actix::prelude::*;
 
@@ -37,6 +37,10 @@ pub struct State<T: Store> {
 /// Creates a new TamaWiki actix_web App
 pub fn app<T: Store>(state: State<T>) -> App<State<T>> {
     App::with_state(state)
+        .handler(
+            "/static",
+            fs::StaticFiles::new("static").unwrap()
+        )
         .handler("/", request_handler)
 }
 

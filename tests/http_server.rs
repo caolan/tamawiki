@@ -112,3 +112,39 @@ fn get_page_content_from_store() {
         )
     });
 }
+
+#[test]
+fn request_static_file() {
+    System::run(|| {
+        let store = MemoryStore::default().start();
+        let srv = server::new(move || app::<MemoryStore>(State {
+            store: store.clone(),
+        }));
+        
+        // bind to port 0 to get random port assigned from OS
+        let srv = srv.bind("127.0.0.1:0").unwrap();
+        
+        let base_url = {
+            let (addr, scheme) = srv.addrs_with_scheme()[0];
+            format!("{}://{}", scheme, addr)
+        };
+
+        let req = client::get(format!("{}/static/css/style.css", base_url))
+            .header("User-Agent", "Actix-web")
+            .finish().unwrap()
+            .send()
+            .map(|response| {
+                assert_eq!(response.status(), 200);
+            });
+
+        srv.start();
+        
+        Arbiter::spawn(
+            req.map_err(|err| {
+                panic!("{}", err)
+            }).map(|_| {
+                System::current().stop()
+            })
+        )
+    });
+}
