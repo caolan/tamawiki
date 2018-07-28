@@ -95,6 +95,7 @@ pub fn server(addr: &str) -> server::HttpServer<impl server::HttpHandler>  {
     let store = Arbiter::start(|ctx: &mut Context<_>| {
         // TODO: remove this when the issue with dropped actix messages
         // when running apache bench is resolved?
+        // see issue: https://github.com/actix/actix/issues/120
         // set unbounded mailbox capacity
         ctx.set_mailbox_capacity(0);
         MemoryStore::default()
