@@ -44,11 +44,9 @@ pub fn app<T: Store>(state: State<T>) -> App<State<T>> {
         .handler("/", request_handler)
 }
 
-fn request_handler<T: Store>(req: &HttpRequest<State<T>>) ->
+fn get_document<T: Store>(req: &HttpRequest<State<T>>, path: PathBuf) ->
     Box<Future<Item=HttpResponse, Error=Error>>
 {
-    let path: PathBuf = req.match_info().query("tail").unwrap();
-
     let res = req.state().store.send(Content { path })
         .from_err()
         .map(|result| {
@@ -87,6 +85,13 @@ fn request_handler<T: Store>(req: &HttpRequest<State<T>>) ->
             }
         });
     Box::new(res)
+}
+
+fn request_handler<T: Store>(req: &HttpRequest<State<T>>) ->
+    Box<Future<Item=HttpResponse, Error=Error>>
+{
+    let path: PathBuf = req.match_info().query("tail").unwrap();
+    get_document(req, path)
 }
 
 /// Creates a new TamaWiki HTTP server and binds to the given address
