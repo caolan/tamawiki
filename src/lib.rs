@@ -85,7 +85,13 @@ fn request_handler<T: Store>(req: &HttpRequest<State<T>>) ->
 /// Creates a new TamaWiki HTTP server and binds to the given address
 pub fn server(addr: &str) -> server::HttpServer<impl server::HttpHandler>  {
     // Start MemoryStore in another thread
-    let store = Arbiter::start(|_| MemoryStore::default());
+    let store = Arbiter::start(|ctx: &mut Context<_>| {
+        // TODO: remove this when the issue with dropped actix messages
+        // when running apache bench is resolved?
+        // set unbounded mailbox capacity
+        ctx.set_mailbox_capacity(0);
+        MemoryStore::default()
+    });
     let srv = server::new(move || app::<MemoryStore>(State {
         store: store.clone(),
     }));
