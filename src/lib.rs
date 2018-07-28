@@ -1,5 +1,4 @@
 //! A wiki implemented in Rust
-
 #[macro_use]
 extern crate tera;
 
@@ -7,16 +6,19 @@ extern crate tera;
 extern crate lazy_static;
 
 #[macro_use]
-extern crate serde_json;
-extern crate serde;
+extern crate serde_derive;
 
+#[macro_use]
+extern crate serde_json;
+
+extern crate serde;
 extern crate actix_web;
 extern crate actix;
 extern crate futures;
 
 use std::path::PathBuf;
 use futures::future::Future;
-use actix_web::{App, HttpRequest, HttpResponse, http, server, fs};
+use actix_web::{Path, State, App, HttpRequest, HttpResponse, http, server, fs};
 use actix_web::error::Error;
 use actix::prelude::*;
 
@@ -29,25 +31,34 @@ use store::*;
 
 
 /// Per-thread application state
-pub struct State<T: Store> {
+pub struct TamaWikiState<T: Store> {
     /// The actix address of the Store used to store document Updates
     pub store: Addr<T>,
 }
 
 /// Creates a new TamaWiki actix_web App
-pub fn app<T: Store>(state: State<T>) -> App<State<T>> {
+pub fn app<T: Store>(state: TamaWikiState<T>) -> App<TamaWikiState<T>> {
     App::with_state(state)
         .handler(
             "/static",
             fs::StaticFiles::new("static").unwrap()
         )
-        .handler("/", request_handler)
+        .resource("/{tail:.*}", |r| {
+            r.get().with_async(get_document)
+        })
 }
 
-fn get_document<T: Store>(req: &HttpRequest<State<T>>, path: PathBuf) ->
+#[derive(Deserialize)]
+struct PathInfo {
+    tail: PathBuf
+}
+
+fn get_document<T: Store>(data: (State<TamaWikiState<T>>, Path<PathInfo>)) ->
     Box<Future<Item=HttpResponse, Error=Error>>
 {
-    let res = req.state().store.send(Content { path })
+    let (state, path) = data;
+    let msg = Content { path: path.into_inner().tail };
+    let res = state.store.send(msg)
         .from_err()
         .map(|result| {
             match result {
@@ -87,13 +98,6 @@ fn get_document<T: Store>(req: &HttpRequest<State<T>>, path: PathBuf) ->
     Box::new(res)
 }
 
-fn request_handler<T: Store>(req: &HttpRequest<State<T>>) ->
-    Box<Future<Item=HttpResponse, Error=Error>>
-{
-    let path: PathBuf = req.match_info().query("tail").unwrap();
-    get_document(req, path)
-}
-
 /// Creates a new TamaWiki HTTP server and binds to the given address
 pub fn server(addr: &str) -> server::HttpServer<impl server::HttpHandler>  {
     // Start MemoryStore in another thread
@@ -105,7 +109,7 @@ pub fn server(addr: &str) -> server::HttpServer<impl server::HttpHandler>  {
         ctx.set_mailbox_capacity(0);
         MemoryStore::default()
     });
-    let srv = server::new(move || app::<MemoryStore>(State {
+    let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
         store: store.clone(),
     }));
     srv.bind(addr).unwrap()

@@ -11,7 +11,7 @@ use actix::prelude::*;
 use tamawiki::store::{Push};
 use tamawiki::store::memory::MemoryStore;
 use tamawiki::document::{Update, Operation, Insert};
-use tamawiki::{app, State};
+use tamawiki::{app, TamaWikiState};
 
 
 #[test]
@@ -19,7 +19,7 @@ fn get_missing_page() {
     System::run(|| {
         let store = MemoryStore::default().start();
         
-        let srv = server::new(move || app::<MemoryStore>(State {
+        let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
             store: store.clone(),
         }));
         
@@ -76,7 +76,7 @@ fn get_page_content_from_store() {
             }
         });
 
-        let srv = server::new(move || app::<MemoryStore>(State {
+        let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
             store: store.clone(),
         }));
         
@@ -117,7 +117,7 @@ fn get_page_content_from_store() {
 fn request_static_file() {
     System::run(|| {
         let store = MemoryStore::default().start();
-        let srv = server::new(move || app::<MemoryStore>(State {
+        let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
             store: store.clone(),
         }));
         
