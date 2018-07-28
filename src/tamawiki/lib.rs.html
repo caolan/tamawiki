@@ -98,6 +98,13 @@
 <span id="98"> 98</span>
 <span id="99"> 99</span>
 <span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! A wiki implemented in Rust</span>
 
@@ -117,7 +124,7 @@
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::<span class="ident">Future</span>;
-<span class="kw">use</span> <span class="ident">actix_web</span>::{<span class="ident">App</span>, <span class="ident">HttpRequest</span>, <span class="ident">HttpResponse</span>, <span class="ident">http</span>, <span class="ident">server</span>};
+<span class="kw">use</span> <span class="ident">actix_web</span>::{<span class="ident">App</span>, <span class="ident">HttpRequest</span>, <span class="ident">HttpResponse</span>, <span class="ident">http</span>, <span class="ident">server</span>, <span class="ident">fs</span>};
 <span class="kw">use</span> <span class="ident">actix_web</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 
@@ -138,6 +145,10 @@
 <span class="doccomment">/// Creates a new TamaWiki actix_web App</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">app</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span><span class="op">&gt;</span>(<span class="ident">state</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="ident">State</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span> {
     <span class="ident">App</span>::<span class="ident">with_state</span>(<span class="ident">state</span>)
+        .<span class="ident">handler</span>(
+            <span class="string">&quot;/static&quot;</span>,
+            <span class="ident">fs</span>::<span class="ident">StaticFiles</span>::<span class="ident">new</span>(<span class="string">&quot;static&quot;</span>).<span class="ident">unwrap</span>()
+        )
         .<span class="ident">handler</span>(<span class="string">&quot;/&quot;</span>, <span class="ident">request_handler</span>)
 }
 
@@ -158,6 +169,7 @@
                         <span class="ident">res</span>,
                         <span class="string">&quot;document.html&quot;</span>,
                         <span class="kw-2">&amp;</span><span class="macro">json</span><span class="macro">!</span>({
+                            <span class="string">&quot;title&quot;</span>: <span class="string">&quot;Document&quot;</span>,
                             <span class="string">&quot;seq&quot;</span>: <span class="ident">seq</span>,
                             <span class="string">&quot;content&quot;</span>: <span class="ident">doc</span>.<span class="ident">content</span>
                         })
@@ -170,7 +182,9 @@
                     <span class="ident">templates</span>::<span class="ident">render_response</span>(
                         <span class="ident">res</span>,
                         <span class="string">&quot;404.html&quot;</span>,
-                        <span class="kw-2">&amp;</span><span class="macro">json</span><span class="macro">!</span>({})
+                        <span class="kw-2">&amp;</span><span class="macro">json</span><span class="macro">!</span>({
+                            <span class="string">&quot;title&quot;</span>: <span class="string">&quot;Not found&quot;</span>
+                        })
                     )
                 },
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
