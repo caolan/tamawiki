@@ -61,6 +61,7 @@ fn request_handler<T: Store>(req: &HttpRequest<State<T>>) ->
                         res,
                         "document.html",
                         &json!({
+                            "title": "Document",
                             "seq": seq,
                             "content": doc.content
                         })
@@ -73,7 +74,9 @@ fn request_handler<T: Store>(req: &HttpRequest<State<T>>) ->
                     templates::render_response(
                         res,
                         "404.html",
-                        &json!({})
+                        &json!({
+                            "title": "Not found"
+                        })
                     )
                 },
                 Err(_) => {

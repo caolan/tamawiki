@@ -1,5 +1,9 @@
-<h1>Example</h1>
+{% extends "base.html" %}
 
+{% block content %}
 {{ content }}
+{% endblock content %}
 
-<footer>Sequence number: {{ seq }}</footer>
+{% block footer %}
+Version: {{ seq }}
+{% endblock footer %}
