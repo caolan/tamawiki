@@ -31,7 +31,7 @@ use store::*;
 /// Per-thread application state
 pub struct State<T: Store> {
     /// The actix address of the Store used to store document Updates
-    pub store: Addr<Syn, T>,
+    pub store: Addr<T>,
 }
 
 /// Creates a new TamaWiki actix_web App
@@ -40,11 +40,11 @@ pub fn app<T: Store>(state: State<T>) -> App<State<T>> {
         .handler("/", request_handler)
 }
 
-fn request_handler<T: Store>(req: HttpRequest<State<T>>) ->
+fn request_handler<T: Store>(req: &HttpRequest<State<T>>) ->
     Box<Future<Item=HttpResponse, Error=Error>>
 {
     let path: PathBuf = req.match_info().query("tail").unwrap();
-    
+
     let res = req.state().store.send(Content { path })
         .from_err()
         .map(|result| {
@@ -84,7 +84,8 @@ fn request_handler<T: Store>(req: HttpRequest<State<T>>) ->
 
 /// Creates a new TamaWiki HTTP server and binds to the given address
 pub fn server(addr: &str) -> server::HttpServer<impl server::HttpHandler>  {
-    let store: Addr<Syn, _> = MemoryStore::default().start();
+    // Start MemoryStore in another thread
+    let store = Arbiter::start(|_| MemoryStore::default());
     let srv = server::new(move || app::<MemoryStore>(State {
         store: store.clone(),
     }));

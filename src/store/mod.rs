@@ -23,6 +23,10 @@ pub mod memory;
 pub trait Store: Actor<Context=Context<Self>> + Handler<Push> +
     Handler<Seq> + Handler<Since> + Handler<ContentAt> + Handler<Content> {}
 
+/// A stream of Updates which can be sent between threads. The store
+/// backend will need a stream implementing this trait in order to
+/// respond to the Since message.
+pub trait StoreStream: Send + Stream<Item=Update, Error=StoreError> {}
 
 /// Adds a new Update to the document at 'path' and increments the
 /// sequence number. If the document does not exist, the act of
@@ -54,7 +58,8 @@ pub struct Since {
     pub seq: usize,
 }
 impl Message for Since {
-    type Result = Result<Box<Stream<Item=Update, Error=StoreError>>, StoreError>;
+    type Result = Result<Box<StoreStream<Item=Update, Error=StoreError>>,
+                         StoreError>;
 }
 
 /// Requests the current sequence number and content for the document

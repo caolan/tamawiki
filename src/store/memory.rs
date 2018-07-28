@@ -12,6 +12,7 @@ use futures::{Poll, Async};
 
 
 impl Store for MemoryStore {}
+impl StoreStream for MemoryStoreStream {}
 
 /// An asynchronous stream of Update objects
 pub struct MemoryStoreStream {
@@ -145,11 +146,11 @@ impl Handler<Seq> for MemoryStore {
 }
 
 impl Handler<Since> for MemoryStore {
-    type Result = Result<Box<Stream<Item=Update, Error=StoreError>>, StoreError>;
+    type Result = Result<Box<StoreStream<Item=Update, Error=StoreError>>, StoreError>;
 
     fn handle(&mut self, msg: Since, _ctx: &mut Context<Self>) -> Self::Result {
         self.since(msg.path.as_path(), msg.seq).map(
-            |stream| -> Box<Stream<Item=Update, Error=StoreError>> {
+            |stream| -> Box<StoreStream<Item=Update, Error=StoreError>> {
                 Box::new(stream)
             }
         )
@@ -184,410 +185,437 @@ mod tests {
     
     #[test]
     fn memory_store_push() {
-        let mut sys = System::new("test");
-        let store: Addr<Unsync, _> = MemoryStore::default().start();
+        System::run(|| {
+            let store = MemoryStore::default().start();
 
-        let push1 = store.send(Push {
-            path: PathBuf::from("/foo/bar"),
-            update: Update {
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 0,
-                        content: String::from("Hello")
+            let push1 = store.send(Push {
+                path: PathBuf::from("/foo/bar"),
+                update: Update {
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 0,
+                            content: String::from("Hello")
+                        })
+                    ]
+                },
+            }).map(|result| {
+                assert_eq!(result.unwrap(), 1);
+            });
+
+            let push2 = store.send(Push {
+                path: PathBuf::from("/asdf"),
+                update: Update {
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 0,
+                            content: String::from("Hello")
+                        })
+                    ]
+                },
+            }).map(|result| {
+                assert_eq!(result.unwrap(), 1);
+            });
+
+            let push3 = store.send(Push {
+                path: PathBuf::from("/asdf"),
+                update: Update {
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 5,
+                            content: String::from(", world")
+                        })
+                    ]
+                },
+            }).map(|result| {
+                assert_eq!(result.unwrap(), 2);
+            });
+
+            Arbiter::spawn(
+                push1
+                    .and_then(|_| push2)
+                    .and_then(|_| push3)
+                    .map_err(|err| {
+                        panic!("{}", err);
                     })
-                ]
-            },
-        }).map(|result| {
-            assert_eq!(result.unwrap(), 1);
-        });
-
-        let push2 = store.send(Push {
-            path: PathBuf::from("/asdf"),
-            update: Update {
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 0,
-                        content: String::from("Hello")
+                    .map(|_| {
+                        System::current().stop();
                     })
-                ]
-            },
-        }).map(|result| {
-            assert_eq!(result.unwrap(), 1);
-        });
+            );
 
-        let push3 = store.send(Push {
-            path: PathBuf::from("/asdf"),
-            update: Update {
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 5,
-                        content: String::from(", world")
-                    })
-                ]
-            },
-        }).map(|result| {
-            assert_eq!(result.unwrap(), 2);
         });
-
-        sys.run_until_complete(
-            push1
-                .and_then(|_| push2)
-                .and_then(|_| push3)
-                .map_err(|err| {
-                    panic!("{}", err);
-                })
-        ).unwrap();
     }
 
     #[test]
     fn memory_store_since() {
-        let mut sys = System::new("test");
-        let store: Addr<Unsync, _> = MemoryStore::default().start();
+        System::run(|| {
+            let store = MemoryStore::default().start();
 
-        let a = Update {
-            operations: vec![
-                Operation::Insert(Insert {
-                    pos: 0,
-                    content: String::from("Hello")
-                })
-            ]
-        };
+            let a = Update {
+                operations: vec![
+                    Operation::Insert(Insert {
+                        pos: 0,
+                        content: String::from("Hello")
+                    })
+                ]
+            };
 
-        let b = Update {
-            operations: vec![
-                Operation::Insert(Insert {
-                    pos: 5,
-                    content: String::from(", world")
-                })
-            ]
-        };
+            let b = Update {
+                operations: vec![
+                    Operation::Insert(Insert {
+                        pos: 5,
+                        content: String::from(", world")
+                    })
+                ]
+            };
 
-        let c = Update {
-            operations: vec![
-                Operation::Insert(Insert {
-                    pos: 12,
-                    content: String::from("!")
-                })
-            ]
-        };
-        
-        let push1 = store.send(Push {
-            path: PathBuf::from("/foo/bar"),
-            update: a.clone(),
-        });
+            let c = Update {
+                operations: vec![
+                    Operation::Insert(Insert {
+                        pos: 12,
+                        content: String::from("!")
+                    })
+                ]
+            };
+            
+            let push1 = store.send(Push {
+                path: PathBuf::from("/foo/bar"),
+                update: a.clone(),
+            });
 
-        let push2 = store.send(Push {
-            path: PathBuf::from("/foo/bar"),
-            update: b.clone(),
-        });
+            let push2 = store.send(Push {
+                path: PathBuf::from("/foo/bar"),
+                update: b.clone(),
+            });
 
-        let push3 = store.send(Push {
-            path: PathBuf::from("/foo/bar"),
-            update: c.clone(),
-        });
+            let push3 = store.send(Push {
+                path: PathBuf::from("/foo/bar"),
+                update: c.clone(),
+            });
 
-        let since0 = store.send(Since {
-            path: PathBuf::from("/foo/bar"),
-            seq: 0
-        }).and_then(|result| {
-            result.unwrap().collect().map_err(|err| {
-                panic!("{}", err);
-            })
-        }).map(|updates| {
-            assert_eq!(updates, vec![a.clone(), b.clone(), c.clone()]);
-        });
-
-        let since1 = store.send(Since {
-            path: PathBuf::from("/foo/bar"),
-            seq: 1
-        }).and_then(|result| {
-            result.unwrap().collect().map_err(|err| {
-                panic!("{}", err);
-            })
-        }).map(|updates| {
-            assert_eq!(updates, vec![b.clone(), c.clone()]);
-        });
-
-        let since2 = store.send(Since {
-            path: PathBuf::from("/foo/bar"),
-            seq: 2
-        }).and_then(|result| {
-            result.unwrap().collect().map_err(|err| {
-                panic!("{}", err);
-            })
-        }).map(|updates| {
-            assert_eq!(updates, vec![c.clone()]);
-        });
-
-        let since3 = store.send(Since {
-            path: PathBuf::from("/foo/bar"),
-            seq: 3
-        }).and_then(|result| {
-            result.unwrap().collect().map_err(|err| {
-                panic!("{}", err);
-            })
-        }).map(|updates| {
-            // requesting the last sequence number is valid, but would
-            // return an empty result
-            assert_eq!(updates, vec![]);
-        });
-
-        let since4 = store.send(Since {
-            path: PathBuf::from("/foo/bar"),
-            seq: 4
-        }).map(|result| {
-            // requesting updates since a sequence number not in the store
-            // is invalid, however
-            match result {
-                Err(StoreError::InvalidSequenceNumber) => (),
-                _ => assert!(false),
-            }
-        });
-
-        sys.run_until_complete(
-            push1
-                .and_then(|_| push2)
-                .and_then(|_| push3)
-                .and_then(|_| {
-                    since0
-                        .join(since1)
-                        .join(since2)
-                        .join(since3)
-                        .join(since4)
-                })
-                .map_err(|err| {
+            let a0 = a.clone();
+            let b0 = b.clone();
+            let c0 = c.clone();
+            let since0 = store.send(Since {
+                path: PathBuf::from("/foo/bar"),
+                seq: 0
+            }).and_then(|result| {
+                result.unwrap().collect().map_err(|err| {
                     panic!("{}", err);
                 })
-        ).unwrap();
+            }).map(|updates| {
+                assert_eq!(updates, vec![a0, b0, c0]);
+            });
+
+            let b1 = b.clone();
+            let c1 = c.clone();
+            let since1 = store.send(Since {
+                path: PathBuf::from("/foo/bar"),
+                seq: 1
+            }).and_then(|result| {
+                result.unwrap().collect().map_err(|err| {
+                    panic!("{}", err);
+                })
+            }).map(|updates| {
+                assert_eq!(updates, vec![b1, c1]);
+            });
+            
+            let c2 = c.clone();
+            let since2 = store.send(Since {
+                path: PathBuf::from("/foo/bar"),
+                seq: 2
+            }).and_then(|result| {
+                result.unwrap().collect().map_err(|err| {
+                    panic!("{}", err);
+                })
+            }).map(|updates| {
+                assert_eq!(updates, vec![c2]);
+            });
+
+            let since3 = store.send(Since {
+                path: PathBuf::from("/foo/bar"),
+                seq: 3
+            }).and_then(|result| {
+                result.unwrap().collect().map_err(|err| {
+                    panic!("{}", err);
+                })
+            }).map(|updates| {
+                // requesting the last sequence number is valid, but would
+                // return an empty result
+                assert_eq!(updates, vec![]);
+            });
+
+            let since4 = store.send(Since {
+                path: PathBuf::from("/foo/bar"),
+                seq: 4
+            }).map(|result| {
+                // requesting updates since a sequence number not in the store
+                // is invalid, however
+                match result {
+                    Err(StoreError::InvalidSequenceNumber) => (),
+                    _ => assert!(false),
+                }
+            });
+
+            Arbiter::spawn(
+                push1
+                    .and_then(|_| push2)
+                    .and_then(|_| push3)
+                    .and_then(|_| {
+                        since0
+                            .join(since1)
+                            .join(since2)
+                            .join(since3)
+                            .join(since4)
+                    })
+                    .map_err(|err| {
+                        panic!("{}", err);
+                    })
+                    .map(|_| {
+                        System::current().stop();
+                    })
+            );
+        });
     }
 
     #[test]
     fn memory_store_seq() {
-        let mut sys = System::new("test");
-        let store: Addr<Unsync, _> = MemoryStore::default().start();
+        System::run(|| {
+            let store = MemoryStore::default().start();
 
-        let push1 = store.send(Push {
-            path: PathBuf::from("/foo/bar"),
-            update: Update {
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 0,
-                        content: String::from("Hello")
+            let push1 = store.send(Push {
+                path: PathBuf::from("/foo/bar"),
+                update: Update {
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 0,
+                            content: String::from("Hello")
+                        })
+                    ]
+                },
+            });
+
+            let push2 = store.send(Push {
+                path: PathBuf::from("/asdf"),
+                update: Update {
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 0,
+                            content: String::from("Hello")
+                        })
+                    ]
+                },
+            });
+
+            let push3 = store.send(Push {
+                path: PathBuf::from("/asdf"),
+                update: Update {
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 5,
+                            content: String::from(", world")
+                        })
+                    ]
+                },
+            });
+
+            let seq1 = store.send(Seq {
+                path: PathBuf::from("/foo/bar")
+            }).map(|result| {
+                assert_eq!(result, Ok(1));
+            });
+
+            let seq2 = store.send(Seq {
+                path: PathBuf::from("/asdf")
+            }).map(|result| {
+                assert_eq!(result, Ok(2));
+            });
+
+            let seq3 = store.send(Seq {
+                path: PathBuf::from("/not_found")
+            }).map(|result| {
+                // requesting a non-existing path is an error
+                assert_eq!(result, Err(StoreError::NotFound));
+            });
+            
+            Arbiter::spawn(
+                push1
+                    .and_then(|_| push2)
+                    .and_then(|_| push3)
+                    .and_then(|_| {
+                        seq1.join(seq2)
+                            .join(seq3)
                     })
-                ]
-            },
-        });
-
-        let push2 = store.send(Push {
-            path: PathBuf::from("/asdf"),
-            update: Update {
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 0,
-                        content: String::from("Hello")
+                    .map_err(|err| {
+                        panic!("{}", err);
                     })
-                ]
-            },
-        });
-
-        let push3 = store.send(Push {
-            path: PathBuf::from("/asdf"),
-            update: Update {
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 5,
-                        content: String::from(", world")
+                    .map(|_| {
+                        System::current().stop();
                     })
-                ]
-            },
+            );
         });
-
-        let seq1 = store.send(Seq {
-            path: PathBuf::from("/foo/bar")
-        }).map(|result| {
-            assert_eq!(result, Ok(1));
-        });
-
-        let seq2 = store.send(Seq {
-            path: PathBuf::from("/asdf")
-        }).map(|result| {
-            assert_eq!(result, Ok(2));
-        });
-
-        let seq3 = store.send(Seq {
-            path: PathBuf::from("/not_found")
-        }).map(|result| {
-            // requesting a non-existing path is an error
-            assert_eq!(result, Err(StoreError::NotFound));
-        });
-        
-        sys.run_until_complete(
-            push1
-                .and_then(|_| push2)
-                .and_then(|_| push3)
-                .and_then(|_| {
-                    seq1.join(seq2)
-                        .join(seq3)
-                })
-                .map_err(|err| {
-                    panic!("{}", err);
-                })
-        ).unwrap();
     }
 
     #[test]
     fn memory_store_content() {
-        let mut sys = System::new("test");
-        let store: Addr<Unsync, _> = MemoryStore::default().start();
+        System::run(|| {
+            let store = MemoryStore::default().start();
 
-        let push1 = store.send(Push {
-            path: PathBuf::from("/asdf"),
-            update: Update {
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 0,
-                        content: String::from("Hello")
+            let push1 = store.send(Push {
+                path: PathBuf::from("/asdf"),
+                update: Update {
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 0,
+                            content: String::from("Hello")
+                        })
+                    ]
+                },
+            });
+
+            let push2 = store.send(Push {
+                path: PathBuf::from("/asdf"),
+                update: Update {
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 5,
+                            content: String::from(", world")
+                        })
+                    ]
+                },
+            });
+
+            let content1 = store.send(Content {
+                path: PathBuf::from("/asdf")
+            }).map(|result| {
+                assert_eq!(
+                    result,
+                    Ok((2, Document::from("Hello, world")))
+                );
+            });
+
+            let content2 = store.send(Content {
+                path: PathBuf::from("/missing")
+            }).map(|result| {
+                assert_eq!(
+                    result,
+                    Err(StoreError::NotFound)
+                );
+            });
+
+            Arbiter::spawn(
+                push1
+                    .and_then(|_| push2)
+                    .and_then(|_| content1.join(content2))
+                    .map_err(|err| {
+                        panic!("{}", err);
                     })
-                ]
-            },
-        });
-
-        let push2 = store.send(Push {
-            path: PathBuf::from("/asdf"),
-            update: Update {
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 5,
-                        content: String::from(", world")
+                    .map(|_| {
+                        System::current().stop();
                     })
-                ]
-            },
-        });
-
-        let content1 = store.send(Content {
-            path: PathBuf::from("/asdf")
-        }).map(|result| {
-            assert_eq!(
-                result,
-                Ok((2, Document::from("Hello, world")))
             );
         });
-
-        let content2 = store.send(Content {
-            path: PathBuf::from("/missing")
-        }).map(|result| {
-            assert_eq!(
-                result,
-                Err(StoreError::NotFound)
-            );
-        });
-
-        sys.run_until_complete(
-            push1
-                .and_then(|_| push2)
-                .and_then(|_| content1.join(content2))
-                .map_err(|err| {
-                    panic!("{}", err);
-                })
-        ).unwrap();
     }
 
     #[test]
     fn memory_store_content_at() {
-                let mut sys = System::new("test");
-        let store: Addr<Unsync, _> = MemoryStore::default().start();
+        System::run(|| {
+            let store = MemoryStore::default().start();
 
-        let push1 = store.send(Push {
-            path: PathBuf::from("/asdf"),
-            update: Update {
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 0,
-                        content: String::from("Hello")
+            let push1 = store.send(Push {
+                path: PathBuf::from("/asdf"),
+                update: Update {
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 0,
+                            content: String::from("Hello")
+                        })
+                    ]
+                },
+            });
+
+            let push2 = store.send(Push {
+                path: PathBuf::from("/asdf"),
+                update: Update {
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 5,
+                            content: String::from(", world")
+                        })
+                    ]
+                },
+            });
+
+            let content0 = store.send(ContentAt {
+                path: PathBuf::from("/asdf"),
+                seq: 0
+            }).map(|result| {
+                assert_eq!(
+                    result,
+                    Ok(Document::from(""))
+                );
+            });
+
+            let content1 = store.send(ContentAt {
+                path: PathBuf::from("/asdf"),
+                seq: 1
+            }).map(|result| {
+                assert_eq!(
+                    result,
+                    Ok(Document::from("Hello"))
+                );
+            });
+
+            let content2 = store.send(ContentAt {
+                path: PathBuf::from("/asdf"),
+                seq: 2
+            }).map(|result| {
+                assert_eq!(
+                    result,
+                    Ok(Document::from("Hello, world"))
+                );
+            });
+            
+            let content3 = store.send(ContentAt {
+                path: PathBuf::from("/asdf"),
+                seq: 3
+            }).map(|result| {
+                // requesting a sequence number higher than the number of
+                // updates return error
+                assert_eq!(
+                    result,
+                    Err(StoreError::InvalidSequenceNumber)
+                );
+            });
+
+            let content4 = store.send(ContentAt {
+                path: PathBuf::from("/missing"),
+                seq: 0
+            }).map(|result| {
+                // requesting a missing document is an error
+                assert_eq!(
+                    result,
+                    Err(StoreError::NotFound)
+                );
+            });
+
+            Arbiter::spawn(
+                push1
+                    .and_then(|_| push2)
+                    .and_then(|_| {
+                        content0
+                            .join(content1)
+                            .join(content2)
+                            .join(content3)
+                            .join(content4)
                     })
-                ]
-            },
-        });
-
-        let push2 = store.send(Push {
-            path: PathBuf::from("/asdf"),
-            update: Update {
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 5,
-                        content: String::from(", world")
+                    .map_err(|err| {
+                        panic!("{}", err);
                     })
-                ]
-            },
-        });
-
-        let content0 = store.send(ContentAt {
-            path: PathBuf::from("/asdf"),
-            seq: 0
-        }).map(|result| {
-            assert_eq!(
-                result,
-                Ok(Document::from(""))
+                    .map(|_| {
+                        System::current().stop();
+                    })
             );
         });
-
-        let content1 = store.send(ContentAt {
-            path: PathBuf::from("/asdf"),
-            seq: 1
-        }).map(|result| {
-            assert_eq!(
-                result,
-                Ok(Document::from("Hello"))
-            );
-        });
-
-        let content2 = store.send(ContentAt {
-            path: PathBuf::from("/asdf"),
-            seq: 2
-        }).map(|result| {
-            assert_eq!(
-                result,
-                Ok(Document::from("Hello, world"))
-            );
-        });
-        
-        let content3 = store.send(ContentAt {
-            path: PathBuf::from("/asdf"),
-            seq: 3
-        }).map(|result| {
-            // requesting a sequence number higher than the number of
-            // updates return error
-            assert_eq!(
-                result,
-                Err(StoreError::InvalidSequenceNumber)
-            );
-        });
-
-        let content4 = store.send(ContentAt {
-            path: PathBuf::from("/missing"),
-            seq: 0
-        }).map(|result| {
-            // requesting a missing document is an error
-            assert_eq!(
-                result,
-                Err(StoreError::NotFound)
-            );
-        });
-
-        sys.run_until_complete(
-            push1
-                .and_then(|_| push2)
-                .and_then(|_| {
-                    content0
-                        .join(content1)
-                        .join(content2)
-                        .join(content3)
-                        .join(content4)
-                })
-                .map_err(|err| {
-                    panic!("{}", err);
-                })
-        ).unwrap();
     }
 
 }
