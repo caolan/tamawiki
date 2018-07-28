@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -270,18 +270,43 @@
 <span id="270">270</span>
 <span id="271">271</span>
 <span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
 </pre><pre class="rust ">
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">actix</span>;
+
+<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">sync</span>::<span class="ident">oneshot</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">sync</span>::<span class="ident">oneshot</span>::<span class="ident">Sender</span>;
-<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">unsync</span>::<span class="ident">oneshot</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Async</span>, <span class="ident">Future</span>, <span class="ident">Poll</span>};
 <span class="kw">use</span> <span class="ident">smallvec</span>::<span class="ident">SmallVec</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 
-<span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">dev</span>::{<span class="ident">ContextImpl</span>, <span class="ident">SyncEnvelope</span>, <span class="ident">ToEnvelope</span>};
-<span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">fut</span>::<span class="ident">ActorFuture</span>;
-<span class="kw">use</span> <span class="ident">actix</span>::{
+<span class="kw">use</span> <span class="self">self</span>::<span class="ident">actix</span>::<span class="ident">dev</span>::{
+    <span class="ident">AsyncContextParts</span>, <span class="ident">ContextFut</span>, <span class="ident">ContextParts</span>, <span class="ident">Envelope</span>, <span class="ident">Mailbox</span>, <span class="ident">ToEnvelope</span>,
+};
+<span class="kw">use</span> <span class="self">self</span>::<span class="ident">actix</span>::<span class="ident">fut</span>::<span class="ident">ActorFuture</span>;
+<span class="kw">use</span> <span class="self">self</span>::<span class="ident">actix</span>::{
     <span class="ident">Actor</span>, <span class="ident">ActorContext</span>, <span class="ident">ActorState</span>, <span class="ident">Addr</span>, <span class="ident">AsyncContext</span>, <span class="ident">Handler</span>, <span class="ident">Message</span>, <span class="ident">SpawnHandle</span>,
-    <span class="ident">Syn</span>, <span class="ident">Unsync</span>,
 };
 
 <span class="kw">use</span> <span class="ident">body</span>::{<span class="ident">Binary</span>, <span class="ident">Body</span>};
@@ -313,7 +338,7 @@
 <span class="kw">where</span>
     <span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;&gt;</span>,
 {
-    <span class="ident">inner</span>: <span class="ident">ContextImpl</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">ContextParts</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
     <span class="ident">stream</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">Frame</span>; <span class="number">4</span>]<span class="op">&gt;&gt;</span>,
     <span class="ident">request</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
     <span class="ident">disconnected</span>: <span class="ident">bool</span>,
@@ -363,15 +388,9 @@
     <span class="kw">fn</span> <span class="ident">cancel_future</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">handle</span>: <span class="ident">SpawnHandle</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">cancel_future</span>(<span class="ident">handle</span>)
     }
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">unsync_address</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">A</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">unsync_address</span>()
-    }
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sync_address</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">A</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">sync_address</span>()
+    <span class="kw">fn</span> <span class="ident">address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">address</span>()
     }
 }
 
@@ -380,21 +399,33 @@
     <span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">actor</span>: <span class="ident">A</span>) <span class="op">-&gt;</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="ident">HttpContext</span>::<span class="ident">from_request</span>(<span class="ident">req</span>).<span class="ident">actor</span>(<span class="ident">actor</span>)
-    }
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_request</span>(<span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="ident">HttpContext</span> {
-            <span class="ident">inner</span>: <span class="ident">ContextImpl</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>),
+    <span class="doccomment">/// Create a new HTTP Context from a request and an actor</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">actor</span>: <span class="ident">A</span>) <span class="op">-&gt;</span> <span class="ident">Body</span> {
+        <span class="kw">let</span> <span class="ident">mb</span> <span class="op">=</span> <span class="ident">Mailbox</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">HttpContext</span> {
+            <span class="ident">inner</span>: <span class="ident">ContextParts</span>::<span class="ident">new</span>(<span class="ident">mb</span>.<span class="ident">sender_producer</span>()),
             <span class="ident">stream</span>: <span class="prelude-val">None</span>,
             <span class="ident">request</span>: <span class="ident">req</span>,
             <span class="ident">disconnected</span>: <span class="bool-val">false</span>,
-        }
+        };
+        <span class="ident">Body</span>::<span class="ident">Actor</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">HttpContextFut</span>::<span class="ident">new</span>(<span class="ident">ctx</span>, <span class="ident">actor</span>, <span class="ident">mb</span>)))
     }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">actor</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">actor</span>: <span class="ident">A</span>) <span class="op">-&gt;</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">set_actor</span>(<span class="ident">actor</span>);
-        <span class="self">self</span>
+
+    <span class="doccomment">/// Create a new HTTP Context</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_factory</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">Body</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) <span class="op">-&gt;</span> <span class="ident">A</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    {
+        <span class="kw">let</span> <span class="ident">mb</span> <span class="op">=</span> <span class="ident">Mailbox</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">HttpContext</span> {
+            <span class="ident">inner</span>: <span class="ident">ContextParts</span>::<span class="ident">new</span>(<span class="ident">mb</span>.<span class="ident">sender_producer</span>()),
+            <span class="ident">stream</span>: <span class="prelude-val">None</span>,
+            <span class="ident">request</span>: <span class="ident">req</span>,
+            <span class="ident">disconnected</span>: <span class="bool-val">false</span>,
+        };
+
+        <span class="kw">let</span> <span class="ident">act</span> <span class="op">=</span> <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ctx</span>);
+        <span class="ident">Body</span>::<span class="ident">Actor</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">HttpContextFut</span>::<span class="ident">new</span>(<span class="ident">ctx</span>, <span class="ident">act</span>, <span class="ident">mb</span>)))
     }
 }
 
@@ -433,7 +464,6 @@
     <span class="doccomment">/// Returns drain future</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drain</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot</span>::<span class="ident">channel</span>();
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">modify</span>();
         <span class="self">self</span>.<span class="ident">add_frame</span>(<span class="ident">Frame</span>::<span class="ident">Drain</span>(<span class="ident">tx</span>));
         <span class="ident">Drain</span>::<span class="ident">new</span>(<span class="ident">rx</span>)
     }
@@ -452,7 +482,6 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>() {
             <span class="ident">s</span>.<span class="ident">push</span>(<span class="ident">frame</span>)
         }
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">modify</span>();
     }
 
     <span class="doccomment">/// Handle of the running future</span>
@@ -463,32 +492,55 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">ActorHttpContext</span> <span class="kw">for</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">AsyncContextParts</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span>,
+{
+    <span class="kw">fn</span> <span class="ident">parts</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ContextParts</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">inner</span>
+    }
+}
+
+<span class="kw">struct</span> <span class="ident">HttpContextFut</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;&gt;</span>,
+{
+    <span class="ident">fut</span>: <span class="ident">ContextFut</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">HttpContextFut</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;&gt;</span>,
+{
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ctx</span>: <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">act</span>: <span class="ident">A</span>, <span class="ident">mailbox</span>: <span class="ident">Mailbox</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">ContextFut</span>::<span class="ident">new</span>(<span class="ident">ctx</span>, <span class="ident">act</span>, <span class="ident">mailbox</span>);
+        <span class="ident">HttpContextFut</span> { <span class="ident">fut</span> }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">ActorHttpContext</span> <span class="kw">for</span> <span class="ident">HttpContextFut</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;&gt;</span>,
     <span class="ident">S</span>: <span class="lifetime">&#39;static</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">disconnected</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">disconnected</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="self">self</span>.<span class="ident">stop</span>();
+        <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">ctx</span>().<span class="ident">disconnected</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">ctx</span>().<span class="ident">stop</span>();
     }
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">Frame</span>; <span class="number">4</span>]<span class="op">&gt;&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="self">self</span> <span class="kw">as</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>) };
-
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">alive</span>() {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll</span>(<span class="ident">ctx</span>) {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">alive</span>() {
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">poll</span>() {
                 <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(())) <span class="op">=&gt;</span> (),
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorInternalServerError</span>(<span class="string">&quot;error&quot;</span>)),
             }
         }
 
         <span class="comment">// frames</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">take</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">data</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">ctx</span>().<span class="ident">stream</span>.<span class="ident">take</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">data</span>)))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">alive</span>() {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">alive</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>))
@@ -496,33 +548,25 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">M</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">ToEnvelope</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">A</span>, <span class="ident">M</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">M</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">ToEnvelope</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">M</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>,
     <span class="ident">M</span>: <span class="ident">Message</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">M</span>::<span class="prelude-ty">Result</span>: <span class="ident">Send</span>,
 {
-    <span class="kw">fn</span> <span class="ident">pack</span>(<span class="ident">msg</span>: <span class="ident">M</span>, <span class="ident">tx</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">M</span>::<span class="prelude-ty">Result</span><span class="op">&gt;&gt;</span>) <span class="op">-&gt;</span> <span class="ident">SyncEnvelope</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-        <span class="ident">SyncEnvelope</span>::<span class="ident">new</span>(<span class="ident">msg</span>, <span class="ident">tx</span>)
+    <span class="kw">fn</span> <span class="ident">pack</span>(<span class="ident">msg</span>: <span class="ident">M</span>, <span class="ident">tx</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">M</span>::<span class="prelude-ty">Result</span><span class="op">&gt;&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Envelope</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+        <span class="ident">Envelope</span>::<span class="ident">new</span>(<span class="ident">msg</span>, <span class="ident">tx</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">Body</span>
-<span class="kw">where</span>
-    <span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">S</span>: <span class="lifetime">&#39;static</span>,
-{
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ctx</span>: <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Body</span> {
-        <span class="ident">Body</span>::<span class="ident">Actor</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">ctx</span>))
-    }
-}
-
+<span class="doccomment">/// Consume a future</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
     <span class="ident">fut</span>: <span class="ident">oneshot</span>::<span class="ident">Receiver</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
     <span class="ident">_a</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Create a drain from a future</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">fut</span>: <span class="ident">oneshot</span>::<span class="ident">Receiver</span><span class="op">&lt;</span>()<span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">Drain</span> {
             <span class="ident">fut</span>,

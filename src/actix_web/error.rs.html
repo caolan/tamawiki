@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1110,13 +1110,22 @@
 <span id="1110">1110</span>
 <span id="1111">1111</span>
 <span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Error and Result module</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">IoError</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">Utf8Error</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">string</span>::<span class="ident">FromUtf8Error</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Mutex</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">io</span>, <span class="ident">mem</span>, <span class="ident">result</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">io</span>, <span class="ident">result</span>};
 
 <span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">MailboxError</span>;
 <span class="kw">use</span> <span class="ident">cookie</span>;
@@ -1125,19 +1134,19 @@
 <span class="kw">use</span> <span class="ident">http</span>::<span class="ident">uri</span>::<span class="ident">InvalidUri</span>;
 <span class="kw">use</span> <span class="ident">http</span>::{<span class="ident">header</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">HttpError</span>, <span class="ident">StatusCode</span>};
 <span class="kw">use</span> <span class="ident">http2</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">Http2Error</span>;
-<span class="kw">use</span> <span class="ident">http_range</span>::<span class="ident">HttpRangeParseError</span>;
 <span class="kw">use</span> <span class="ident">httparse</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">de</span>::<span class="ident">value</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">DeError</span>;
 <span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">JsonError</span>;
+<span class="kw">use</span> <span class="ident">serde_urlencoded</span>::<span class="ident">ser</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">FormError</span>;
+<span class="kw">use</span> <span class="ident">tokio_timer</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">TimerError</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">url</span>::<span class="ident">ParseError</span> <span class="kw">as</span> <span class="ident">UrlParseError</span>;
 
 <span class="comment">// re-exports</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cookie</span>::<span class="ident">ParseError</span> <span class="kw">as</span> <span class="ident">CookieParseError</span>;
 
-<span class="kw">use</span> <span class="ident">body</span>::<span class="ident">Body</span>;
 <span class="kw">use</span> <span class="ident">handler</span>::<span class="ident">Responder</span>;
 <span class="kw">use</span> <span class="ident">httprequest</span>::<span class="ident">HttpRequest</span>;
-<span class="kw">use</span> <span class="ident">httpresponse</span>::{<span class="ident">HttpResponse</span>, <span class="ident">InnerHttpResponse</span>};
+<span class="kw">use</span> <span class="ident">httpresponse</span>::{<span class="ident">HttpResponse</span>, <span class="ident">HttpResponseParts</span>};
 
 <span class="doccomment">/// A specialized [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html)</span>
 <span class="doccomment">/// for actix web operations</span>
@@ -1150,7 +1159,7 @@
 <span class="doccomment">/// General purpose actix web error.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// An actix web error is used to carry errors from `failure` or `std::error`</span>
-<span class="doccomment">/// through actix in a convenient way.  It can be created through through</span>
+<span class="doccomment">/// through actix in a convenient way.  It can be created through</span>
 <span class="doccomment">/// converting errors with `into()`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Whenever it is created from an external object a response error is created</span>
@@ -1219,7 +1228,8 @@
             <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompatWrappedError</span> {
                 <span class="ident">error</span>: <span class="ident">failure</span>::<span class="ident">Error</span>,
             }
-            <span class="kw">let</span> <span class="ident">compat</span>: <span class="kw-2">&amp;</span><span class="ident">CompatWrappedError</span> <span class="op">=</span> <span class="kw">unsafe</span> { ::<span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">compat</span>) };
+            <span class="kw">let</span> <span class="ident">compat</span>: <span class="kw-2">&amp;</span><span class="ident">CompatWrappedError</span> <span class="op">=</span>
+                <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">compat</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">CompatWrappedError</span>) };
             <span class="ident">compat</span>.<span class="ident">error</span>.<span class="ident">downcast_ref</span>()
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -1315,6 +1325,12 @@
 
 <span class="doccomment">/// `InternalServerError` for `JsonError`</span>
 <span class="kw">impl</span> <span class="ident">ResponseError</span> <span class="kw">for</span> <span class="ident">JsonError</span> {}
+
+<span class="doccomment">/// `InternalServerError` for `FormError`</span>
+<span class="kw">impl</span> <span class="ident">ResponseError</span> <span class="kw">for</span> <span class="ident">FormError</span> {}
+
+<span class="doccomment">/// `InternalServerError` for `TimerError`</span>
+<span class="kw">impl</span> <span class="ident">ResponseError</span> <span class="kw">for</span> <span class="ident">TimerError</span> {}
 
 <span class="doccomment">/// `InternalServerError` for `UrlParseError`</span>
 <span class="kw">impl</span> <span class="ident">ResponseError</span> <span class="kw">for</span> <span class="ident">UrlParseError</span> {}
@@ -1479,44 +1495,23 @@
     }
 }
 
-<span class="doccomment">/// `InternalServerError` for `PayloadError`</span>
-<span class="kw">impl</span> <span class="ident">ResponseError</span> <span class="kw">for</span> <span class="ident">PayloadError</span> {}
+<span class="doccomment">/// `PayloadError` returns two possible results:</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// - `Overflow` returns `PayloadTooLarge`</span>
+<span class="doccomment">/// - Other errors returns `BadRequest`</span>
+<span class="kw">impl</span> <span class="ident">ResponseError</span> <span class="kw">for</span> <span class="ident">PayloadError</span> {
+    <span class="kw">fn</span> <span class="ident">error_response</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponse</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">PayloadError</span>::<span class="ident">Overflow</span> <span class="op">=&gt;</span> <span class="ident">HttpResponse</span>::<span class="ident">new</span>(<span class="ident">StatusCode</span>::<span class="ident">PAYLOAD_TOO_LARGE</span>),
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">HttpResponse</span>::<span class="ident">new</span>(<span class="ident">StatusCode</span>::<span class="ident">BAD_REQUEST</span>),
+        }
+    }
+}
 
 <span class="doccomment">/// Return `BadRequest` for `cookie::ParseError`</span>
 <span class="kw">impl</span> <span class="ident">ResponseError</span> <span class="kw">for</span> <span class="ident">cookie</span>::<span class="ident">ParseError</span> {
     <span class="kw">fn</span> <span class="ident">error_response</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponse</span> {
         <span class="ident">HttpResponse</span>::<span class="ident">new</span>(<span class="ident">StatusCode</span>::<span class="ident">BAD_REQUEST</span>)
-    }
-}
-
-<span class="doccomment">/// Http range header parsing error</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Fail</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HttpRangeError</span> {
-    <span class="doccomment">/// Returned if range is invalid.</span>
-    <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Range header is invalid&quot;</span>)]</span>
-    <span class="ident">InvalidRange</span>,
-    <span class="doccomment">/// Returned if first-byte-pos of all of the byte-range-spec</span>
-    <span class="doccomment">/// values is greater than the content size.</span>
-    <span class="doccomment">/// See `https://github.com/golang/go/commit/aa9b3d7`</span>
-    <span class="attribute">#[<span class="ident">fail</span>(
-        <span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;First-byte-pos of all of the byte-range-spec values is greater than the content size&quot;</span>
-    )]</span>
-    <span class="ident">NoOverlap</span>,
-}
-
-<span class="doccomment">/// Return `BadRequest` for `HttpRangeError`</span>
-<span class="kw">impl</span> <span class="ident">ResponseError</span> <span class="kw">for</span> <span class="ident">HttpRangeError</span> {
-    <span class="kw">fn</span> <span class="ident">error_response</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponse</span> {
-        <span class="ident">HttpResponse</span>::<span class="ident">with_body</span>(<span class="ident">StatusCode</span>::<span class="ident">BAD_REQUEST</span>, <span class="string">&quot;Invalid Range header provided&quot;</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">HttpRangeParseError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">HttpRangeError</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">HttpRangeParseError</span>) <span class="op">-&gt;</span> <span class="ident">HttpRangeError</span> {
-        <span class="kw">match</span> <span class="ident">err</span> {
-            <span class="ident">HttpRangeParseError</span>::<span class="ident">InvalidRange</span> <span class="op">=&gt;</span> <span class="ident">HttpRangeError</span>::<span class="ident">InvalidRange</span>,
-            <span class="ident">HttpRangeParseError</span>::<span class="ident">NoOverlap</span> <span class="op">=&gt;</span> <span class="ident">HttpRangeError</span>::<span class="ident">NoOverlap</span>,
-        }
     }
 }
 
@@ -1603,8 +1598,10 @@
     <span class="doccomment">/// Can not decode chunked transfer encoding</span>
     <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Can not decode chunked transfer encoding&quot;</span>)]</span>
     <span class="ident">Chunked</span>,
-    <span class="doccomment">/// Payload size is bigger than 256k</span>
-    <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Payload size is bigger than 256k&quot;</span>)]</span>
+    <span class="doccomment">/// Payload size is bigger than allowed. (default: 256kB)</span>
+    <span class="attribute">#[<span class="ident">fail</span>(
+        <span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Urlencoded payload size is bigger than allowed. (default: 256kB)&quot;</span>
+    )]</span>
     <span class="ident">Overflow</span>,
     <span class="doccomment">/// Payload size is now known</span>
     <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Payload size is now known&quot;</span>)]</span>
@@ -1644,8 +1641,8 @@
 <span class="doccomment">/// A set of errors that can occur during parsing json payloads</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Fail</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JsonPayloadError</span> {
-    <span class="doccomment">/// Payload size is bigger than 256k</span>
-    <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Payload size is bigger than 256k&quot;</span>)]</span>
+    <span class="doccomment">/// Payload size is bigger than allowed. (default: 256kB)</span>
+    <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Json payload size is bigger than allowed. (default: 256kB)&quot;</span>)]</span>
     <span class="ident">Overflow</span>,
     <span class="doccomment">/// Content type error</span>
     <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Content type error&quot;</span>)]</span>
@@ -1682,6 +1679,30 @@
     }
 }
 
+<span class="doccomment">/// Error type returned when reading body as lines.</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ReadlinesError</span> {
+    <span class="doccomment">/// Error when decoding a line.</span>
+    <span class="ident">EncodingError</span>,
+    <span class="doccomment">/// Payload error.</span>
+    <span class="ident">PayloadError</span>(<span class="ident">PayloadError</span>),
+    <span class="doccomment">/// Line limit exceeded.</span>
+    <span class="ident">LimitOverflow</span>,
+    <span class="doccomment">/// ContentType error.</span>
+    <span class="ident">ContentTypeError</span>(<span class="ident">ContentTypeError</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PayloadError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ReadlinesError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">PayloadError</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="ident">ReadlinesError</span>::<span class="ident">PayloadError</span>(<span class="ident">err</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ContentTypeError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ReadlinesError</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">ContentTypeError</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="ident">ReadlinesError</span>::<span class="ident">ContentTypeError</span>(<span class="ident">err</span>)
+    }
+}
+
 <span class="doccomment">/// Errors which can occur when attempting to interpret a segment string as a</span>
 <span class="doccomment">/// valid path segment.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Fail</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
@@ -1707,12 +1728,13 @@
 <span class="doccomment">/// Errors which can occur when attempting to generate resource uri.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Fail</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UrlGenerationError</span> {
+    <span class="doccomment">/// Resource not found</span>
     <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Resource not found&quot;</span>)]</span>
     <span class="ident">ResourceNotFound</span>,
+    <span class="doccomment">/// Not all path pattern covered</span>
     <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Not all path pattern covered&quot;</span>)]</span>
     <span class="ident">NotEnoughElements</span>,
-    <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Router is not available&quot;</span>)]</span>
-    <span class="ident">RouterNotAvailable</span>,
+    <span class="doccomment">/// URL parse error</span>
     <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;{}&quot;</span>, <span class="ident">_0</span>)]</span>
     <span class="ident">ParseError</span>(<span class="attribute">#[<span class="ident">cause</span>]</span> <span class="ident">UrlParseError</span>),
 }
@@ -1723,6 +1745,24 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">UrlParseError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UrlGenerationError</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">UrlParseError</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">UrlGenerationError</span>::<span class="ident">ParseError</span>(<span class="ident">err</span>)
+    }
+}
+
+<span class="doccomment">/// Errors which can occur when serving static files.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Fail</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StaticFileError</span> {
+    <span class="doccomment">/// Path is not a directory</span>
+    <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Path is not a directory. Unable to serve static files&quot;</span>)]</span>
+    <span class="ident">IsNotDirectory</span>,
+    <span class="doccomment">/// Cannot render directory</span>
+    <span class="attribute">#[<span class="ident">fail</span>(<span class="ident">display</span> <span class="op">=</span> <span class="string">&quot;Unable to render directory without index file&quot;</span>)]</span>
+    <span class="ident">IsDirectory</span>,
+}
+
+<span class="doccomment">/// Return `NotFound` for `StaticFileError`</span>
+<span class="kw">impl</span> <span class="ident">ResponseError</span> <span class="kw">for</span> <span class="ident">StaticFileError</span> {
+    <span class="kw">fn</span> <span class="ident">error_response</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponse</span> {
+        <span class="ident">HttpResponse</span>::<span class="ident">new</span>(<span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>)
     }
 }
 
@@ -1751,7 +1791,7 @@
 
 <span class="kw">enum</span> <span class="ident">InternalErrorType</span> {
     <span class="ident">Status</span>(<span class="ident">StatusCode</span>),
-    <span class="ident">Response</span>(<span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerHttpResponse</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>),
+    <span class="ident">Response</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HttpResponseParts</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>),
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">InternalError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -1766,21 +1806,10 @@
 
     <span class="doccomment">/// Create `InternalError` with predefined `HttpResponse`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_response</span>(<span class="ident">cause</span>: <span class="ident">T</span>, <span class="ident">response</span>: <span class="ident">HttpResponse</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">into_inner</span>();
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">resp</span>.<span class="ident">body</span>, <span class="ident">Body</span>::<span class="ident">Empty</span>);
-        <span class="kw">match</span> <span class="ident">body</span> {
-            <span class="ident">Body</span>::<span class="ident">Empty</span> <span class="op">=&gt;</span> (),
-            <span class="ident">Body</span>::<span class="ident">Binary</span>(<span class="kw-2">mut</span> <span class="ident">bin</span>) <span class="op">=&gt;</span> {
-                <span class="ident">resp</span>.<span class="ident">body</span> <span class="op">=</span> <span class="ident">Body</span>::<span class="ident">Binary</span>(<span class="ident">bin</span>.<span class="ident">take</span>().<span class="ident">into</span>());
-            }
-            <span class="ident">Body</span>::<span class="ident">Streaming</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Body</span>::<span class="ident">Actor</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
-                <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Streaming or Actor body is not support by error response&quot;</span>);
-            }
-        }
-
+        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">into_parts</span>();
         <span class="ident">InternalError</span> {
             <span class="ident">cause</span>,
-            <span class="ident">status</span>: <span class="ident">InternalErrorType</span>::<span class="ident">Response</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="prelude-val">Some</span>(<span class="ident">resp</span>))),
+            <span class="ident">status</span>: <span class="ident">InternalErrorType</span>::<span class="ident">Response</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="prelude-val">Some</span>(<span class="ident">resp</span>)))),
             <span class="ident">backtrace</span>: <span class="ident">Backtrace</span>::<span class="ident">new</span>(),
         }
     }
@@ -1822,7 +1851,7 @@
             <span class="ident">InternalErrorType</span>::<span class="ident">Status</span>(<span class="ident">st</span>) <span class="op">=&gt;</span> <span class="ident">HttpResponse</span>::<span class="ident">new</span>(<span class="ident">st</span>),
             <span class="ident">InternalErrorType</span>::<span class="ident">Response</span>(<span class="kw-2">ref</span> <span class="ident">resp</span>) <span class="op">=&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">resp</span>) <span class="op">=</span> <span class="ident">resp</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">take</span>() {
-                    <span class="ident">HttpResponse</span>::<span class="ident">from_inner</span>(<span class="ident">resp</span>)
+                    <span class="ident">HttpResponse</span>::<span class="ident">from_parts</span>(<span class="ident">resp</span>)
                 } <span class="kw">else</span> {
                     <span class="ident">HttpResponse</span>::<span class="ident">new</span>(<span class="ident">StatusCode</span>::<span class="ident">INTERNAL_SERVER_ERROR</span>)
                 }
@@ -2017,9 +2046,6 @@
         <span class="kw">let</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span> <span class="ident">ParseError</span>::<span class="ident">Incomplete</span>.<span class="ident">error_response</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">BAD_REQUEST</span>);
 
-        <span class="kw">let</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span> <span class="ident">HttpRangeError</span>::<span class="ident">InvalidRange</span>.<span class="ident">error_response</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">BAD_REQUEST</span>);
-
         <span class="kw">let</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span> <span class="ident">CookieParseError</span>::<span class="ident">EmptyName</span>.<span class="ident">error_response</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">BAD_REQUEST</span>);
 
@@ -2067,14 +2093,6 @@
         <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">Error</span>::<span class="ident">from</span>(<span class="ident">orig</span>);
         <span class="kw">let</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">into</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">INTERNAL_SERVER_ERROR</span>);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_range_error</span>() {
-        <span class="kw">let</span> <span class="ident">e</span>: <span class="ident">HttpRangeError</span> <span class="op">=</span> <span class="ident">HttpRangeParseError</span>::<span class="ident">InvalidRange</span>.<span class="ident">into</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e</span>, <span class="ident">HttpRangeError</span>::<span class="ident">InvalidRange</span>);
-        <span class="kw">let</span> <span class="ident">e</span>: <span class="ident">HttpRangeError</span> <span class="op">=</span> <span class="ident">HttpRangeParseError</span>::<span class="ident">NoOverlap</span>.<span class="ident">into</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e</span>, <span class="ident">HttpRangeError</span>::<span class="ident">NoOverlap</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

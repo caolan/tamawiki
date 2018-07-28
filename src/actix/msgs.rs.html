@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-0.5.8/src/msgs.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>msgs.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-0.7.2/src/msgs.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>msgs.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -119,16 +119,9 @@
 <span class="doccomment">//! Actix system messages</span>
 
 <span class="kw">use</span> <span class="ident">actor</span>::<span class="ident">Actor</span>;
-<span class="kw">use</span> <span class="ident">address</span>::{<span class="ident">Addr</span>, <span class="ident">Syn</span>};
+<span class="kw">use</span> <span class="ident">address</span>::<span class="ident">Addr</span>;
 <span class="kw">use</span> <span class="ident">context</span>::<span class="ident">Context</span>;
 <span class="kw">use</span> <span class="ident">handler</span>::<span class="ident">Message</span>;
-
-<span class="doccomment">/// Stop system execution</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SystemExit</span>(<span class="kw">pub</span> <span class="ident">i32</span>);
-
-<span class="kw">impl</span> <span class="ident">Message</span> <span class="kw">for</span> <span class="ident">SystemExit</span> {
-    <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> ();
-}
 
 <span class="doccomment">/// Stop arbiter execution</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StopArbiter</span>(<span class="kw">pub</span> <span class="ident">i32</span>);
@@ -141,7 +134,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StartActor</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&gt;</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">FnBox</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&gt;</span> <span class="ident">Message</span> <span class="kw">for</span> <span class="ident">StartActor</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">A</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span> <span class="ident">StartActor</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
@@ -149,21 +142,25 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">A</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
-        <span class="ident">StartActor</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="op">||</span> <span class="ident">A</span>::<span class="ident">create</span>(<span class="ident">f</span>)))
+        <span class="ident">StartActor</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="op">||</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">Context</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="ident">act</span> <span class="op">=</span> <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ctx</span>);
+            <span class="ident">ctx</span>.<span class="ident">run</span>(<span class="ident">act</span>)
+        }))
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">call_box</span>()
     }
 }
 
 <span class="kw">trait</span> <span class="ident">FnBox</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Actor</span><span class="op">&gt;</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
-    <span class="kw">fn</span> <span class="ident">call_box</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">A</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">call_box</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Actor</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">FnBox</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">F</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Actor</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">FnBox</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">F</span> {
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">boxed_local</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">call_box</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">call_box</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
         (<span class="kw-2">*</span><span class="self">self</span>)()
     }
 }
@@ -178,18 +175,21 @@
 <span class="doccomment">/// # extern crate actix;</span>
 <span class="doccomment">/// use actix::prelude::*;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// struct MyActor{addr: Addr&lt;Syn, Arbiter&gt;}</span>
+<span class="doccomment">/// struct MyActor {</span>
+<span class="doccomment">///     addr: Addr&lt;Arbiter&gt;,</span>
+<span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// impl Actor for MyActor {</span>
-<span class="doccomment">///    type Context = Context&lt;Self&gt;;</span>
+<span class="doccomment">///     type Context = Context&lt;Self&gt;;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///    fn started(&amp;mut self, ctx: &amp;mut Context&lt;Self&gt;) {</span>
-<span class="doccomment">///        self.addr.do_send(actix::msgs::Execute::new(|| -&gt; Result&lt;(), ()&gt; {</span>
-<span class="doccomment">///            // do something</span>
-<span class="doccomment">///            // ...</span>
-<span class="doccomment">///            Ok(())</span>
-<span class="doccomment">///        }));</span>
-<span class="doccomment">///    }</span>
+<span class="doccomment">///     fn started(&amp;mut self, ctx: &amp;mut Context&lt;Self&gt;) {</span>
+<span class="doccomment">///         self.addr</span>
+<span class="doccomment">///             .do_send(actix::msgs::Execute::new(|| -&gt; Result&lt;(), ()&gt; {</span>
+<span class="doccomment">///                 // do something</span>
+<span class="doccomment">///                 // ...</span>
+<span class="doccomment">///                 Ok(())</span>
+<span class="doccomment">///             }));</span>
+<span class="doccomment">///     }</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// fn main() {}</span>
 <span class="doccomment">/// ```</span>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-0.5.8/src/registry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>registry.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-0.7.2/src/registry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>registry.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -265,6 +265,28 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Actors registry</span>
 <span class="doccomment">//!</span>
@@ -275,19 +297,29 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">default</span>::<span class="ident">Default</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::<span class="ident">BuildHasherDefault</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+
+<span class="kw">use</span> <span class="ident">fnv</span>::<span class="ident">FnvHasher</span>;
+<span class="kw">use</span> <span class="ident">parking_lot</span>::<span class="ident">ReentrantMutex</span>;
 
 <span class="kw">use</span> <span class="ident">actor</span>::{<span class="ident">Actor</span>, <span class="ident">Supervised</span>};
-<span class="kw">use</span> <span class="ident">address</span>::{<span class="ident">Addr</span>, <span class="ident">Syn</span>, <span class="ident">Unsync</span>};
+<span class="kw">use</span> <span class="ident">address</span>::<span class="ident">Addr</span>;
 <span class="kw">use</span> <span class="ident">arbiter</span>::<span class="ident">Arbiter</span>;
 <span class="kw">use</span> <span class="ident">context</span>::<span class="ident">Context</span>;
 <span class="kw">use</span> <span class="ident">supervisor</span>::<span class="ident">Supervisor</span>;
+<span class="kw">use</span> <span class="ident">system</span>::<span class="ident">System</span>;
+
+<span class="kw">type</span> <span class="ident">AnyMap</span> <span class="op">=</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">TypeId</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Any</span><span class="op">&gt;</span>, <span class="ident">BuildHasherDefault</span><span class="op">&lt;</span><span class="ident">FnvHasher</span><span class="op">&gt;&gt;</span>;
 
 <span class="doccomment">/// Actors registry</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Actor can register itself as a service. Service can be defined as</span>
 <span class="doccomment">/// `ArbiterService` which is unique per arbiter or `SystemService` which is</span>
 <span class="doccomment">/// unique per system.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// If arbiter service is used outside of runnig arbiter, it panics.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
@@ -313,11 +345,12 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// impl Handler&lt;Ping&gt; for MyActor1 {</span>
+
 <span class="doccomment">///    type Result = ();</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///    fn handle(&amp;mut self, _: Ping, ctx: &amp;mut Context&lt;Self&gt;) {</span>
 <span class="doccomment">///       println!(&quot;ping&quot;);</span>
-<span class="doccomment">/// #     Arbiter::system().do_send(actix::msgs::SystemExit(0));</span>
+<span class="doccomment">/// #     System::current().stop();</span>
 <span class="doccomment">///    }</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
@@ -327,6 +360,7 @@
 <span class="doccomment">///    type Context = Context&lt;Self&gt;;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///    fn started(&amp;mut self, _: &amp;mut Context&lt;Self&gt;) {</span>
+<span class="doccomment">///       // get MyActor1 addres from the registry</span>
 <span class="doccomment">///       let act = Arbiter::registry().get::&lt;MyActor1&gt;();</span>
 <span class="doccomment">///       act.do_send(Ping);</span>
 <span class="doccomment">///    }</span>
@@ -334,203 +368,213 @@
 <span class="doccomment">///</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///    // initialize system</span>
-<span class="doccomment">///    let sys = System::new(&quot;test&quot;);</span>
+<span class="doccomment">///     // initialize system</span>
+<span class="doccomment">///     let code = System::run(|| {</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///    // Start MyActor1</span>
-<span class="doccomment">///    let _:() = MyActor1.start();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///    // Start MyActor2</span>
-<span class="doccomment">///    let _:() = MyActor2.start();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///    // Run system, this function blocks current thread</span>
-<span class="doccomment">///    let code = sys.run();</span>
-<span class="doccomment">/// #  std::process::exit(code);</span>
+<span class="doccomment">///         // Start MyActor1 in new Arbiter</span>
+<span class="doccomment">///         Arbiter::start(|_| {</span>
+<span class="doccomment">///             MyActor2</span>
+<span class="doccomment">///         });</span>
+<span class="doccomment">///     });</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Registry</span> {
-    <span class="ident">registry</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">TypeId</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Any</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">registry</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">AnyMap</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="doccomment">/// Trait defines arbiter&#39;s service.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ArbiterService</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Supervised</span> <span class="op">+</span> <span class="ident">Default</span> {
+    <span class="doccomment">/// Construct and srtart arbiter service</span>
+    <span class="kw">fn</span> <span class="ident">start_service</span>() <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="ident">Supervisor</span>::<span class="ident">start</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">act</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">default</span>();
+            <span class="ident">act</span>.<span class="ident">service_started</span>(<span class="ident">ctx</span>);
+            <span class="ident">act</span>
+        })
+    }
+
     <span class="doccomment">/// Method is called during service initialization.</span>
     <span class="kw">fn</span> <span class="ident">service_started</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {}
 
     <span class="doccomment">/// Get actor&#39;s address from arbiter registry</span>
-    <span class="kw">fn</span> <span class="ident">from_registry</span>() <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_registry</span>() <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">Arbiter</span>::<span class="ident">registry</span>().<span class="ident">get</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>()
-    }
-
-    <span class="doccomment">/// Create an actor in the Arbiter with a closure</span>
-    <span class="kw">fn</span> <span class="ident">init_actor</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="self">Self</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="self">Self</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>{
-        <span class="ident">Arbiter</span>::<span class="ident">registry</span>().<span class="ident">init_actor</span>::<span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">f</span>)
-    }
-}
-
-<span class="doccomment">/// Trait defines system&#39;s service.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SystemService</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Supervised</span> <span class="op">+</span> <span class="ident">Default</span> {
-    <span class="doccomment">/// Method is called during service initialization.</span>
-    <span class="kw">fn</span> <span class="ident">service_started</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {}
-
-    <span class="doccomment">/// Get actor&#39;s address from system registry</span>
-    <span class="kw">fn</span> <span class="ident">from_registry</span>() <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">Arbiter</span>::<span class="ident">system_registry</span>().<span class="ident">get</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>()
-    }
-
-    <span class="doccomment">/// Create an SystemService with a closure</span>
-    <span class="kw">fn</span> <span class="ident">init_actor</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="self">Self</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="self">Self</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>{
-        <span class="ident">Arbiter</span>::<span class="ident">system_registry</span>().<span class="ident">init_actor</span>::<span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Registry</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">Registry</span> {
-            <span class="ident">registry</span>: <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">HashMap</span>::<span class="ident">new</span>()),
+            <span class="ident">registry</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">HashMap</span>::<span class="ident">default</span>())),
         }
     }
 
     <span class="doccomment">/// Query registry for specific actor. Returns address of the actor.</span>
     <span class="doccomment">/// If actor is not registered, starts new actor and</span>
     <span class="doccomment">/// return address of newly created actor.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">ArbiterService</span> <span class="op">+</span> <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">=</span><span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">ArbiterService</span> <span class="op">+</span> <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">borrow</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">A</span><span class="op">&gt;&gt;</span>() {
-                <span class="kw">return</span> <span class="ident">addr</span>.<span class="ident">clone</span>()
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span>() {
+                <span class="kw">return</span> <span class="ident">addr</span>.<span class="ident">clone</span>();
             }
         }
-        <span class="kw">let</span> <span class="ident">addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Supervisor</span>::<span class="ident">start</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">act</span> <span class="op">=</span> <span class="ident">A</span>::<span class="ident">default</span>();
-            <span class="ident">act</span>.<span class="ident">service_started</span>(<span class="ident">ctx</span>);
-            <span class="ident">act</span>
-        });
+        <span class="kw">let</span> <span class="ident">addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">A</span>::<span class="ident">start_service</span>();
 
-        <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">addr</span>.<span class="ident">clone</span>()));
+        <span class="self">self</span>.<span class="ident">registry</span>
+            .<span class="ident">borrow_mut</span>()
+            .<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">addr</span>.<span class="ident">clone</span>()));
         <span class="ident">addr</span>
     }
 
-    <span class="doccomment">/// Add new actor to the registry using the initialization function provided, panic if actor</span>
-    <span class="doccomment">/// is already running</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_actor</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">ArbiterService</span> <span class="op">+</span> <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">=</span><span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">with</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">A</span>::<span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">A</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
+    <span class="doccomment">/// Add new actor to the registry by address, panic if actor is already running</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">ArbiterService</span> <span class="op">+</span> <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">borrow</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">A</span><span class="op">&gt;&gt;</span>() {
-                <span class="kw">return</span> <span class="ident">addr</span>.<span class="ident">clone</span>()
-            }
-        }
-        <span class="kw">let</span> <span class="ident">addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Supervisor</span>::<span class="ident">start</span>(<span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">act</span> <span class="op">=</span> <span class="ident">with</span>(<span class="ident">ctx</span>);
-            <span class="ident">act</span>.<span class="ident">service_started</span>(<span class="ident">ctx</span>);
-            <span class="ident">act</span>
-        });
-
-        <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">addr</span>.<span class="ident">clone</span>()));
-        <span class="ident">addr</span>
-    }
-
-    <span class="doccomment">/// Add new actor to the registry using the initialization function provided, panic if actor</span>
-    <span class="doccomment">/// is already running</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">ArbiterService</span> <span class="op">+</span> <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">=</span><span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">A</span><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">borrow</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>) {
-             <span class="kw">match</span> <span class="ident">addr</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">A</span><span class="op">&gt;&gt;</span>() {
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Actor already started&quot;</span>)
-                },
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> {},
+            <span class="kw">if</span> <span class="ident">addr</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span>().<span class="ident">is_some</span>() {
+                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Actor already started&quot;</span>);
             }
         }
 
-        <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">addr</span>.<span class="ident">clone</span>()));
+        <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">id</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">addr</span>));
     }
 }
 
-<span class="comment">// TODO: Remove lock</span>
 <span class="doccomment">/// System wide actors registry</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// System registry serves same purpose as [Registry](struct.Registry.html), except</span>
-<span class="doccomment">/// it is shared across all arbiters.</span>
+<span class="doccomment">/// System registry serves same purpose as [Registry](struct.Registry.html),</span>
+<span class="doccomment">/// except it is shared across all arbiters.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Example</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```rust</span>
+<span class="doccomment">/// # #[macro_use] extern crate actix;</span>
+<span class="doccomment">/// use actix::prelude::*;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #[derive(Message)]</span>
+<span class="doccomment">/// struct Ping;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #[derive(Default)]</span>
+<span class="doccomment">/// struct MyActor1;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// impl Actor for MyActor1 {</span>
+<span class="doccomment">///     type Context = Context&lt;Self&gt;;</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// impl actix::Supervised for MyActor1 {}</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// impl SystemService for MyActor1 {</span>
+<span class="doccomment">///     fn service_started(&amp;mut self, ctx: &amp;mut Context&lt;Self&gt;) {</span>
+<span class="doccomment">///         println!(&quot;Service started&quot;);</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// impl Handler&lt;Ping&gt; for MyActor1 {</span>
+<span class="doccomment">///     type Result = ();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///     fn handle(&amp;mut self, _: Ping, ctx: &amp;mut Context&lt;Self&gt;) {</span>
+<span class="doccomment">///         println!(&quot;ping&quot;);</span>
+<span class="doccomment">/// #       System::current().stop();</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// struct MyActor2;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// impl Actor for MyActor2 {</span>
+<span class="doccomment">///     type Context = Context&lt;Self&gt;;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///     fn started(&amp;mut self, _: &amp;mut Context&lt;Self&gt;) {</span>
+<span class="doccomment">///         let act = System::current().registry().get::&lt;MyActor1&gt;();</span>
+<span class="doccomment">///         act.do_send(Ping);</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// fn main() {</span>
+<span class="doccomment">///     // initialize system</span>
+<span class="doccomment">///     let code = System::run(|| {</span>
+<span class="doccomment">///         // Start MyActor1</span>
+<span class="doccomment">///         let addr = MyActor1.start();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///         // Start MyActor2</span>
+<span class="doccomment">///         let addr = MyActor2.start();</span>
+<span class="doccomment">///     });</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SystemRegistry</span> {
-    <span class="ident">registry</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">TypeId</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Any</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">system</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Arbiter</span><span class="op">&gt;</span>,
+    <span class="ident">registry</span>: <span class="ident">InnerRegistry</span>,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">SystemRegistry</span> {}
+<span class="kw">type</span> <span class="ident">AnyMapSend</span> <span class="op">=</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">TypeId</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Any</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>, <span class="ident">BuildHasherDefault</span><span class="op">&lt;</span><span class="ident">FnvHasher</span><span class="op">&gt;&gt;</span>;
+<span class="kw">type</span> <span class="ident">InnerRegistry</span> <span class="op">=</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ReentrantMutex</span><span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">AnyMapSend</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>;
+
+<span class="doccomment">/// Trait defines system&#39;s service.</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SystemService</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Supervised</span> <span class="op">+</span> <span class="ident">Default</span> {
+    <span class="doccomment">/// Construct and srtart system service</span>
+    <span class="kw">fn</span> <span class="ident">start_service</span>(<span class="ident">sys</span>: <span class="kw-2">&amp;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Arbiter</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="ident">Supervisor</span>::<span class="ident">start_in_arbiter</span>(<span class="ident">sys</span>, <span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">act</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">default</span>();
+            <span class="ident">act</span>.<span class="ident">service_started</span>(<span class="ident">ctx</span>);
+            <span class="ident">act</span>
+        })
+    }
+
+    <span class="doccomment">/// Method is called during service initialization.</span>
+    <span class="kw">fn</span> <span class="ident">service_started</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {}
+
+    <span class="doccomment">/// Get actor&#39;s address from system registry</span>
+    <span class="kw">fn</span> <span class="ident">from_registry</span>() <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="ident">System</span>::<span class="ident">with_current</span>(<span class="op">|</span><span class="ident">sys</span><span class="op">|</span> <span class="ident">sys</span>.<span class="ident">registry</span>().<span class="ident">get</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>())
+    }
+}
 
 <span class="kw">impl</span> <span class="ident">SystemRegistry</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="ident">SystemRegistry</span>{<span class="ident">registry</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">HashMap</span>::<span class="ident">new</span>()))}
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">system</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Arbiter</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="ident">SystemRegistry</span> {
+            <span class="ident">system</span>,
+            <span class="ident">registry</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">ReentrantMutex</span>::<span class="ident">new</span>(<span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">HashMap</span>::<span class="ident">default</span>()))),
+        }
     }
 
     <span class="doccomment">/// Return address of the service. If service actor is not running</span>
-    <span class="doccomment">/// it get started in system arbiter.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">SystemService</span> <span class="op">+</span> <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">=</span><span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>,<span class="ident">A</span><span class="op">&gt;</span> {
-        {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">hm</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">lock</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="ident">hm</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>()) {
-                    <span class="kw">match</span> <span class="ident">addr</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">A</span><span class="op">&gt;&gt;</span>() {
-                        <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=&gt;</span> {
-                            <span class="kw">return</span> <span class="ident">addr</span>.<span class="ident">clone</span>()
-                        },
-                        <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Got unknown value: {:?}&quot;</span>, <span class="ident">addr</span>),
-                    }
-                }
-            } <span class="kw">else</span> { <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;System registry lock is poisoned&quot;</span>); }
+    <span class="doccomment">/// it get started in the system.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">SystemService</span> <span class="op">+</span> <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">hm</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">lock</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="ident">hm</span>.<span class="ident">borrow</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>()) {
+            <span class="kw">match</span> <span class="ident">addr</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span>() {
+                <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">addr</span>.<span class="ident">clone</span>(),
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Got unknown value: {:?}&quot;</span>, <span class="ident">addr</span>),
+            }
         }
 
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">Supervisor</span>::<span class="ident">start_in</span>(<span class="kw-2">&amp;</span><span class="ident">Arbiter</span>::<span class="ident">system_arbiter</span>(), <span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">act</span> <span class="op">=</span> <span class="ident">A</span>::<span class="ident">default</span>();
-            <span class="ident">act</span>.<span class="ident">service_started</span>(<span class="ident">ctx</span>);
-            <span class="ident">act</span>
-        });
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">hm</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">lock</span>() {
-            <span class="ident">hm</span>.<span class="ident">insert</span>(<span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(), <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">addr</span>.<span class="ident">clone</span>()));
-            <span class="kw">return</span> <span class="ident">addr</span>
-        }
-        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;System registry lock is poisoned&quot;</span>);
-    }
-
-    <span class="doccomment">/// Initialize a SystemService, panic if already started</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init_actor</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">SystemService</span> <span class="op">+</span> <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">=</span><span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">with</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>,<span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">A</span>::<span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">A</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
-        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">Supervisor</span>::<span class="ident">start_in</span>(<span class="kw-2">&amp;</span><span class="ident">Arbiter</span>::<span class="ident">system_arbiter</span>(), <span class="op">|</span><span class="ident">ctx</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">act</span> <span class="op">=</span> <span class="ident">with</span>(<span class="ident">ctx</span>);
-            <span class="ident">act</span>.<span class="ident">service_started</span>(<span class="ident">ctx</span>);
-            <span class="ident">act</span>
-        });
-
-        <span class="self">self</span>.<span class="ident">set</span>(<span class="ident">addr</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">A</span>::<span class="ident">start_service</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">system</span>);
+        <span class="ident">hm</span>.<span class="ident">borrow_mut</span>()
+            .<span class="ident">insert</span>(<span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(), <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">addr</span>.<span class="ident">clone</span>()));
         <span class="ident">addr</span>
     }
 
-    <span class="doccomment">/// Initialize a SystemService to a actor address (can be used to start SyncActors, panic if already started</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">SystemService</span> <span class="op">+</span> <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">=</span><span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>,<span class="ident">A</span><span class="op">&gt;</span>) {
-        {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">hm</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">lock</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="ident">hm</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>()) {
-                    <span class="kw">match</span> <span class="ident">addr</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">A</span><span class="op">&gt;&gt;</span>() {
-                        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
-                            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Actor already started&quot;</span>)
-                        },
-                        <span class="prelude-val">None</span> <span class="op">=&gt;</span> {},
-                    }
-                }
-            } <span class="kw">else</span> { <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;System registry lock is poisoned&quot;</span>); }
+    <span class="doccomment">/// Add new actor to the registry by address, panic if actor is already running</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">SystemService</span> <span class="op">+</span> <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span> <span class="op">=</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) {
+        <span class="kw">let</span> <span class="ident">hm</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">lock</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="ident">hm</span>.<span class="ident">borrow</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>()) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">addr</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;&gt;</span>() {
+                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Actor already started&quot;</span>);
+            }
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">hm</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">registry</span>.<span class="ident">lock</span>() {
-            <span class="ident">hm</span>.<span class="ident">insert</span>(<span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(), <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">addr</span>.<span class="ident">clone</span>()));
-        } <span class="kw">else</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;System registry lock is poisoned&quot;</span>);
-        }
+        <span class="ident">hm</span>.<span class="ident">borrow_mut</span>()
+            .<span class="ident">insert</span>(<span class="ident">TypeId</span>::<span class="ident">of</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(), <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">addr</span>.<span class="ident">clone</span>()));
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">SystemRegistry</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="ident">SystemRegistry</span>{<span class="ident">registry</span>: <span class="ident">Arc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">registry</span>)}
+        <span class="ident">SystemRegistry</span> {
+            <span class="ident">system</span>: <span class="self">self</span>.<span class="ident">system</span>.<span class="ident">clone</span>(),
+            <span class="ident">registry</span>: <span class="ident">Arc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">registry</span>),
+        }
     }
 }
 </pre>

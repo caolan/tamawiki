@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/client/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/client/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -217,18 +217,22 @@
 <span id="217">217</span>
 <span id="218">218</span>
 <span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
 </pre><pre class="rust ">
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
+
 <span class="kw">use</span> <span class="ident">bytes</span>::{<span class="ident">Bytes</span>, <span class="ident">BytesMut</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Async</span>, <span class="ident">Poll</span>};
 <span class="kw">use</span> <span class="ident">http</span>::<span class="ident">header</span>::{<span class="self">self</span>, <span class="ident">HeaderName</span>, <span class="ident">HeaderValue</span>};
-<span class="kw">use</span> <span class="ident">http</span>::{<span class="ident">HeaderMap</span>, <span class="ident">HttpTryFrom</span>, <span class="ident">StatusCode</span>, <span class="ident">Version</span>};
+<span class="kw">use</span> <span class="ident">http</span>::{<span class="ident">HeaderMap</span>, <span class="ident">StatusCode</span>, <span class="ident">Version</span>};
 <span class="kw">use</span> <span class="ident">httparse</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 
 <span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">ParseError</span>, <span class="ident">PayloadError</span>};
 
-<span class="kw">use</span> <span class="ident">server</span>::<span class="ident">h1decoder</span>::<span class="ident">EncodingDecoder</span>;
-<span class="kw">use</span> <span class="ident">server</span>::{<span class="ident">utils</span>, <span class="ident">IoStream</span>};
+<span class="kw">use</span> <span class="ident">server</span>::<span class="ident">h1decoder</span>::{<span class="ident">EncodingDecoder</span>, <span class="ident">HeaderIndex</span>};
+<span class="kw">use</span> <span class="ident">server</span>::<span class="ident">IoStream</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">response</span>::<span class="ident">ClientMessage</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ClientResponse</span>;
@@ -259,9 +263,11 @@
     {
         <span class="comment">// if buf is empty parse_message will always return NotReady, let&#39;s avoid that</span>
         <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">match</span> <span class="ident">utils</span>::<span class="ident">read_from_io</span>(<span class="ident">io</span>, <span class="ident">buf</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="number">0</span>)) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">HttpResponseParserError</span>::<span class="ident">Disconnect</span>),
-                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> (),
+            <span class="kw">match</span> <span class="ident">io</span>.<span class="ident">read_available</span>(<span class="ident">buf</span>) {
+                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="bool-val">true</span>)) <span class="op">=&gt;</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">HttpResponseParserError</span>::<span class="ident">Disconnect</span>)
+                }
+                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="bool-val">false</span>)) <span class="op">=&gt;</span> (),
                 <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>),
                 <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">HttpResponseParserError</span>::<span class="ident">Error</span>(<span class="ident">err</span>.<span class="ident">into</span>())),
             }
@@ -279,11 +285,11 @@
                     <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">capacity</span>() <span class="op">&gt;=</span> <span class="ident">MAX_BUFFER_SIZE</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">HttpResponseParserError</span>::<span class="ident">Error</span>(<span class="ident">ParseError</span>::<span class="ident">TooLarge</span>));
                     }
-                    <span class="kw">match</span> <span class="ident">utils</span>::<span class="ident">read_from_io</span>(<span class="ident">io</span>, <span class="ident">buf</span>) {
-                        <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="number">0</span>)) <span class="op">=&gt;</span> {
+                    <span class="kw">match</span> <span class="ident">io</span>.<span class="ident">read_available</span>(<span class="ident">buf</span>) {
+                        <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="bool-val">true</span>)) <span class="op">=&gt;</span> {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">HttpResponseParserError</span>::<span class="ident">Disconnect</span>)
                         }
-                        <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> (),
+                        <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="bool-val">false</span>)) <span class="op">=&gt;</span> (),
                         <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>),
                         <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">HttpResponseParserError</span>::<span class="ident">Error</span>(<span class="ident">err</span>.<span class="ident">into</span>()))
@@ -303,11 +309,11 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">decoder</span>.<span class="ident">is_some</span>() {
             <span class="kw">loop</span> {
                 <span class="comment">// read payload</span>
-                <span class="kw">let</span> (<span class="ident">not_ready</span>, <span class="ident">stream_finished</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">utils</span>::<span class="ident">read_from_io</span>(<span class="ident">io</span>, <span class="ident">buf</span>) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="number">0</span>)) <span class="op">=&gt;</span> (<span class="bool-val">false</span>, <span class="bool-val">true</span>),
-                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>.<span class="ident">into</span>()),
+                <span class="kw">let</span> (<span class="ident">not_ready</span>, <span class="ident">stream_finished</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">io</span>.<span class="ident">read_available</span>(<span class="ident">buf</span>) {
+                    <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="bool-val">true</span>)) <span class="op">=&gt;</span> (<span class="bool-val">false</span>, <span class="bool-val">true</span>),
+                    <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="bool-val">false</span>)) <span class="op">=&gt;</span> (<span class="bool-val">false</span>, <span class="bool-val">false</span>),
                     <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> (<span class="bool-val">true</span>, <span class="bool-val">false</span>),
-                    <span class="kw">_</span> <span class="op">=&gt;</span> (<span class="bool-val">false</span>, <span class="bool-val">false</span>),
+                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>.<span class="ident">into</span>()),
                 };
 
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">decoder</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">decode</span>(<span class="ident">buf</span>) {
@@ -335,24 +341,23 @@
     <span class="kw">fn</span> <span class="ident">parse_message</span>(
         <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BytesMut</span>,
     ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(<span class="ident">ClientResponse</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EncodingDecoder</span><span class="op">&gt;</span>), <span class="ident">ParseError</span><span class="op">&gt;</span> {
-        <span class="comment">// Parse http message</span>
-        <span class="kw">let</span> <span class="ident">bytes_ptr</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">as_ref</span>().<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span>: [<span class="ident">httparse</span>::<span class="ident">Header</span>; <span class="ident">MAX_HEADERS</span>] <span class="op">=</span>
-            <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">uninitialized</span>() };
+        <span class="comment">// Unsafe: we read only this data only after httparse parses headers into.</span>
+        <span class="comment">// performance bump for pipeline benchmarks.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span>: [<span class="ident">HeaderIndex</span>; <span class="ident">MAX_HEADERS</span>] <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">uninitialized</span>() };
 
         <span class="kw">let</span> (<span class="ident">len</span>, <span class="ident">version</span>, <span class="ident">status</span>, <span class="ident">headers_len</span>) <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="ident">buf</span>;
-                <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">b</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>)
-            };
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">httparse</span>::<span class="ident">Response</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">headers</span>);
-            <span class="kw">match</span> <span class="ident">resp</span>.<span class="ident">parse</span>(<span class="ident">b</span>)<span class="question-mark">?</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parsed</span>: [<span class="ident">httparse</span>::<span class="ident">Header</span>; <span class="ident">MAX_HEADERS</span>] <span class="op">=</span>
+                <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">uninitialized</span>() };
+
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">httparse</span>::<span class="ident">Response</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parsed</span>);
+            <span class="kw">match</span> <span class="ident">resp</span>.<span class="ident">parse</span>(<span class="ident">buf</span>)<span class="question-mark">?</span> {
                 <span class="ident">httparse</span>::<span class="ident">Status</span>::<span class="ident">Complete</span>(<span class="ident">len</span>) <span class="op">=&gt;</span> {
                     <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">resp</span>.<span class="ident">version</span>.<span class="ident">unwrap_or</span>(<span class="number">1</span>) <span class="op">==</span> <span class="number">1</span> {
                         <span class="ident">Version</span>::<span class="ident">HTTP_11</span>
                     } <span class="kw">else</span> {
                         <span class="ident">Version</span>::<span class="ident">HTTP_10</span>
                     };
+                    <span class="ident">HeaderIndex</span>::<span class="ident">record</span>(<span class="ident">buf</span>, <span class="ident">resp</span>.<span class="ident">headers</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">headers</span>);
                     <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="ident">StatusCode</span>::<span class="ident">from_u16</span>(<span class="ident">resp</span>.<span class="ident">code</span>.<span class="ident">unwrap</span>())
                         .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ParseError</span>::<span class="ident">Status</span>)<span class="question-mark">?</span>;
 
@@ -366,12 +371,13 @@
 
         <span class="comment">// convert headers</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hdrs</span> <span class="op">=</span> <span class="ident">HeaderMap</span>::<span class="ident">new</span>();
-        <span class="kw">for</span> <span class="ident">header</span> <span class="kw">in</span> <span class="ident">headers</span>[..<span class="ident">headers_len</span>].<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">HeaderName</span>::<span class="ident">try_from</span>(<span class="ident">header</span>.<span class="ident">name</span>) {
-                <span class="kw">let</span> <span class="ident">v_start</span> <span class="op">=</span> <span class="ident">header</span>.<span class="ident">value</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">bytes_ptr</span>;
-                <span class="kw">let</span> <span class="ident">v_end</span> <span class="op">=</span> <span class="ident">v_start</span> <span class="op">+</span> <span class="ident">header</span>.<span class="ident">value</span>.<span class="ident">len</span>();
+        <span class="kw">for</span> <span class="ident">idx</span> <span class="kw">in</span> <span class="ident">headers</span>[..<span class="ident">headers_len</span>].<span class="ident">iter</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">HeaderName</span>::<span class="ident">from_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">slice</span>[<span class="ident">idx</span>.<span class="ident">name</span>.<span class="number">0</span>..<span class="ident">idx</span>.<span class="ident">name</span>.<span class="number">1</span>]) {
+                <span class="comment">// Unsafe: httparse check header value for valid utf-8</span>
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                    <span class="ident">HeaderValue</span>::<span class="ident">from_shared_unchecked</span>(<span class="ident">slice</span>.<span class="ident">slice</span>(<span class="ident">v_start</span>, <span class="ident">v_end</span>))
+                    <span class="ident">HeaderValue</span>::<span class="ident">from_shared_unchecked</span>(
+                        <span class="ident">slice</span>.<span class="ident">slice</span>(<span class="ident">idx</span>.<span class="ident">value</span>.<span class="number">0</span>, <span class="ident">idx</span>.<span class="ident">value</span>.<span class="number">1</span>),
+                    )
                 };
                 <span class="ident">hdrs</span>.<span class="ident">append</span>(<span class="ident">name</span>, <span class="ident">value</span>);
             } <span class="kw">else</span> {

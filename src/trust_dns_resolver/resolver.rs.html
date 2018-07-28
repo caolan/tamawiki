@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-resolver-0.8.2/src/resolver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resolver.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-resolver-0.9.0/src/resolver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resolver.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -244,6 +244,26 @@
 <span id="244">244</span>
 <span id="245">245</span>
 <span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2015-2017 Benjamin Fry &lt;benjaminfry@me.com&gt;</span>
 <span class="comment">//</span>
@@ -253,20 +273,21 @@
 <span class="comment">// copied, modified, or distributed except according to those terms.</span>
 
 <span class="doccomment">//! Structs for creating and using a Resolver</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">IpAddr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">IpAddr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 
-<span class="kw">use</span> <span class="ident">tokio_core</span>::<span class="ident">reactor</span>::{<span class="ident">Core</span>, <span class="ident">Handle</span>};
+<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">Future</span>;
+<span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">current_thread</span>::<span class="ident">Runtime</span>;
 <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">rr</span>::<span class="ident">RecordType</span>;
 
+<span class="kw">use</span> <span class="ident">ResolverFuture</span>;
 <span class="kw">use</span> <span class="ident">config</span>::{<span class="ident">ResolverConfig</span>, <span class="ident">ResolverOpts</span>};
+<span class="kw">use</span> <span class="ident">dns_lru</span>::<span class="ident">DnsLru</span>;
 <span class="kw">use</span> <span class="ident">error</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">lookup</span>;
 <span class="kw">use</span> <span class="ident">lookup</span>::<span class="ident">Lookup</span>;
 <span class="kw">use</span> <span class="ident">lookup_ip</span>::<span class="ident">LookupIp</span>;
-<span class="kw">use</span> <span class="ident">dns_lru</span>::<span class="ident">DnsLru</span>;
-<span class="kw">use</span> <span class="ident">ResolverFuture</span>;
 
 <span class="doccomment">/// The Resolver is used for performing DNS queries.</span>
 <span class="doccomment">///</span>
@@ -289,9 +310,11 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `query` - a str which parses to a domain name, failure to parse will return an error</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">query</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">l</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reactor</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>(<span class="kw-2">&amp;</span><span class="ident">reactor</span>.<span class="ident">handle</span>())<span class="question-mark">?</span>;
-    <span class="ident">reactor</span>.<span class="ident">run</span>(<span class="ident">future</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>(<span class="ident">query</span>))
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>()<span class="question-mark">?</span>;
+    <span class="ident">io_loop</span>.<span class="ident">block_on</span>(<span class="ident">future</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">future</span><span class="op">|</span> {
+        <span class="ident">future</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>(<span class="ident">query</span>)
+    }))
 }
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">l</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=&gt;</span> {
@@ -301,9 +324,11 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `query` - a type which can be converted to `Name` via `From`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">query</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>) <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">l</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reactor</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>(<span class="kw-2">&amp;</span><span class="ident">reactor</span>.<span class="ident">handle</span>())<span class="question-mark">?</span>;
-    <span class="ident">reactor</span>.<span class="ident">run</span>(<span class="ident">future</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>(<span class="ident">query</span>))
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>()<span class="question-mark">?</span>;
+    <span class="ident">io_loop</span>.<span class="ident">block_on</span>(<span class="ident">future</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">future</span><span class="op">|</span> {
+        <span class="ident">future</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>(<span class="ident">query</span>)
+    }))
 }
     };
 }
@@ -348,14 +373,12 @@
         <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">config</span>, <span class="ident">options</span>)
     }
 
-    <span class="doccomment">/// Constructs a new Core</span>
-    <span class="kw">fn</span> <span class="ident">construct_and_run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">reactor</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>) <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span><span class="ident">ResolverFuture</span><span class="op">&gt;</span> {
-        <span class="comment">// TODO: get a pair of the Future and the Handle, to run on the same Core.</span>
+    <span class="doccomment">/// Constructs a new ResolverFutture</span>
+    <span class="kw">fn</span> <span class="ident">construct_and_run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">ResolverFuture</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">ResolveError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">with_cache</span>(
             <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">clone</span>(),
             <span class="self">self</span>.<span class="ident">options</span>.<span class="ident">clone</span>(),
             <span class="self">self</span>.<span class="ident">lru</span>.<span class="ident">clone</span>(),
-            <span class="ident">reactor</span>,
         );
 
         <span class="prelude-val">Ok</span>(<span class="ident">future</span>)
@@ -370,9 +393,11 @@
     <span class="doccomment">/// * `name` - name of the record to lookup, if name is not a valid domain name, an error will be returned</span>
     <span class="doccomment">/// * `record_type` - type of record to lookup</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">record_type</span>: <span class="ident">RecordType</span>) <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span><span class="ident">Lookup</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reactor</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>(<span class="kw-2">&amp;</span><span class="ident">reactor</span>.<span class="ident">handle</span>())<span class="question-mark">?</span>;
-        <span class="ident">reactor</span>.<span class="ident">run</span>(<span class="ident">future</span>.<span class="ident">lookup</span>(<span class="ident">name</span>, <span class="ident">record_type</span>))
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>()<span class="question-mark">?</span>;
+        <span class="ident">io_loop</span>.<span class="ident">block_on</span>(<span class="ident">future</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">future</span><span class="op">|</span> {
+            <span class="ident">future</span>.<span class="ident">lookup</span>(<span class="ident">name</span>, <span class="ident">record_type</span>)
+        }))
     }
 
     <span class="doccomment">/// Performs a dual-stack DNS lookup for the IP for the given hostname.</span>
@@ -383,9 +408,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `host` - string hostname, if this is an invalid hostname, an error will be returned.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_ip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">host</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span><span class="ident">LookupIp</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reactor</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>(<span class="kw-2">&amp;</span><span class="ident">reactor</span>.<span class="ident">handle</span>())<span class="question-mark">?</span>;
-        <span class="ident">reactor</span>.<span class="ident">run</span>(<span class="ident">future</span>.<span class="ident">lookup_ip</span>(<span class="ident">host</span>))
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>()<span class="question-mark">?</span>;
+        <span class="ident">io_loop</span>.<span class="ident">block_on</span>(<span class="ident">future</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">future</span><span class="op">|</span> {
+            <span class="ident">future</span>.<span class="ident">lookup_ip</span>(<span class="ident">host</span>)
+        }))
     }
 
     <span class="doccomment">/// Performs a DNS lookup for an SRV record for the specified service type and protocol at the given name.</span>
@@ -397,15 +424,28 @@
     <span class="doccomment">/// * `service` - service to lookup, e.g. ldap or http</span>
     <span class="doccomment">/// * `protocol` - wire protocol, e.g. udp or tcp</span>
     <span class="doccomment">/// * `name` - zone or other name at which the service is located.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use lookup_srv instead, this interface is none ideal&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_service</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">service</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">protocol</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span><span class="ident">lookup</span>::<span class="ident">SrvLookup</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">reactor</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>(<span class="kw-2">&amp;</span><span class="ident">reactor</span>.<span class="ident">handle</span>())<span class="question-mark">?</span>;
-        <span class="ident">reactor</span>.<span class="ident">run</span>(<span class="ident">future</span>.<span class="ident">lookup_service</span>(<span class="ident">service</span>, <span class="ident">protocol</span>, <span class="ident">name</span>))
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>()<span class="question-mark">?</span>;
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
+        <span class="ident">io_loop</span>.<span class="ident">block_on</span>(<span class="ident">future</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">future</span><span class="op">|</span> {
+            <span class="ident">future</span>.<span class="ident">lookup_service</span>(<span class="ident">service</span>, <span class="ident">protocol</span>, <span class="ident">name</span>)
+        }))
+    }
+
+    <span class="doccomment">/// Lookup an SRV record.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_srv</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span><span class="ident">lookup</span>::<span class="ident">SrvLookup</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_and_run</span>()<span class="question-mark">?</span>;
+        <span class="ident">io_loop</span>.<span class="ident">block_on</span>(<span class="ident">future</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">future</span><span class="op">|</span> {
+            <span class="ident">future</span>.<span class="ident">lookup_srv</span>(<span class="ident">name</span>)
+        }))
     }
 
     <span class="macro">lookup_fn</span><span class="macro">!</span>(<span class="ident">reverse_lookup</span>, <span class="ident">lookup</span>::<span class="ident">ReverseLookup</span>, <span class="ident">IpAddr</span>);

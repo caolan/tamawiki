@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/ring-0.12.1/src/ec/suite_b/ops/p384.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>p384.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script src="../../../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../../settings.html"><img src="../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/ring-0.13.2/src/ec/suite_b/ops/p384.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>p384.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script src="../../../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../../settings.html"><img src="../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -365,6 +365,17 @@
 <span id="365">365</span>
 <span id="366">366</span>
 <span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2016 Brian Smith.</span>
 <span class="comment">//</span>
@@ -538,9 +549,20 @@
 
     <span class="ident">q_minus_n</span>: <span class="ident">Elem</span> {
         <span class="ident">limbs</span>: <span class="macro">p384_limbs</span><span class="macro">!</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0x389cb27e</span>, <span class="number">0x0bc8d21f</span>,
-                           <span class="number">0x1313e696</span>, <span class="number">0x333ad68c</span>, <span class="number">0xa7e5f24c</span>, <span class="number">0xb74f5885</span>],
+                           <span class="number">0xa7e5f24c</span>, <span class="number">0xb74f5885</span>, <span class="number">0x1313e696</span>, <span class="number">0x333ad68c</span>],
+
         <span class="ident">m</span>: <span class="ident">PhantomData</span>,
         <span class="ident">encoding</span>: <span class="ident">PhantomData</span>, <span class="comment">// Unencoded</span>
+    },
+};
+
+<span class="kw">pub</span> <span class="kw">static</span> <span class="ident">PRIVATE_SCALAR_OPS</span>: <span class="ident">PrivateScalarOps</span> <span class="op">=</span> <span class="ident">PrivateScalarOps</span> {
+    <span class="ident">scalar_ops</span>: <span class="kw-2">&amp;</span><span class="ident">SCALAR_OPS</span>,
+
+    <span class="ident">oneRR_mod_n</span>: <span class="ident">Scalar</span> {
+        <span class="ident">limbs</span>: <span class="ident">N_RR_LIMBS</span>,
+        <span class="ident">m</span>: <span class="ident">PhantomData</span>,
+        <span class="ident">encoding</span>: <span class="ident">PhantomData</span>, <span class="comment">// R</span>
     },
 };
 
@@ -554,8 +576,6 @@
     <span class="comment">//</span>
     <span class="comment">//     0xffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf\</span>
     <span class="comment">//       581a0db248b0a77aecec196accc52971.</span>
-
-    <span class="comment">// XXX(perf): This hasn&#39;t been optimized at all. TODO: optimize.</span>
 
     <span class="kw">fn</span> <span class="ident">mul</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Scalar</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">Scalar</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Scalar</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
         <span class="ident">binary_op</span>(<span class="ident">GFp_p384_scalar_mul_mont</span>, <span class="ident">a</span>, <span class="ident">b</span>)
@@ -590,9 +610,7 @@
 
     <span class="kw">fn</span> <span class="ident">to_mont</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Scalar</span><span class="op">&lt;</span><span class="ident">Unencoded</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Scalar</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
         <span class="kw">static</span> <span class="ident">N_RR</span>: <span class="ident">Scalar</span><span class="op">&lt;</span><span class="ident">Unencoded</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Scalar</span> {
-            <span class="ident">limbs</span>: <span class="macro">p384_limbs</span><span class="macro">!</span>[<span class="number">0x0c84ee01</span>, <span class="number">0x2b39bf21</span>, <span class="number">0x3fb05b7a</span>, <span class="number">0x28266895</span>,
-                               <span class="number">0xd40d4917</span>, <span class="number">0x4aab1cc5</span>, <span class="number">0xbc3e483a</span>, <span class="number">0xfcb82947</span>,
-                               <span class="number">0xff3d81e5</span>, <span class="number">0xdf1aa419</span>, <span class="number">0x2d319b24</span>, <span class="number">0x19b409a9</span>],
+            <span class="ident">limbs</span>: <span class="ident">N_RR_LIMBS</span>,
             <span class="ident">m</span>: <span class="ident">PhantomData</span>,
             <span class="ident">encoding</span>: <span class="ident">PhantomData</span>
         };
@@ -686,13 +704,17 @@
 }
 
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
 <span class="kw">unsafe</span> <span class="kw">extern</span> <span class="kw">fn</span> <span class="ident">GFp_p384_elem_sqr_mont</span>(
         <span class="ident">r</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Limb</span><span class="comment">/*[COMMON_OPS.num_limbs]*/</span>,
         <span class="ident">a</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">Limb</span><span class="comment">/*[COMMON_OPS.num_limbs]*/</span>) {
     <span class="comment">// XXX: Inefficient. TODO: Make a dedicated squaring routine.</span>
     <span class="ident">GFp_p384_elem_mul_mont</span>(<span class="ident">r</span>, <span class="ident">a</span>, <span class="ident">a</span>);
 }
+
+<span class="kw">const</span> <span class="ident">N_RR_LIMBS</span>: [<span class="ident">Limb</span>; <span class="ident">MAX_LIMBS</span>] <span class="op">=</span>
+    <span class="macro">p384_limbs</span><span class="macro">!</span>[<span class="number">0x0c84ee01</span>, <span class="number">0x2b39bf21</span>, <span class="number">0x3fb05b7a</span>, <span class="number">0x28266895</span>,
+                <span class="number">0xd40d4917</span>, <span class="number">0x4aab1cc5</span>, <span class="number">0xbc3e483a</span>, <span class="number">0xfcb82947</span>,
+                <span class="number">0xff3d81e5</span>, <span class="number">0xdf1aa419</span>, <span class="number">0x2d319b24</span>, <span class="number">0x19b409a9</span>];
 
 
 <span class="kw">extern</span> {

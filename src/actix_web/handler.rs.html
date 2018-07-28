@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/handler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handler.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/handler.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>handler.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -520,6 +520,43 @@
 <span id="520">520</span>
 <span id="521">521</span>
 <span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
@@ -528,8 +565,10 @@
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Async</span>, <span class="ident">Poll</span>};
 
 <span class="kw">use</span> <span class="ident">error</span>::<span class="ident">Error</span>;
+<span class="kw">use</span> <span class="ident">http</span>::<span class="ident">StatusCode</span>;
 <span class="kw">use</span> <span class="ident">httprequest</span>::<span class="ident">HttpRequest</span>;
 <span class="kw">use</span> <span class="ident">httpresponse</span>::<span class="ident">HttpResponse</span>;
+<span class="kw">use</span> <span class="ident">resource</span>::<span class="ident">DefaultResource</span>;
 
 <span class="doccomment">/// Trait defines object that could be registered as route handler</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
@@ -538,7 +577,7 @@
     <span class="kw">type</span> <span class="prelude-ty">Result</span>: <span class="ident">Responder</span>;
 
     <span class="doccomment">/// Handle request</span>
-    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>;
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span>;
 }
 
 <span class="doccomment">/// Trait implemented by types that generate responses for clients.</span>
@@ -584,22 +623,24 @@
 <span class="doccomment">/// # extern crate actix_web;</span>
 <span class="doccomment">/// # extern crate futures;</span>
 <span class="doccomment">/// # use futures::future::Future;</span>
+<span class="doccomment">/// use actix_web::{AsyncResponder, Either, Error, HttpRequest, HttpResponse};</span>
 <span class="doccomment">/// use futures::future::result;</span>
-<span class="doccomment">/// use actix_web::{Either, Error, HttpRequest, HttpResponse, AsyncResponder};</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// type RegisterResult = Either&lt;HttpResponse, Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt;&gt;;</span>
-<span class="doccomment">///</span>
+<span class="doccomment">/// type RegisterResult =</span>
+<span class="doccomment">///     Either&lt;HttpResponse, Box&lt;Future&lt;Item = HttpResponse, Error = Error&gt;&gt;&gt;;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// fn index(req: HttpRequest) -&gt; RegisterResult {</span>
-<span class="doccomment">///     if is_a_variant() { // &lt;- choose variant A</span>
-<span class="doccomment">///         Either::A(</span>
-<span class="doccomment">///             HttpResponse::BadRequest().body(&quot;Bad data&quot;))</span>
+<span class="doccomment">///     if is_a_variant() {</span>
+<span class="doccomment">///         // &lt;- choose variant A</span>
+<span class="doccomment">///         Either::A(HttpResponse::BadRequest().body(&quot;Bad data&quot;))</span>
 <span class="doccomment">///     } else {</span>
-<span class="doccomment">///         Either::B(      // &lt;- variant B</span>
+<span class="doccomment">///         Either::B(</span>
+<span class="doccomment">///             // &lt;- variant B</span>
 <span class="doccomment">///             result(Ok(HttpResponse::Ok()</span>
-<span class="doccomment">///                    .content_type(&quot;text/html&quot;)</span>
-<span class="doccomment">///                    .body(&quot;Hello!&quot;)))</span>
-<span class="doccomment">///                    .responder())</span>
+<span class="doccomment">///                 .content_type(&quot;text/html&quot;)</span>
+<span class="doccomment">///                 .body(&quot;Hello!&quot;)))</span>
+<span class="doccomment">///                 .responder(),</span>
+<span class="doccomment">///         )</span>
 <span class="doccomment">///     }</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// # fn is_a_variant() -&gt; bool { true }</span>
@@ -653,6 +694,26 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Responder</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">Responder</span>,
+{
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span>;
+
+    <span class="kw">fn</span> <span class="ident">respond_to</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(
+        <span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">t</span>.<span class="ident">respond_to</span>(<span class="ident">req</span>) {
+                <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">val</span>.<span class="ident">into</span>()),
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>.<span class="ident">into</span>()),
+            },
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">req</span>.<span class="ident">build_response</span>(<span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>).<span class="ident">finish</span>().<span class="ident">into</span>()),
+        }
+    }
+}
+
 <span class="doccomment">/// Convenience trait that converts `Future` object to a `Boxed` future</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For example loading json from request&#39;s body is async operation.</span>
@@ -661,16 +722,17 @@
 <span class="doccomment">/// # extern crate actix_web;</span>
 <span class="doccomment">/// # extern crate futures;</span>
 <span class="doccomment">/// # #[macro_use] extern crate serde_derive;</span>
-<span class="doccomment">/// use futures::future::Future;</span>
 <span class="doccomment">/// use actix_web::{</span>
-<span class="doccomment">///     App, HttpRequest, HttpResponse, HttpMessage, Error, AsyncResponder};</span>
+<span class="doccomment">///     App, AsyncResponder, Error, HttpMessage, HttpRequest, HttpResponse,</span>
+<span class="doccomment">/// };</span>
+<span class="doccomment">/// use futures::future::Future;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// #[derive(Deserialize, Debug)]</span>
 <span class="doccomment">/// struct MyObj {</span>
 <span class="doccomment">///     name: String,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// fn index(mut req: HttpRequest) -&gt; Box&lt;Future&lt;Item=HttpResponse, Error=Error&gt;&gt; {</span>
+<span class="doccomment">/// fn index(mut req: HttpRequest) -&gt; Box&lt;Future&lt;Item = HttpResponse, Error = Error&gt;&gt; {</span>
 <span class="doccomment">///     req.json()                   // &lt;- get JsonBody future</span>
 <span class="doccomment">///        .from_err()</span>
 <span class="doccomment">///        .and_then(|val: MyObj| {  // &lt;- deserialized value</span>
@@ -682,6 +744,7 @@
 <span class="doccomment">/// # fn main() {}</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsyncResponder</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">E</span><span class="op">&gt;</span>: <span class="ident">Sized</span> {
+    <span class="doccomment">/// Convert to a boxed future</span>
     <span class="kw">fn</span> <span class="ident">responder</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">I</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;&gt;</span>;
 }
 
@@ -699,12 +762,12 @@
 <span class="doccomment">/// Handler&lt;S&gt; for Fn()</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">F</span>
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">R</span>: <span class="ident">Responder</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">R</span>;
 
-    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">R</span> {
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">R</span> {
         (<span class="self">self</span>)(<span class="ident">req</span>)
     }
 }
@@ -898,9 +961,16 @@
     }
 }
 
-<span class="comment">// /// Trait defines object that could be registered as resource route</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">RouteHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>: <span class="lifetime">&#39;static</span> {
-    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">has_default_resource</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="bool-val">false</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">default_resource</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw">_</span>: <span class="ident">DefaultResource</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) {}
+
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {}
 }
 
 <span class="doccomment">/// Route handler wrapper for Handler</span>
@@ -931,8 +1001,8 @@
     <span class="ident">R</span>: <span class="ident">Responder</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">S</span>: <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">h</span>.<span class="ident">handle</span>(<span class="ident">req</span>.<span class="ident">clone</span>()).<span class="ident">respond_to</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>) {
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">h</span>.<span class="ident">handle</span>(<span class="ident">req</span>).<span class="ident">respond_to</span>(<span class="ident">req</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">reply</span>) <span class="op">=&gt;</span> <span class="ident">reply</span>.<span class="ident">into</span>(),
             <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="ident">AsyncResult</span>::<span class="ident">err</span>(<span class="ident">err</span>.<span class="ident">into</span>()),
         }
@@ -942,7 +1012,7 @@
 <span class="doccomment">/// Async route handler</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">AsyncHandler</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span>, <span class="ident">F</span>, <span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">F</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">F</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">R</span>: <span class="ident">Responder</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -954,7 +1024,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span>, <span class="ident">F</span>, <span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">AsyncHandler</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span>, <span class="ident">F</span>, <span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">F</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">F</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">R</span>: <span class="ident">Responder</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -970,14 +1040,15 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span>, <span class="ident">F</span>, <span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">RouteHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AsyncHandler</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span>, <span class="ident">F</span>, <span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">F</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">H</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">F</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">R</span>: <span class="ident">Responder</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">S</span>: <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">h</span>)(<span class="ident">req</span>.<span class="ident">clone</span>()).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>()).<span class="ident">then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">h</span>)(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>()).<span class="ident">then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
             <span class="kw">match</span> <span class="ident">r</span>.<span class="ident">respond_to</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>) {
                 <span class="prelude-val">Ok</span>(<span class="ident">reply</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">reply</span>.<span class="ident">into</span>().<span class="ident">into</span>() {
                     <span class="ident">AsyncResultItem</span>::<span class="prelude-val">Ok</span>(<span class="ident">resp</span>) <span class="op">=&gt;</span> <span class="ident">Either</span>::<span class="ident">A</span>(<span class="ident">ok</span>(<span class="ident">resp</span>)),
@@ -1002,10 +1073,12 @@
 <span class="doccomment">/// # extern crate actix_web;</span>
 <span class="doccomment">/// # extern crate futures;</span>
 <span class="doccomment">/// #[macro_use] extern crate serde_derive;</span>
-<span class="doccomment">/// use actix_web::{App, Path, State, http};</span>
+<span class="doccomment">/// use actix_web::{http, App, Path, State};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// /// Application state</span>
-<span class="doccomment">/// struct MyApp {msg: &amp;&#39;static str}</span>
+<span class="doccomment">/// struct MyApp {</span>
+<span class="doccomment">///     msg: &amp;&#39;static str,</span>
+<span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// #[derive(Deserialize)]</span>
 <span class="doccomment">/// struct Info {</span>
@@ -1019,9 +1092,10 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     let app = App::with_state(MyApp{msg: &quot;Welcome&quot;}).resource(</span>
-<span class="doccomment">///        &quot;/{username}/index.html&quot;,                      // &lt;- define path parameters</span>
-<span class="doccomment">///        |r| r.method(http::Method::GET).with(index));  // &lt;- use `with` extractor</span>
+<span class="doccomment">///     let app = App::with_state(MyApp { msg: &quot;Welcome&quot; }).resource(</span>
+<span class="doccomment">///         &quot;/{username}/index.html&quot;, // &lt;- define path parameters</span>
+<span class="doccomment">///         |r| r.method(http::Method::GET).with(index),</span>
+<span class="doccomment">///     ); // &lt;- use `with` extractor</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>);

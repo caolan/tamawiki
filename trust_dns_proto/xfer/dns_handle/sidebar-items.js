@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BasicDnsHandle","Root DnsHandle implementaton returned by DnsFuture"],["StreamHandle","The StreamHandle is the general interface for communicating with the DnsFuture"]],"trait":[["DnsHandle","A trait for implementing high level functions of DNS."],["DnsStreamHandle","Implementations of Sinks for sending DNS messages"]]});

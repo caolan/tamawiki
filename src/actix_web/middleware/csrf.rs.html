@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/middleware/csrf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>csrf.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/middleware/csrf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>csrf.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -274,7 +274,6 @@
 <span id="274">274</span>
 <span id="275">275</span>
 <span id="276">276</span>
-<span id="277">277</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! A filter for cross-site request forgery (CSRF).</span>
 <span class="doccomment">//!</span>
@@ -293,25 +292,25 @@
 <span class="doccomment">//!   the allowed origins.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Use [`CsrfFilter::allow_xhr()`](struct.CsrfFilter.html#method.allow_xhr)</span>
-<span class="doccomment">//! if you want to allow requests with unsafe methods via</span>
+<span class="doccomment">//! if you want to allow requests with unprotected methods via</span>
 <span class="doccomment">//! [CORS](../cors/struct.Cors.html).</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Example</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//! # extern crate actix_web;</span>
-<span class="doccomment">//! use actix_web::{http, App, HttpRequest, HttpResponse};</span>
 <span class="doccomment">//! use actix_web::middleware::csrf;</span>
+<span class="doccomment">//! use actix_web::{http, App, HttpRequest, HttpResponse};</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! fn handle_post(_: HttpRequest) -&gt; &amp;&#39;static str {</span>
+<span class="doccomment">//! fn handle_post(_: &amp;HttpRequest) -&gt; &amp;&#39;static str {</span>
 <span class="doccomment">//!     &quot;This action should only be triggered with requests from the same site&quot;</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() {</span>
 <span class="doccomment">//!     let app = App::new()</span>
 <span class="doccomment">//!         .middleware(</span>
-<span class="doccomment">//!             csrf::CsrfFilter::new()</span>
-<span class="doccomment">//!                 .allowed_origin(&quot;https://www.example.com&quot;))</span>
+<span class="doccomment">//!             csrf::CsrfFilter::new().allowed_origin(&quot;https://www.example.com&quot;),</span>
+<span class="doccomment">//!         )</span>
 <span class="doccomment">//!         .resource(&quot;/&quot;, |r| {</span>
 <span class="doccomment">//!             r.method(http::Method::GET).f(|_| HttpResponse::Ok());</span>
 <span class="doccomment">//!             r.method(http::Method::POST).f(handle_post);</span>
@@ -328,10 +327,10 @@
 <span class="kw">use</span> <span class="ident">bytes</span>::<span class="ident">Bytes</span>;
 <span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">ResponseError</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">http</span>::{<span class="ident">header</span>, <span class="ident">HeaderMap</span>, <span class="ident">HttpTryFrom</span>, <span class="ident">Uri</span>};
-<span class="kw">use</span> <span class="ident">httpmessage</span>::<span class="ident">HttpMessage</span>;
 <span class="kw">use</span> <span class="ident">httprequest</span>::<span class="ident">HttpRequest</span>;
 <span class="kw">use</span> <span class="ident">httpresponse</span>::<span class="ident">HttpResponse</span>;
 <span class="kw">use</span> <span class="ident">middleware</span>::{<span class="ident">Middleware</span>, <span class="ident">Started</span>};
+<span class="kw">use</span> <span class="ident">server</span>::<span class="ident">Request</span>;
 
 <span class="doccomment">/// Potential cross-site request forgery detected.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Fail</span>)]</span>
@@ -398,13 +397,12 @@
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// use actix_web::App;</span>
 <span class="doccomment">/// use actix_web::middleware::csrf;</span>
+<span class="doccomment">/// use actix_web::App;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # fn main() {</span>
-<span class="doccomment">///    let app = App::new().middleware(</span>
-<span class="doccomment">///        csrf::CsrfFilter::new()</span>
-<span class="doccomment">///            .allowed_origin(&quot;https://www.example.com&quot;));</span>
+<span class="doccomment">/// let app = App::new()</span>
+<span class="doccomment">///     .middleware(csrf::CsrfFilter::new().allowed_origin(&quot;https://www.example.com&quot;));</span>
 <span class="doccomment">/// # }</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
@@ -454,7 +452,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The filter is conservative by default, but it should be safe to allow</span>
     <span class="doccomment">/// missing `Origin` headers because a cross-site attacker cannot prevent</span>
-    <span class="doccomment">/// the browser from sending `Origin` on unsafe requests.</span>
+    <span class="doccomment">/// the browser from sending `Origin` on unprotected requests.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_missing_origin</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">CsrfFilter</span> {
         <span class="self">self</span>.<span class="ident">allow_missing_origin</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="self">self</span>
@@ -466,7 +464,7 @@
         <span class="self">self</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">validate</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CsrfError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">Request</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CsrfError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">is_upgrade</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">headers</span>().<span class="ident">contains_key</span>(<span class="ident">header</span>::<span class="ident">UPGRADE</span>);
         <span class="kw">let</span> <span class="ident">is_safe</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">method</span>().<span class="ident">is_safe</span>() <span class="op">&amp;&amp;</span> (<span class="self">self</span>.<span class="ident">allow_upgrade</span> <span class="op">||</span> <span class="op">!</span><span class="ident">is_upgrade</span>);
 
@@ -488,7 +486,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CsrfFilter</span> {
-    <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Started</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Started</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">validate</span>(<span class="ident">req</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Started</span>::<span class="ident">Done</span>)
     }
@@ -504,35 +502,35 @@
     <span class="kw">fn</span> <span class="ident">test_safe</span>() {
         <span class="kw">let</span> <span class="ident">csrf</span> <span class="op">=</span> <span class="ident">CsrfFilter</span>::<span class="ident">new</span>().<span class="ident">allowed_origin</span>(<span class="string">&quot;https://www.example.com&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.w3.org&quot;</span>)
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.w3.org&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">HEAD</span>)
             .<span class="ident">finish</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">csrf</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">is_ok</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">csrf</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">is_ok</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_csrf</span>() {
         <span class="kw">let</span> <span class="ident">csrf</span> <span class="op">=</span> <span class="ident">CsrfFilter</span>::<span class="ident">new</span>().<span class="ident">allowed_origin</span>(<span class="string">&quot;https://www.example.com&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.w3.org&quot;</span>)
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.w3.org&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">POST</span>)
             .<span class="ident">finish</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">csrf</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">is_err</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">csrf</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">is_err</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_referer</span>() {
         <span class="kw">let</span> <span class="ident">csrf</span> <span class="op">=</span> <span class="ident">CsrfFilter</span>::<span class="ident">new</span>().<span class="ident">allowed_origin</span>(<span class="string">&quot;https://www.example.com&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(
             <span class="string">&quot;Referer&quot;</span>,
             <span class="string">&quot;https://www.example.com/some/path?query=param&quot;</span>,
         ).<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">POST</span>)
             .<span class="ident">finish</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">csrf</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">is_ok</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">csrf</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">is_ok</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -543,14 +541,14 @@
             .<span class="ident">allowed_origin</span>(<span class="string">&quot;https://www.example.com&quot;</span>)
             .<span class="ident">allow_upgrade</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://cswsh.com&quot;</span>)
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://cswsh.com&quot;</span>)
             .<span class="ident">header</span>(<span class="string">&quot;Connection&quot;</span>, <span class="string">&quot;Upgrade&quot;</span>)
             .<span class="ident">header</span>(<span class="string">&quot;Upgrade&quot;</span>, <span class="string">&quot;websocket&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">GET</span>)
             .<span class="ident">finish</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">strict_csrf</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">lax_csrf</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">is_ok</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">strict_csrf</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">is_err</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">lax_csrf</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">is_ok</span>());
     }
 }
 </pre>

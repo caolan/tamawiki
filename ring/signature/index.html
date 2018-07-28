@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `signature` mod in crate `ring`."><meta name="keywords" content="rust, rustlang, rust-lang, signature"><title>ring::signature - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module signature</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#constants">Constants</a></li><li><a href="#statics">Statics</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'><a href='../index.html'>ring</a></p><script>window.sidebarCurrent = {name: 'signature', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>ring</a>::<wbr><a class="mod" href=''>signature</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/ring/signature.rs.html#15-397' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>Public key signatures: signing and verification.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `signature` mod in crate `ring`."><meta name="keywords" content="rust, rustlang, rust-lang, signature"><title>ring::signature - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module signature</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#constants">Constants</a></li><li><a href="#statics">Statics</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'><a href='../index.html'>ring</a></p><script>window.sidebarCurrent = {name: 'signature', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>ring</a>::<wbr><a class="mod" href=''>signature</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/ring/signature.rs.html#15-447' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>Public key signatures: signing and verification.</p>
 <p>Use the <code>verify</code> function to verify signatures, passing a reference to the
 algorithm that identifies the algorithm. See the documentation for <code>verify</code>
 for examples.</p>
@@ -200,8 +200,16 @@ formats, as it also handles the parsing.</p>
                        </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
                        <tr class=' module-item'>
-                           <td><a class="struct" href="struct.ECDSAVerificationAlgorithm.html"
-                                  title='struct ring::signature::ECDSAVerificationAlgorithm'>ECDSAVerificationAlgorithm</a></td>
+                           <td><a class="struct" href="struct.ECDSAKeyPair.html"
+                                  title='struct ring::signature::ECDSAKeyPair'>ECDSAKeyPair</a></td>
+                           <td class='docblock-short'>
+                                <p>An ECDSA key pair, used for signing.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.ECDSAVerification.html"
+                                  title='struct ring::signature::ECDSAVerification'>ECDSAVerification</a></td>
                            <td class='docblock-short'>
                                 <p>An ECDSA verification algorithm.</p>
 
@@ -224,10 +232,10 @@ formats, as it also handles the parsing.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="struct" href="struct.PKCS8Document.html"
-                                  title='struct ring::signature::PKCS8Document'>PKCS8Document</a></td>
+                           <td><a class="struct" href="struct.KeyPair.html"
+                                  title='struct ring::signature::KeyPair'>KeyPair</a></td>
                            <td class='docblock-short'>
-                                <p>A generated PKCS#8 document.</p>
+                                <p>A key pair for signing.</p>
 
                            </td>
                        </tr>
@@ -278,10 +286,28 @@ and SHA-256.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
+                           <td><a class="static" href="static.ECDSA_P256_SHA256_ASN1_SIGNING.html"
+                                  title='static ring::signature::ECDSA_P256_SHA256_ASN1_SIGNING'>ECDSA_P256_SHA256_ASN1_SIGNING</a></td>
+                           <td class='docblock-short'>
+                                <p>Signing of ASN.1 DER-encoded ECDSA signatures using the P-256 curve and
+SHA-256.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
                            <td><a class="static" href="static.ECDSA_P256_SHA256_FIXED.html"
                                   title='static ring::signature::ECDSA_P256_SHA256_FIXED'>ECDSA_P256_SHA256_FIXED</a></td>
                            <td class='docblock-short'>
                                 <p>Verification of fixed-length (PKCS#11 style) ECDSA signatures using the
+P-256 curve and SHA-256.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="static" href="static.ECDSA_P256_SHA256_FIXED_SIGNING.html"
+                                  title='static ring::signature::ECDSA_P256_SHA256_FIXED_SIGNING'>ECDSA_P256_SHA256_FIXED_SIGNING</a></td>
+                           <td class='docblock-short'>
+                                <p>Signing of fixed-length (PKCS#11 style) ECDSA signatures using the
 P-256 curve and SHA-256.</p>
 
                            </td>
@@ -314,10 +340,28 @@ and SHA-384.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
+                           <td><a class="static" href="static.ECDSA_P384_SHA384_ASN1_SIGNING.html"
+                                  title='static ring::signature::ECDSA_P384_SHA384_ASN1_SIGNING'>ECDSA_P384_SHA384_ASN1_SIGNING</a></td>
+                           <td class='docblock-short'>
+                                <p>Signing of ASN.1 DER-encoded ECDSA signatures using the P-384 curve and
+SHA-384.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
                            <td><a class="static" href="static.ECDSA_P384_SHA384_FIXED.html"
                                   title='static ring::signature::ECDSA_P384_SHA384_FIXED'>ECDSA_P384_SHA384_FIXED</a></td>
                            <td class='docblock-short'>
                                 <p>Verification of fixed-length (PKCS#11 style) ECDSA signatures using the
+P-384 curve and SHA-384.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="static" href="static.ECDSA_P384_SHA384_FIXED_SIGNING.html"
+                                  title='static ring::signature::ECDSA_P384_SHA384_FIXED_SIGNING'>ECDSA_P384_SHA384_FIXED_SIGNING</a></td>
+                           <td class='docblock-short'>
+                                <p>Signing of fixed-length (PKCS#11 style) ECDSA signatures using the
 P-384 curve and SHA-384.</p>
 
                            </td>
@@ -404,6 +448,14 @@ PSS padding, and SHA-512.</p>
                        </tr></table><h2 id='traits' class='section-header'><a href="#traits">Traits</a></h2>
 <table>
                        <tr class=' module-item'>
+                           <td><a class="trait" href="trait.SigningAlgorithm.html"
+                                  title='trait ring::signature::SigningAlgorithm'>SigningAlgorithm</a></td>
+                           <td class='docblock-short'>
+                                <p>An algorithm for signing.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
                            <td><a class="trait" href="trait.VerificationAlgorithm.html"
                                   title='trait ring::signature::VerificationAlgorithm'>VerificationAlgorithm</a></td>
                            <td class='docblock-short'>
@@ -412,6 +464,23 @@ PSS padding, and SHA-512.</p>
                            </td>
                        </tr></table><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
 <table>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.key_pair_from_pkcs8.html"
+                                  title='fn ring::signature::key_pair_from_pkcs8'>key_pair_from_pkcs8</a></td>
+                           <td class='docblock-short'>
+                                <p>Returns a key for signing that is parsed from a PKCS#8 document.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="fn" href="fn.sign.html"
+                                  title='fn ring::signature::sign'>sign</a></td>
+                           <td class='docblock-short'>
+                                <p>Returns a signature of the given data using the given key. The signing may or may
+not use <code>rng</code>, depending on the `key_pair's algorithm.</p>
+
+                           </td>
+                       </tr>
                        <tr class=' module-item'>
                            <td><a class="fn" href="fn.verify.html"
                                   title='fn ring::signature::verify'>verify</a></td>

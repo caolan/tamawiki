@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/ring-0.12.1/src/aead/aes_gcm.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aes_gcm.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/ring-0.13.2/src/aead/aes_gcm.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>aes_gcm.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -171,6 +171,27 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2015-2016 Brian Smith.</span>
 <span class="comment">//</span>
@@ -199,6 +220,7 @@
     <span class="ident">seal</span>: <span class="ident">aes_gcm_seal</span>,
     <span class="ident">open</span>: <span class="ident">aes_gcm_open</span>,
     <span class="ident">id</span>: <span class="ident">aead</span>::<span class="ident">AlgorithmID</span>::<span class="ident">AES_128_GCM</span>,
+    <span class="ident">max_input_len</span>: <span class="ident">AES_GCM_MAX_INPUT_LEN</span>,
 };
 
 <span class="doccomment">/// AES-256 in GCM mode with 128-bit tags and 96 bit nonces.</span>
@@ -212,6 +234,7 @@
     <span class="ident">seal</span>: <span class="ident">aes_gcm_seal</span>,
     <span class="ident">open</span>: <span class="ident">aes_gcm_open</span>,
     <span class="ident">id</span>: <span class="ident">aead</span>::<span class="ident">AlgorithmID</span>::<span class="ident">AES_256_GCM</span>,
+    <span class="ident">max_input_len</span>: <span class="ident">AES_GCM_MAX_INPUT_LEN</span>,
 };
 
 <span class="kw">fn</span> <span class="ident">aes_gcm_init</span>(<span class="ident">ctx_buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>], <span class="ident">key</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>])
@@ -254,6 +277,10 @@
 
 <span class="comment">// Keep this in sync with `AES_KEY` in aes.h.</span>
 <span class="kw">const</span> <span class="ident">AES_KEY_BUF_LEN</span>: <span class="ident">usize</span> <span class="op">=</span> (<span class="number">4</span> <span class="op">*</span> <span class="number">4</span> <span class="op">*</span> (<span class="ident">AES_MAX_ROUNDS</span> <span class="op">+</span> <span class="number">1</span>)) <span class="op">+</span> <span class="number">8</span>;
+
+<span class="kw">const</span> <span class="ident">AES_BLOCK_LEN</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">const</span> <span class="ident">AES_GCM_OVERHEAD_BLOCKS_PER_NONCE</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">const</span> <span class="ident">AES_GCM_MAX_INPUT_LEN</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="macro">max_input_len</span><span class="macro">!</span>(<span class="ident">AES_BLOCK_LEN</span>, <span class="ident">AES_GCM_OVERHEAD_BLOCKS_PER_NONCE</span>);
 
 <span class="comment">// Keep this in sync with `AES_MAXNR` in aes.h.</span>
 <span class="kw">const</span> <span class="ident">AES_MAX_ROUNDS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">14</span>;
@@ -343,6 +370,21 @@
         <span class="kw">fn</span> <span class="ident">GFp_AES_set_encrypt_key</span>(<span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">bits</span>: <span class="ident">usize</span>,
                                    <span class="ident">aes_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">AES_KEY</span>) <span class="op">-&gt;</span> <span class="ident">c</span>::<span class="ident">int</span>;
         <span class="kw">fn</span> <span class="ident">GFp_AES_encrypt</span>(<span class="ident">in_</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">u8</span>, <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">key</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">AES_KEY</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">max_input_len_test</span>() {
+        <span class="comment">// [NIST SP800-38D] Section 5.2.1.1. Note that [RFC 5116 Section 5.1] and</span>
+        <span class="comment">// [RFC 5116 Section 5.2] have an off-by-one error in `P_MAX`.</span>
+        <span class="comment">//</span>
+        <span class="comment">// [NIST SP800-38D]:</span>
+        <span class="comment">//    http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf</span>
+        <span class="comment">// [RFC 5116 Section 5.1]: https://tools.ietf.org/html/rfc5116#section-5.1</span>
+        <span class="comment">// [RFC 5116 Section 5.2]: https://tools.ietf.org/html/rfc5116#section-5.2</span>
+        <span class="kw">const</span> <span class="ident">NIST_SP800_38D_MAX_BITS</span>: <span class="ident">u64</span> <span class="op">=</span> (<span class="number">1u64</span> <span class="op">&lt;&lt;</span> <span class="number">39</span>) <span class="op">-</span> <span class="number">256</span>;
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">NIST_SP800_38D_MAX_BITS</span>, <span class="number">549_755_813_632u64</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw">super</span>::<span class="ident">AES_128_GCM</span>.<span class="ident">max_input_len</span> <span class="op">*</span> <span class="number">8</span>, <span class="ident">NIST_SP800_38D_MAX_BITS</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw">super</span>::<span class="ident">AES_256_GCM</span>.<span class="ident">max_input_len</span> <span class="op">*</span> <span class="number">8</span>, <span class="ident">NIST_SP800_38D_MAX_BITS</span>);
     }
 }
 </pre>

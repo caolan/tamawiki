@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/middleware/cors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cors.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/middleware/cors.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cors.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1171,7 +1171,7 @@
 <span class="doccomment">//!      constructed backend.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Cors middleware could be used as parameter for `App::middleware()` or</span>
-<span class="doccomment">//! `ResourceHandler::middleware()` methods. But you have to use</span>
+<span class="doccomment">//! `Resource::middleware()` methods. But you have to use</span>
 <span class="doccomment">//! `Cors::for_app()` method to support *preflight* OPTIONS request.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!</span>
@@ -1219,7 +1219,9 @@
 <span class="kw">use</span> <span class="ident">httprequest</span>::<span class="ident">HttpRequest</span>;
 <span class="kw">use</span> <span class="ident">httpresponse</span>::<span class="ident">HttpResponse</span>;
 <span class="kw">use</span> <span class="ident">middleware</span>::{<span class="ident">Middleware</span>, <span class="ident">Response</span>, <span class="ident">Started</span>};
-<span class="kw">use</span> <span class="ident">resource</span>::<span class="ident">ResourceHandler</span>;
+<span class="kw">use</span> <span class="ident">resource</span>::<span class="ident">Resource</span>;
+<span class="kw">use</span> <span class="ident">router</span>::<span class="ident">ResourceDef</span>;
+<span class="kw">use</span> <span class="ident">server</span>::<span class="ident">Request</span>;
 
 <span class="doccomment">/// A set of errors that can occur during processing CORS</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Fail</span>)]</span>
@@ -1367,6 +1369,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Cors</span> {
+    <span class="doccomment">/// Build a new CORS middleware instance</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>() <span class="op">-&gt;</span> <span class="ident">CorsBuilder</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="ident">CorsBuilder</span> {
             <span class="ident">cors</span>: <span class="prelude-val">Some</span>(<span class="ident">Inner</span> {
@@ -1435,14 +1438,16 @@
     <span class="doccomment">/// adds route for *OPTIONS* preflight requests.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It is possible to register *Cors* middleware with</span>
-    <span class="doccomment">/// `ResourceHandler::middleware()` method, but in that case *Cors*</span>
+    <span class="doccomment">/// `Resource::middleware()` method, but in that case *Cors*</span>
     <span class="doccomment">/// middleware wont be able to handle *OPTIONS* requests.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">resource</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) {
-        <span class="ident">resource</span>.<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">OPTIONS</span>).<span class="ident">h</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>());
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">resource</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Resource</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) {
+        <span class="ident">resource</span>
+            .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">OPTIONS</span>)
+            .<span class="ident">h</span>(<span class="op">|</span><span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>());
         <span class="ident">resource</span>.<span class="ident">middleware</span>(<span class="self">self</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_origin</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CorsError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_origin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">Request</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CorsError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">hdr</span>) <span class="op">=</span> <span class="ident">req</span>.<span class="ident">headers</span>().<span class="ident">get</span>(<span class="ident">header</span>::<span class="ident">ORIGIN</span>) {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">origin</span>) <span class="op">=</span> <span class="ident">hdr</span>.<span class="ident">to_str</span>() {
                 <span class="kw">return</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">origins</span> {
@@ -1462,9 +1467,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_allowed_method</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CorsError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_allowed_method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">Request</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CorsError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">hdr</span>) <span class="op">=</span> <span class="ident">req</span>.<span class="ident">headers</span>().<span class="ident">get</span>(<span class="ident">header</span>::<span class="ident">ACCESS_CONTROL_REQUEST_METHOD</span>) {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">meth</span>) <span class="op">=</span> <span class="ident">hdr</span>.<span class="ident">to_str</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">method</span>) <span class="op">=</span> <span class="ident">Method</span>::<span class="ident">try_from</span>(<span class="ident">meth</span>) {
@@ -1482,9 +1485,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_allowed_headers</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CorsError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_allowed_headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">Request</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CorsError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">headers</span> {
             <span class="ident">AllOrSome</span>::<span class="ident">All</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(()),
             <span class="ident">AllOrSome</span>::<span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">allowed_headers</span>) <span class="op">=&gt;</span> {
@@ -1515,11 +1516,11 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Cors</span> {
-    <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Started</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Started</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">preflight</span> <span class="op">&amp;&amp;</span> <span class="ident">Method</span>::<span class="ident">OPTIONS</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">req</span>.<span class="ident">method</span>() {
             <span class="self">self</span>.<span class="ident">validate_origin</span>(<span class="ident">req</span>)<span class="question-mark">?</span>;
-            <span class="self">self</span>.<span class="ident">validate_allowed_method</span>(<span class="ident">req</span>)<span class="question-mark">?</span>;
-            <span class="self">self</span>.<span class="ident">validate_allowed_headers</span>(<span class="ident">req</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">validate_allowed_method</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">validate_allowed_headers</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// allowed headers</span>
             <span class="kw">let</span> <span class="ident">headers</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">headers</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">headers</span>.<span class="ident">as_ref</span>() {
@@ -1593,7 +1594,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">response</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span>,
+        <span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">origins</span> {
             <span class="ident">AllOrSome</span>::<span class="ident">All</span> <span class="op">=&gt;</span> {
@@ -1675,7 +1676,7 @@
     <span class="ident">methods</span>: <span class="ident">bool</span>,
     <span class="ident">error</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">http</span>::<span class="ident">Error</span><span class="op">&gt;</span>,
     <span class="ident">expose_hdrs</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">HeaderName</span><span class="op">&gt;</span>,
-    <span class="ident">resources</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+    <span class="ident">resources</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Resource</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>,
     <span class="ident">app</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">App</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>,
 }
 
@@ -1955,13 +1956,13 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resource</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">CorsBuilder</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Resource</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="comment">// add resource handler</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handler</span> <span class="op">=</span> <span class="ident">ResourceHandler</span>::<span class="ident">default</span>();
-        <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">handler</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resource</span> <span class="op">=</span> <span class="ident">Resource</span>::<span class="ident">new</span>(<span class="ident">ResourceDef</span>::<span class="ident">new</span>(<span class="ident">path</span>));
+        <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">resource</span>);
 
-        <span class="self">self</span>.<span class="ident">resources</span>.<span class="ident">push</span>((<span class="ident">path</span>.<span class="ident">to_owned</span>(), <span class="ident">handler</span>));
+        <span class="self">self</span>.<span class="ident">resources</span>.<span class="ident">push</span>(<span class="ident">resource</span>);
         <span class="self">self</span>
     }
 
@@ -2038,9 +2039,9 @@
             .<span class="ident">expect</span>(<span class="string">&quot;CorsBuilder has to be constructed with Cors::for_app(app)&quot;</span>);
 
         <span class="comment">// register resources</span>
-        <span class="kw">for</span> (<span class="ident">path</span>, <span class="kw-2">mut</span> <span class="ident">resource</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">resources</span>.<span class="ident">drain</span>(..) {
+        <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">resource</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">resources</span>.<span class="ident">drain</span>(..) {
             <span class="ident">cors</span>.<span class="ident">clone</span>().<span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">resource</span>);
-            <span class="ident">app</span>.<span class="ident">register_resource</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>, <span class="ident">resource</span>);
+            <span class="ident">app</span>.<span class="ident">register_resource</span>(<span class="ident">resource</span>);
         }
 
         <span class="ident">app</span>
@@ -2104,10 +2105,9 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">validate_origin_allows_all_origins</span>() {
         <span class="kw">let</span> <span class="ident">cors</span> <span class="op">=</span> <span class="ident">Cors</span>::<span class="ident">default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span>
-            <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>).<span class="ident">finish</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">ok</span>().<span class="ident">unwrap</span>().<span class="ident">is_done</span>())
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">ok</span>().<span class="ident">unwrap</span>().<span class="ident">is_done</span>())
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2120,20 +2120,20 @@
             .<span class="ident">allowed_header</span>(<span class="ident">header</span>::<span class="ident">CONTENT_TYPE</span>)
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">OPTIONS</span>)
             .<span class="ident">finish</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">is_err</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">is_err</span>());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
             .<span class="ident">header</span>(<span class="ident">header</span>::<span class="ident">ACCESS_CONTROL_REQUEST_METHOD</span>, <span class="string">&quot;put&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">OPTIONS</span>)
             .<span class="ident">finish</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">is_err</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">is_err</span>());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
             .<span class="ident">header</span>(<span class="ident">header</span>::<span class="ident">ACCESS_CONTROL_REQUEST_METHOD</span>, <span class="string">&quot;POST&quot;</span>)
             .<span class="ident">header</span>(
                 <span class="ident">header</span>::<span class="ident">ACCESS_CONTROL_REQUEST_HEADERS</span>,
@@ -2142,7 +2142,7 @@
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">OPTIONS</span>)
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
+        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="kw-2">&amp;</span><span class="string">b&quot;*&quot;</span>[..],
             <span class="ident">resp</span>.<span class="ident">headers</span>()
@@ -2166,17 +2166,17 @@
         <span class="comment">// as_bytes());</span>
 
         <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cors</span>.<span class="ident">inner</span>).<span class="ident">unwrap</span>().<span class="ident">preflight</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">unwrap</span>().<span class="ident">is_done</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">unwrap</span>().<span class="ident">is_done</span>());
     }
 
     <span class="comment">// #[test]</span>
     <span class="comment">// #[should_panic(expected = &quot;MissingOrigin&quot;)]</span>
     <span class="comment">// fn test_validate_missing_origin() {</span>
-    <span class="comment">//    let mut cors = Cors::build()</span>
+    <span class="comment">//    let cors = Cors::build()</span>
     <span class="comment">//        .allowed_origin(&quot;https://www.example.com&quot;)</span>
     <span class="comment">//        .finish();</span>
     <span class="comment">//    let mut req = HttpRequest::default();</span>
-    <span class="comment">//    cors.start(&amp;mut req).unwrap();</span>
+    <span class="comment">//    cors.start(&amp;req).unwrap();</span>
     <span class="comment">// }</span>
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2186,10 +2186,10 @@
             .<span class="ident">allowed_origin</span>(<span class="string">&quot;https://www.example.com&quot;</span>)
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.unknown.com&quot;</span>)
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.unknown.com&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">GET</span>)
             .<span class="ident">finish</span>();
-        <span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">unwrap</span>();
+        <span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2198,30 +2198,30 @@
             .<span class="ident">allowed_origin</span>(<span class="string">&quot;https://www.example.com&quot;</span>)
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">GET</span>)
             .<span class="ident">finish</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">unwrap</span>().<span class="ident">is_done</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cors</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>).<span class="ident">unwrap</span>().<span class="ident">is_done</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_no_origin_response</span>() {
         <span class="kw">let</span> <span class="ident">cors</span> <span class="op">=</span> <span class="ident">Cors</span>::<span class="ident">build</span>().<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">default</span>().<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">GET</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">default</span>().<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">GET</span>).<span class="ident">finish</span>();
         <span class="kw">let</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>, <span class="ident">resp</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
+        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>, <span class="ident">resp</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
         <span class="macro">assert</span><span class="macro">!</span>(
             <span class="ident">resp</span>.<span class="ident">headers</span>()
                 .<span class="ident">get</span>(<span class="ident">header</span>::<span class="ident">ACCESS_CONTROL_ALLOW_ORIGIN</span>)
                 .<span class="ident">is_none</span>()
         );
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">OPTIONS</span>)
             .<span class="ident">finish</span>();
-        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>, <span class="ident">resp</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
+        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>, <span class="ident">resp</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="kw-2">&amp;</span><span class="string">b&quot;https://www.example.com&quot;</span>[..],
             <span class="ident">resp</span>.<span class="ident">headers</span>()
@@ -2242,12 +2242,12 @@
             .<span class="ident">allowed_header</span>(<span class="ident">header</span>::<span class="ident">CONTENT_TYPE</span>)
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_header</span>(<span class="string">&quot;Origin&quot;</span>, <span class="string">&quot;https://www.example.com&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">OPTIONS</span>)
             .<span class="ident">finish</span>();
 
         <span class="kw">let</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>, <span class="ident">resp</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
+        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>, <span class="ident">resp</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="kw-2">&amp;</span><span class="string">b&quot;*&quot;</span>[..],
             <span class="ident">resp</span>.<span class="ident">headers</span>()
@@ -2262,7 +2262,7 @@
 
         <span class="kw">let</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span>
             <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">header</span>(<span class="ident">header</span>::<span class="ident">VARY</span>, <span class="string">&quot;Accept&quot;</span>).<span class="ident">finish</span>();
-        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>, <span class="ident">resp</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
+        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>, <span class="ident">resp</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="kw-2">&amp;</span><span class="string">b&quot;Accept, Origin&quot;</span>[..],
             <span class="ident">resp</span>.<span class="ident">headers</span>().<span class="ident">get</span>(<span class="ident">header</span>::<span class="ident">VARY</span>).<span class="ident">unwrap</span>().<span class="ident">as_bytes</span>()
@@ -2273,7 +2273,7 @@
             .<span class="ident">allowed_origin</span>(<span class="string">&quot;https://www.example.com&quot;</span>)
             .<span class="ident">finish</span>();
         <span class="kw">let</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>().<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>, <span class="ident">resp</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
+        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">cors</span>.<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>, <span class="ident">resp</span>).<span class="ident">unwrap</span>().<span class="ident">response</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="kw-2">&amp;</span><span class="string">b&quot;https://www.example.com&quot;</span>[..],
             <span class="ident">resp</span>.<span class="ident">headers</span>()

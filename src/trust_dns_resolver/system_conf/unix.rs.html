@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-resolver-0.8.2/src/system_conf/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-resolver-0.9.0/src/system_conf/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -162,6 +162,9 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2015-2017 Benjamin Fry &lt;benjaminfry@me.com&gt;</span>
 <span class="comment">//</span>
@@ -179,15 +182,15 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">SocketAddr</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 
 <span class="kw">use</span> <span class="ident">resolv_conf</span>;
 
-<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">rr</span>::<span class="ident">Name</span>;
 <span class="kw">use</span> <span class="ident">config</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">rr</span>::<span class="ident">Name</span>;
 
 <span class="kw">const</span> <span class="ident">DEFAULT_PORT</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">53</span>;
 
@@ -216,7 +219,6 @@
 <span class="kw">fn</span> <span class="ident">into_resolver_config</span>(
     <span class="ident">parsed_config</span>: <span class="ident">resolv_conf</span>::<span class="ident">Config</span>,
 ) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">ResolverConfig</span>, <span class="ident">ResolverOpts</span>)<span class="op">&gt;</span> {
-
     <span class="kw">let</span> <span class="ident">domain</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">domain</span>) <span class="op">=</span> <span class="ident">parsed_config</span>.<span class="ident">get_system_domain</span>() {
         <span class="prelude-val">Some</span>(<span class="ident">Name</span>::<span class="ident">from_str</span>(<span class="ident">domain</span>.<span class="ident">as_str</span>())<span class="question-mark">?</span>)
     } <span class="kw">else</span> {
@@ -229,10 +231,12 @@
         <span class="ident">nameservers</span>.<span class="ident">push</span>(<span class="ident">NameServerConfig</span> {
             <span class="ident">socket_addr</span>: <span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">ip</span>.<span class="ident">into</span>(), <span class="ident">DEFAULT_PORT</span>),
             <span class="ident">protocol</span>: <span class="ident">Protocol</span>::<span class="ident">Udp</span>,
+            <span class="ident">tls_dns_name</span>: <span class="prelude-val">None</span>,
         });
         <span class="ident">nameservers</span>.<span class="ident">push</span>(<span class="ident">NameServerConfig</span> {
             <span class="ident">socket_addr</span>: <span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">ip</span>.<span class="ident">into</span>(), <span class="ident">DEFAULT_PORT</span>),
             <span class="ident">protocol</span>: <span class="ident">Protocol</span>::<span class="ident">Tcp</span>,
+            <span class="ident">tls_dns_name</span>: <span class="prelude-val">None</span>,
         });
     }
     <span class="kw">if</span> <span class="ident">nameservers</span>.<span class="ident">is_empty</span>() {
@@ -262,11 +266,11 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
     <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">rr</span>::<span class="ident">Name</span>;
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">fn</span> <span class="ident">empty_config</span>() <span class="op">-&gt;</span> <span class="ident">ResolverConfig</span> {
         <span class="ident">ResolverConfig</span>::<span class="ident">from_parts</span>(<span class="prelude-val">None</span>, <span class="macro">vec</span><span class="macro">!</span>[], <span class="macro">vec</span><span class="macro">!</span>[])
@@ -278,10 +282,12 @@
             <span class="ident">NameServerConfig</span> {
                 <span class="ident">socket_addr</span>: <span class="ident">addr</span>,
                 <span class="ident">protocol</span>: <span class="ident">Protocol</span>::<span class="ident">Udp</span>,
+                <span class="ident">tls_dns_name</span>: <span class="prelude-val">None</span>,
             },
             <span class="ident">NameServerConfig</span> {
                 <span class="ident">socket_addr</span>: <span class="ident">addr</span>,
                 <span class="ident">protocol</span>: <span class="ident">Protocol</span>::<span class="ident">Tcp</span>,
+                <span class="ident">tls_dns_name</span>: <span class="prelude-val">None</span>,
             },
         ]
     }
@@ -296,8 +302,8 @@
         <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">parse_resolv_conf</span>(<span class="string">&quot;nameserver 127.0.0.1&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;failed&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="ident">empty_config</span>();
         <span class="kw">let</span> <span class="ident">nameservers</span> <span class="op">=</span> <span class="ident">nameserver_config</span>(<span class="string">&quot;127.0.0.1&quot;</span>);
-        <span class="ident">cfg</span>.<span class="ident">add_name_server</span>(<span class="ident">nameservers</span>[<span class="number">0</span>]);
-        <span class="ident">cfg</span>.<span class="ident">add_name_server</span>(<span class="ident">nameservers</span>[<span class="number">1</span>]);
+        <span class="ident">cfg</span>.<span class="ident">add_name_server</span>(<span class="ident">nameservers</span>[<span class="number">0</span>].<span class="ident">clone</span>());
+        <span class="ident">cfg</span>.<span class="ident">add_name_server</span>(<span class="ident">nameservers</span>[<span class="number">1</span>].<span class="ident">clone</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cfg</span>.<span class="ident">name_servers</span>(), <span class="ident">parsed</span>.<span class="number">0</span>.<span class="ident">name_servers</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">ResolverOpts</span>::<span class="ident">default</span>(), <span class="ident">parsed</span>.<span class="number">1</span>);
     }

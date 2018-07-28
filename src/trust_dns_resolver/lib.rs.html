@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-resolver-0.8.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-resolver-0.9.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -160,6 +160,59 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2015-2017 Benjamin Fry &lt;benjaminfry@me.com&gt;</span>
 <span class="comment">//</span>
@@ -172,7 +225,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This is a 100% in process DNS resolver. It *does not* use the Host OS&#39; resolver. If what is desired is to use the Host OS&#39; resolver, generally in the system&#39;s libc, then the `std::net::ToSocketAddrs` variant over `&amp;str` should be used.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Unlike the `trust-dns` client, this tries to provide a simpler interface to perform DNS queries. For update options, i.e. Dynamic DNS, the `trust-dns` crate must be used directly. The Resolver library is capable of searching multiple domains (this can be disabled by using an FQDN during lookup), dual-stack IPv4/IPv6 lookups, performing chained CNAME lookups, and features connection metric tracking for attempting to pick the best upstream DNS resolver.</span>
+<span class="doccomment">//! Unlike the `trust-dns` client, this tries to provide a simpler interface to perform DNS queries. For update options, i.e. Dynamic DNS, the `trust-dns` crate must be used instead. The Resolver library is capable of searching multiple domains (this can be disabled by using an FQDN during lookup), dual-stack IPv4/IPv6 lookups, performing chained CNAME lookups, and features connection metric tracking for attempting to pick the best upstream DNS resolver.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! There are two types for performing DNS queries, `Resolver` and `ResolverFuture`. `Resolver` is the easiest to work with, it is a wrapper around `ResolverFuture`. `ResolverFuture` is a `Tokio` based async resolver, and can be used inside any `Tokio` based system.</span>
 <span class="doccomment">//!</span>
@@ -240,20 +293,22 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust</span>
 <span class="doccomment">//! # extern crate futures;</span>
-<span class="doccomment">//! # extern crate tokio_core;</span>
+<span class="doccomment">//! # extern crate tokio;</span>
 <span class="doccomment">//! # extern crate trust_dns_resolver;</span>
 <span class="doccomment">//! # fn main() {</span>
 <span class="doccomment">//! use std::net::*;</span>
-<span class="doccomment">//! use tokio_core::reactor::Core;</span>
+<span class="doccomment">//! use tokio::runtime::current_thread::Runtime;</span>
 <span class="doccomment">//! use trust_dns_resolver::ResolverFuture;</span>
 <span class="doccomment">//! use trust_dns_resolver::config::*;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // We need a Tokio reactor::Core to run the resolver</span>
 <span class="doccomment">//! //  this is responsible for running all Future tasks and registering interest in IO channels</span>
-<span class="doccomment">//! let mut io_loop = Core::new().unwrap();</span>
+<span class="doccomment">//! let mut io_loop = Runtime::new().unwrap();</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // Construct a new Resolver with default configuration options</span>
-<span class="doccomment">//! let resolver = ResolverFuture::new(ResolverConfig::default(), ResolverOpts::default(), &amp;io_loop.handle());</span>
+<span class="doccomment">//! let resolver = ResolverFuture::new(ResolverConfig::default(), ResolverOpts::default());</span>
+<span class="doccomment">//! // The resolver we just constructed is a Future wait for the actual Resolver</span>
+<span class="doccomment">//! let resolver = io_loop.block_on(resolver).unwrap();</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // Lookup the IP addresses associated with a name.</span>
 <span class="doccomment">//! // This returns a future that will lookup the IP addresses, it must be run in the Core to</span>
@@ -261,7 +316,7 @@
 <span class="doccomment">//! let lookup_future = resolver.lookup_ip(&quot;www.example.com.&quot;);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // Run the lookup until it resolves or errors</span>
-<span class="doccomment">//! let mut response = io_loop.run(lookup_future).unwrap();</span>
+<span class="doccomment">//! let mut response = io_loop.block_on(lookup_future).unwrap();</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // There can be many addresses associated with the name,</span>
 <span class="doccomment">//! //  this can return IPv4 and/or IPv6 addresses</span>
@@ -277,7 +332,7 @@
 <span class="doccomment">//! Generally after a lookup in an asynchornous context, there would probably be a connection made to a server, for example:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```c</span>
-<span class="doccomment">//! let result = io_loop.run(lookup_future.and_then(|ips| {</span>
+<span class="doccomment">//! let result = io_loop.block_on(lookup_future.and_then(|ips| {</span>
 <span class="doccomment">//!                                  let ip = ips.next().unwrap();</span>
 <span class="doccomment">//!                                  TcpStream::connect()</span>
 <span class="doccomment">//!                              }).and_then(|conn| /* do something with the connection... */)</span>
@@ -285,11 +340,49 @@
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! It&#39;s beyond the scope of these examples to show how to deal with connection failures and looping etc. But if you wanted to say try a different address from the result set after a connection failure, it will be necessary to create a type that implements the `Future` trait. Inside the `Future::poll` method would be the place to implement a loop over the different IP addresses.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## DNS-over-TLS</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! DNS over TLS is experimental in the TRust-DNS Resolver library. The underlying implementations have been available as addon libraries to the Client and Server, but the configuration is experimental in TRust-DNS Resolver. *WARNING* The trust-dns developers make no claims on the security and/or privacy guarantees of this implementation.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! To use you must compile in support with one of the `dns-over-tls` features. There are three: `dns-over-openssl`, `dns-over-native-tls`, and `dns-over-rustls`. The reason for each is to make the TRust-DNS libraries flexible for different deployments, and/or security concerns. The easiest to use will generally be `dns-over-rustls` which utilizes the native Rust library (a rework of the `boringssl` project), this should compile and be usable on most ARM and x86 platforms. `dns-over-native-tls` will utilize the hosts TLS implementation where available or fallback to `openssl` where not. `dns-over-openssl` will specify that `openssl` should be used (which is a perfect fine option if required). If more than one is specified, the presidence will be in this order (i.e. only one can be used at a time) `dns-over-rustls`, `dns-over-native-tls`, and then `dns-over-openssl`. *NOTICE* thetrust-dns developers are not responsible for any choice of library that does not meet required security requirements.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Example</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Enable the TLS library through the dependency on `trust-dns-resolver`:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```toml</span>
+<span class="doccomment">//! trust-dns-resolver = { version = &quot;*&quot;, features = [&quot;dns-over-rustls&quot;] }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A default TLS configuration is available for Cloudflare&#39;s `1.1.1.1` DNS service (Quad9 as well):</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```rust,no_run</span>
+<span class="doccomment">//! # extern crate trust_dns_resolver;</span>
+<span class="doccomment">//! # fn main() {</span>
+<span class="doccomment">//! use trust_dns_resolver::Resolver;</span>
+<span class="doccomment">//! use trust_dns_resolver::config::*;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // Construct a new Resolver with default configuration options</span>
+<span class="doccomment">//! # #[cfg(feature = &quot;dns-over-tls&quot;)]</span>
+<span class="doccomment">//! let mut resolver = Resolver::new(ResolverConfig::cloudflare_tls(), ResolverOpts::default()).unwrap();</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // see example above...</span>
+<span class="doccomment">//! # }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## mDNS (multicast DNS)</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Multicast DNS is an experimental feature in TRust-DNS at the moment. It&#39;s support on different platforms is not yet ideal. Initial support is only for IPv4 mDNS, as there are some complexities to figure out with IPv6. Once enabled, an mDNS `NameServer` will automatically be added to the `Resolver` and used for any lookups performed in the `.local.` zone.</span>
 
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dns-over-tls&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">cfg_if</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">error_chain</span>;
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">futures</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">ipconfig</span>;
@@ -299,25 +392,38 @@
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">log</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">lru_cache</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">resolv_conf</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_core</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">smallvec</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dns-over-native-tls&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">trust_dns_native_tls</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dns-over-openssl&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">trust_dns_openssl</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">trust_dns_proto</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dns-over-rustls&quot;</span>)]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">trust_dns_rustls</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">config</span>;
 <span class="kw">mod</span> <span class="ident">dns_lru</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">dns_sd</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">lookup_ip</span>;
+<span class="kw">mod</span> <span class="ident">hosts</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">lookup</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">lookup_ip</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">lookup_state</span>;
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">name_server_pool</span>;
 <span class="kw">mod</span> <span class="ident">resolver</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">system_conf</span>;
 <span class="kw">mod</span> <span class="ident">resolver_future</span>;
-<span class="kw">mod</span> <span class="ident">hosts</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">system_conf</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dns-over-tls&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tls</span>;
 
+<span class="comment">// reexports from proto</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">trust_dns_proto</span>::<span class="ident">rr</span>::{<span class="ident">IntoName</span>, <span class="ident">Name</span>, <span class="ident">TryParseIp</span>};
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hosts</span>::<span class="ident">Hosts</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">resolver</span>::<span class="ident">Resolver</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">resolver_future</span>::<span class="ident">ResolverFuture</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hosts</span>::<span class="ident">Hosts</span>;
 
 <span class="doccomment">/// returns a version as specified in Cargo.toml</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">version</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {

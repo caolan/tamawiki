@@ -9,7 +9,7 @@ First you need to construct CORS middleware instance.</p>
 constructed backend.</li>
 </ol>
 <p>Cors middleware could be used as parameter for <code>App::middleware()</code> or
-<code>ResourceHandler::middleware()</code> methods. But you have to use
+<code>Resource::middleware()</code> methods. But you have to use
 <code>Cors::for_app()</code> method to support <em>preflight</em> OPTIONS request.</p>
 <h1 id="example" class="section-header"><a href="#example">Example</a></h1>
 <pre class="rust rust-example-rendered">

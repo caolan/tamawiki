@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-resolver-0.8.2/src/resolver_future.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resolver_future.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-resolver-0.9.0/src/resolver_future.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resolver_future.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -765,6 +765,121 @@
 <span id="765">765</span>
 <span id="766">766</span>
 <span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2015-2017 Benjamin Fry &lt;benjaminfry@me.com&gt;</span>
 <span class="comment">//</span>
@@ -775,26 +890,25 @@
 
 <span class="doccomment">//! Structs for creating and using a ResolverFuture</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">IpAddr</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 
-<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">Future</span>;
-<span class="kw">use</span> <span class="ident">tokio_core</span>::<span class="ident">reactor</span>::<span class="ident">Handle</span>;
-<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">op</span>::<span class="ident">Message</span>;
-<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::{<span class="ident">BasicDnsHandle</span>, <span class="ident">DnsHandle</span>, <span class="ident">RetryDnsHandle</span>};
+<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future</span>, <span class="ident">Future</span>};
+<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">rr</span>::<span class="ident">domain</span>::<span class="ident">TryParseIp</span>;
+<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">rr</span>::{<span class="ident">IntoName</span>, <span class="ident">Name</span>, <span class="ident">RecordType</span>};
+<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">xfer</span>::{
+    <span class="ident">BasicDnsHandle</span>, <span class="ident">DnsHandle</span>, <span class="ident">DnsRequest</span>, <span class="ident">DnsRequestOptions</span>, <span class="ident">DnsResponse</span>, <span class="ident">RetryDnsHandle</span>,
+};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dnssec&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">SecureDnsHandle</span>;
-<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">rr</span>::{<span class="ident">IntoName</span>, <span class="ident">Name</span>, <span class="ident">RecordType</span>};
 
 <span class="kw">use</span> <span class="ident">config</span>::{<span class="ident">ResolverConfig</span>, <span class="ident">ResolverOpts</span>};
+<span class="kw">use</span> <span class="ident">dns_lru</span>::<span class="ident">DnsLru</span>;
 <span class="kw">use</span> <span class="ident">error</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">hosts</span>::<span class="ident">Hosts</span>;
+<span class="kw">use</span> <span class="ident">lookup</span>::{<span class="self">self</span>, <span class="ident">Lookup</span>, <span class="ident">LookupEither</span>, <span class="ident">LookupFuture</span>};
+<span class="kw">use</span> <span class="ident">lookup_ip</span>::<span class="ident">LookupIpFuture</span>;
 <span class="kw">use</span> <span class="ident">lookup_state</span>::<span class="ident">CachingClient</span>;
 <span class="kw">use</span> <span class="ident">name_server_pool</span>::{<span class="ident">NameServerPool</span>, <span class="ident">StandardConnection</span>};
-<span class="kw">use</span> <span class="ident">lookup_ip</span>::{<span class="ident">InnerLookupIpFuture</span>, <span class="ident">LookupIpFuture</span>};
-<span class="kw">use</span> <span class="ident">dns_lru</span>::<span class="ident">DnsLru</span>;
-<span class="kw">use</span> <span class="ident">lookup</span>::{<span class="self">self</span>, <span class="ident">Lookup</span>};
-<span class="kw">use</span> <span class="ident">lookup</span>::{<span class="ident">InnerLookupFuture</span>, <span class="ident">LookupEither</span>, <span class="ident">LookupFuture</span>};
-<span class="kw">use</span> <span class="ident">hosts</span>::{<span class="ident">parse_literal_ip</span>, <span class="ident">Hosts</span>};
 
 <span class="doccomment">/// Root Handle to communicate with the ResolverFuture</span>
 <span class="doccomment">///</span>
@@ -816,10 +930,13 @@
 <span class="kw">impl</span> <span class="ident">DnsHandle</span> <span class="kw">for</span> <span class="ident">BasicResolverHandle</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span>;
 
-    <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">Message</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Message</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">send</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">DnsRequest</span><span class="op">&gt;&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">request</span>: <span class="ident">R</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">DnsResponse</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> {
         <span class="ident">Box</span>::<span class="ident">new</span>(
             <span class="self">self</span>.<span class="ident">message_sender</span>
-                .<span class="ident">send</span>(<span class="ident">message</span>)
+                .<span class="ident">send</span>(<span class="ident">request</span>)
                 .<span class="ident">map_err</span>(<span class="ident">ResolveError</span>::<span class="ident">from</span>),
         )
     }
@@ -829,7 +946,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResolverFuture</span> {
     <span class="ident">config</span>: <span class="ident">ResolverConfig</span>,
     <span class="ident">options</span>: <span class="ident">ResolverOpts</span>,
-    <span class="ident">client_cache</span>: <span class="ident">CachingClient</span><span class="op">&lt;</span><span class="ident">LookupEither</span><span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">client_cache</span>: <span class="ident">CachingClient</span><span class="op">&lt;</span><span class="ident">LookupEither</span><span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;&gt;</span>,
     <span class="ident">hosts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Hosts</span><span class="op">&gt;&gt;</span>,
 }
 
@@ -846,11 +963,11 @@
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">query</span>.<span class="ident">into_name</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">name</span>) <span class="op">=&gt;</span> <span class="ident">name</span>,
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
-            <span class="kw">return</span> <span class="ident">InnerLookupFuture</span>::<span class="ident">error</span>(<span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(), <span class="ident">err</span>).<span class="ident">into</span>();
+            <span class="kw">return</span> <span class="ident">LookupFuture</span>::<span class="ident">error</span>(<span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(), <span class="ident">err</span>).<span class="ident">into</span>();
         }
     };
 
-    <span class="self">self</span>.<span class="ident">inner_lookup</span>(<span class="ident">name</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>).<span class="ident">into</span>()
+    <span class="self">self</span>.<span class="ident">inner_lookup</span>(<span class="ident">name</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>, <span class="ident">DnsRequestOptions</span>::<span class="ident">default</span>()).<span class="ident">into</span>()
 }
     };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>:<span class="ident">path</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>) <span class="op">=&gt;</span> {
@@ -861,7 +978,7 @@
 <span class="doccomment">/// * `query` - a type which can be converted to `Name` via `From`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">query</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>) <span class="op">-&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> {
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">Name</span>::<span class="ident">from</span>(<span class="ident">query</span>);
-    <span class="self">self</span>.<span class="ident">inner_lookup</span>(<span class="ident">name</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>).<span class="ident">into</span>()
+    <span class="self">self</span>.<span class="ident">inner_lookup</span>(<span class="ident">name</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">r</span>, <span class="ident">DnsRequestOptions</span>::<span class="ident">default</span>()).<span class="ident">into</span>()
 }
     };
 }
@@ -873,11 +990,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// * `config` - configuration, name_servers, etc. for the Resolver</span>
     <span class="doccomment">/// * `options` - basic lookup options for the resolver</span>
-    <span class="doccomment">/// * `reactor` - the [`tokio_core::Core`] to use with this future</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">config</span>: <span class="ident">ResolverConfig</span>, <span class="ident">options</span>: <span class="ident">ResolverOpts</span>, <span class="ident">reactor</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">config</span>: <span class="ident">ResolverConfig</span>,
+        <span class="ident">options</span>: <span class="ident">ResolverOpts</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">lru</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">DnsLru</span>::<span class="ident">new</span>(<span class="ident">options</span>.<span class="ident">cache_size</span>)));
 
-        <span class="self">Self</span>::<span class="ident">with_cache</span>(<span class="ident">config</span>, <span class="ident">options</span>, <span class="ident">lru</span>, <span class="ident">reactor</span>)
+        <span class="self">Self</span>::<span class="ident">with_cache</span>(<span class="ident">config</span>, <span class="ident">options</span>, <span class="ident">lru</span>)
     }
 
     <span class="doccomment">/// Construct a new ResolverFuture with the associated Client and configuration.</span>
@@ -887,57 +1006,56 @@
     <span class="doccomment">/// * `config` - configuration, name_servers, etc. for the Resolver</span>
     <span class="doccomment">/// * `options` - basic lookup options for the resolver</span>
     <span class="doccomment">/// * `lru` - the cache to be used with the resolver</span>
-    <span class="doccomment">/// * `reactor` - the [`tokio_core::Core`] to use with this future</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_cache</span>(
         <span class="ident">config</span>: <span class="ident">ResolverConfig</span>,
         <span class="ident">options</span>: <span class="ident">ResolverOpts</span>,
         <span class="ident">lru</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">DnsLru</span><span class="op">&gt;&gt;</span>,
-        <span class="ident">reactor</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>,
-    ) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">NameServerPool</span>::<span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">from_config</span>(
-            <span class="kw-2">&amp;</span><span class="ident">config</span>,
-            <span class="kw-2">&amp;</span><span class="ident">options</span>,
-            <span class="ident">reactor</span>,
-        );
-        <span class="kw">let</span> <span class="ident">either</span>;
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">RetryDnsHandle</span>::<span class="ident">new</span>(<span class="ident">pool</span>.<span class="ident">clone</span>(), <span class="ident">options</span>.<span class="ident">attempts</span>);
-        <span class="kw">if</span> <span class="ident">options</span>.<span class="ident">validate</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dnssec&quot;</span>)]</span>
-            {
-                <span class="ident">either</span> <span class="op">=</span> <span class="ident">LookupEither</span>::<span class="ident">Secure</span>(<span class="ident">SecureDnsHandle</span>::<span class="ident">new</span>(<span class="ident">client</span>));
-            }
+    ) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> {
+        <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">future</span>::<span class="ident">lazy</span>(<span class="kw">move</span> <span class="op">||</span> {
+            <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">NameServerPool</span>::<span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">from_config</span>(
+                <span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>,
+            );
+            <span class="kw">let</span> <span class="ident">either</span>;
+            <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">RetryDnsHandle</span>::<span class="ident">new</span>(<span class="ident">pool</span>.<span class="ident">clone</span>(), <span class="ident">options</span>.<span class="ident">attempts</span>);
+            <span class="kw">if</span> <span class="ident">options</span>.<span class="ident">validate</span> {
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dnssec&quot;</span>)]</span>
+                {
+                    <span class="ident">either</span> <span class="op">=</span> <span class="ident">LookupEither</span>::<span class="ident">Secure</span>(<span class="ident">SecureDnsHandle</span>::<span class="ident">new</span>(<span class="ident">client</span>));
+                }
 
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dnssec&quot;</span>))]</span>
-            {
-                <span class="comment">// TODO: should this just be a panic, or a pinned error?</span>
-                <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;validate option is only available with &#39;dnssec&#39; feature&quot;</span>);
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dnssec&quot;</span>))]</span>
+                {
+                    <span class="comment">// TODO: should this just be a panic, or a pinned error?</span>
+                    <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;validate option is only available with &#39;dnssec&#39; feature&quot;</span>);
+                    <span class="ident">either</span> <span class="op">=</span> <span class="ident">LookupEither</span>::<span class="ident">Retry</span>(<span class="ident">client</span>);
+                }
+            } <span class="kw">else</span> {
                 <span class="ident">either</span> <span class="op">=</span> <span class="ident">LookupEither</span>::<span class="ident">Retry</span>(<span class="ident">client</span>);
             }
-        } <span class="kw">else</span> {
-            <span class="ident">either</span> <span class="op">=</span> <span class="ident">LookupEither</span>::<span class="ident">Retry</span>(<span class="ident">client</span>);
-        }
 
-        <span class="kw">let</span> <span class="ident">hosts</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">options</span>.<span class="ident">use_hosts_file</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Hosts</span>::<span class="ident">new</span>()))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
+            <span class="kw">let</span> <span class="ident">hosts</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">options</span>.<span class="ident">use_hosts_file</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Hosts</span>::<span class="ident">new</span>()))
+            } <span class="kw">else</span> {
+                <span class="prelude-val">None</span>
+            };
 
-        <span class="ident">ResolverFuture</span> {
-            <span class="ident">config</span>,
-            <span class="ident">options</span>,
-            <span class="ident">client_cache</span>: <span class="ident">CachingClient</span>::<span class="ident">with_cache</span>(<span class="ident">lru</span>, <span class="ident">either</span>),
-            <span class="ident">hosts</span>: <span class="ident">hosts</span>,
-        }
+            <span class="ident">future</span>::<span class="ident">ok</span>(<span class="ident">ResolverFuture</span> {
+                <span class="ident">config</span>,
+                <span class="ident">options</span>,
+                <span class="ident">client_cache</span>: <span class="ident">CachingClient</span>::<span class="ident">with_cache</span>(<span class="ident">lru</span>, <span class="ident">either</span>),
+                <span class="ident">hosts</span>: <span class="ident">hosts</span>,
+            })
+        }))
     }
 
     <span class="doccomment">/// Constructs a new Resolver with the system configuration.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will use `/etc/resolv.conf` on Unix OSes and the registry on Windows.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">unix</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_system_conf</span>(<span class="ident">reactor</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>) <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_system_conf</span>() <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="self">Self</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;&gt;</span>
+    {
         <span class="kw">let</span> (<span class="ident">config</span>, <span class="ident">options</span>) <span class="op">=</span> <span class="kw">super</span>::<span class="ident">system_conf</span>::<span class="ident">read_system_conf</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">config</span>, <span class="ident">options</span>, <span class="ident">reactor</span>))
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">config</span>, <span class="ident">options</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">push_name</span>(<span class="ident">name</span>: <span class="ident">Name</span>, <span class="ident">names</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Name</span><span class="op">&gt;</span>) {
@@ -957,7 +1075,8 @@
                 <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">Name</span><span class="op">&gt;</span>::<span class="ident">with_capacity</span>(<span class="number">1</span> <span class="comment">/*FQDN*/</span> <span class="op">+</span> <span class="number">1</span> <span class="comment">/*DOMAIN*/</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">search</span>().<span class="ident">len</span>());
 
             <span class="comment">// if not meeting ndots, we always do the raw name in the final lookup, or it&#39;s a localhost...</span>
-            <span class="kw">let</span> <span class="ident">raw_name_first</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">num_labels</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">options</span>.<span class="ident">ndots</span> <span class="op">||</span> <span class="ident">name</span>.<span class="ident">is_localhost</span>();
+            <span class="kw">let</span> <span class="ident">raw_name_first</span>: <span class="ident">bool</span> <span class="op">=</span>
+                <span class="ident">name</span>.<span class="ident">num_labels</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">options</span>.<span class="ident">ndots</span> <span class="op">||</span> <span class="ident">name</span>.<span class="ident">is_localhost</span>();
 
             <span class="comment">// if not meeting ndots, we always do the raw name in the final lookup</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">raw_name_first</span> {
@@ -1000,16 +1119,21 @@
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">name</span>.<span class="ident">into_name</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">name</span>) <span class="op">=&gt;</span> <span class="ident">name</span>,
             <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
-                <span class="kw">return</span> <span class="ident">InnerLookupFuture</span>::<span class="ident">error</span>(<span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(), <span class="ident">err</span>);
+                <span class="kw">return</span> <span class="ident">LookupFuture</span>::<span class="ident">error</span>(<span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(), <span class="ident">err</span>);
             }
         };
 
-        <span class="self">self</span>.<span class="ident">inner_lookup</span>(<span class="ident">name</span>, <span class="ident">record_type</span>)
+        <span class="self">self</span>.<span class="ident">inner_lookup</span>(<span class="ident">name</span>, <span class="ident">record_type</span>, <span class="ident">DnsRequestOptions</span>::<span class="ident">default</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">inner_lookup</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="ident">Name</span>, <span class="ident">record_type</span>: <span class="ident">RecordType</span>) <span class="op">-&gt;</span> <span class="ident">LookupFuture</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">inner_lookup</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">name</span>: <span class="ident">Name</span>,
+        <span class="ident">record_type</span>: <span class="ident">RecordType</span>,
+        <span class="ident">options</span>: <span class="ident">DnsRequestOptions</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">LookupFuture</span> {
         <span class="kw">let</span> <span class="ident">names</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">build_names</span>(<span class="ident">name</span>);
-        <span class="ident">LookupFuture</span>::<span class="ident">lookup</span>(<span class="ident">names</span>, <span class="ident">record_type</span>, <span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>())
+        <span class="ident">LookupFuture</span>::<span class="ident">lookup</span>(<span class="ident">names</span>, <span class="ident">record_type</span>, <span class="ident">options</span>, <span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// Performs a dual-stack DNS lookup for the IP for the given hostname.</span>
@@ -1018,19 +1142,36 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Arguments</span>
     <span class="doccomment">/// * `host` - string hostname, if this is an invalid hostname, an error will be returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_ip</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">host</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">LookupIpFuture</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_ip</span><span class="op">&lt;</span><span class="ident">N</span>: <span class="ident">IntoName</span> <span class="op">+</span> <span class="ident">TryParseIp</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">host</span>: <span class="ident">N</span>) <span class="op">-&gt;</span> <span class="ident">LookupIpFuture</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">finally_ip_addr</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+
         <span class="comment">// if host is a ip address, return directly.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addr</span>) <span class="op">=</span> <span class="ident">parse_literal_ip</span>(<span class="ident">host</span>) {
-            <span class="kw">return</span> <span class="ident">InnerLookupIpFuture</span>::<span class="ident">ok</span>(
-                <span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(),
-                <span class="ident">Lookup</span>::<span class="ident">new</span>(<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">addr</span>])),
-            );
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ip_addr</span>) <span class="op">=</span> <span class="ident">host</span>.<span class="ident">try_parse_ip</span>() {
+            <span class="comment">// if ndots are greater than 4, then we can&#39;t assume the name is an IpAddr</span>
+            <span class="comment">//   this accepts IPv6 as well, b/c IPv6 can take the form: 2001:db8::198.51.100.35</span>
+            <span class="comment">//   but `:` is not a valid DNS character, so techinically this will fail parsing.</span>
+            <span class="comment">//   TODO: should we always do search before returning this?</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">options</span>.<span class="ident">ndots</span> <span class="op">&gt;</span> <span class="number">4</span> {
+                <span class="ident">finally_ip_addr</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ip_addr</span>);
+            } <span class="kw">else</span> {
+                <span class="kw">return</span> <span class="ident">LookupIpFuture</span>::<span class="ident">ok</span>(
+                    <span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(),
+                    <span class="ident">Lookup</span>::<span class="ident">new_with_max_ttl</span>(<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">ip_addr</span>])),
+                );
+            }
         }
 
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Name</span>::<span class="ident">from_str</span>(<span class="ident">host</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">name</span>) <span class="op">=&gt;</span> <span class="ident">name</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
-                <span class="kw">return</span> <span class="ident">InnerLookupIpFuture</span>::<span class="ident">error</span>(<span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(), <span class="ident">err</span>);
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">host</span>.<span class="ident">into_name</span>(), <span class="ident">finally_ip_addr</span>.<span class="ident">as_ref</span>()) {
+            (<span class="prelude-val">Ok</span>(<span class="ident">name</span>), <span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">name</span>,
+            (<span class="prelude-val">Err</span>(<span class="kw">_</span>), <span class="prelude-val">Some</span>(<span class="ident">ip_addr</span>)) <span class="op">=&gt;</span> {
+                <span class="comment">// it was a valid IP, return that...</span>
+                <span class="kw">return</span> <span class="ident">LookupIpFuture</span>::<span class="ident">ok</span>(
+                    <span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(),
+                    <span class="ident">Lookup</span>::<span class="ident">new_with_max_ttl</span>(<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">ip_addr</span>.<span class="ident">clone</span>()])),
+                );
+            }
+            (<span class="prelude-val">Err</span>(<span class="ident">err</span>), <span class="prelude-val">None</span>) <span class="op">=&gt;</span> {
+                <span class="kw">return</span> <span class="ident">LookupIpFuture</span>::<span class="ident">error</span>(<span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(), <span class="ident">err</span>);
             }
         };
 
@@ -1040,11 +1181,14 @@
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         };
+
         <span class="ident">LookupIpFuture</span>::<span class="ident">lookup</span>(
             <span class="ident">names</span>,
             <span class="self">self</span>.<span class="ident">options</span>.<span class="ident">ip_strategy</span>,
             <span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(),
+            <span class="ident">DnsRequestOptions</span>::<span class="ident">default</span>(),
             <span class="ident">hosts</span>,
+            <span class="ident">finally_ip_addr</span>,
         )
     }
 
@@ -1057,6 +1201,7 @@
     <span class="doccomment">/// * `service` - service to lookup, e.g. ldap or http</span>
     <span class="doccomment">/// * `protocol` - wire protocol, e.g. udp or tcp</span>
     <span class="doccomment">/// * `name` - zone or other name at which the service is located.</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use lookup_srv instead, this interface is none ideal&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_service</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">service</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
@@ -1065,6 +1210,19 @@
     ) <span class="op">-&gt;</span> <span class="ident">lookup</span>::<span class="ident">SrvLookupFuture</span> {
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;_{}._{}.{}&quot;</span>, <span class="ident">service</span>, <span class="ident">protocol</span>, <span class="ident">name</span>);
         <span class="self">self</span>.<span class="ident">srv_lookup</span>(<span class="ident">name</span>)
+    }
+
+    <span class="doccomment">/// Lookup an SRV record.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_srv</span><span class="op">&lt;</span><span class="ident">N</span>: <span class="ident">IntoName</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="ident">N</span>) <span class="op">-&gt;</span> <span class="ident">lookup</span>::<span class="ident">SrvLookupFuture</span> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">name</span>.<span class="ident">into_name</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">name</span>) <span class="op">=&gt;</span> <span class="ident">name</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                <span class="kw">return</span> <span class="ident">LookupFuture</span>::<span class="ident">error</span>(<span class="self">self</span>.<span class="ident">client_cache</span>.<span class="ident">clone</span>(), <span class="ident">err</span>).<span class="ident">into</span>();
+            }
+        };
+
+        <span class="self">self</span>.<span class="ident">inner_lookup</span>(<span class="ident">name</span>, <span class="ident">RecordType</span>::<span class="ident">SRV</span>, <span class="ident">DnsRequestOptions</span>::<span class="ident">default</span>())
+            .<span class="ident">into</span>()
     }
 
     <span class="macro">lookup_fn</span><span class="macro">!</span>(
@@ -1076,35 +1234,55 @@
     <span class="macro">lookup_fn</span><span class="macro">!</span>(<span class="ident">ipv4_lookup</span>, <span class="ident">lookup</span>::<span class="ident">Ipv4LookupFuture</span>, <span class="ident">RecordType</span>::<span class="ident">A</span>);
     <span class="macro">lookup_fn</span><span class="macro">!</span>(<span class="ident">ipv6_lookup</span>, <span class="ident">lookup</span>::<span class="ident">Ipv6LookupFuture</span>, <span class="ident">RecordType</span>::<span class="ident">AAAA</span>);
     <span class="macro">lookup_fn</span><span class="macro">!</span>(<span class="ident">mx_lookup</span>, <span class="ident">lookup</span>::<span class="ident">MxLookupFuture</span>, <span class="ident">RecordType</span>::<span class="ident">MX</span>);
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use lookup_srv instead, this interface is none ideal&quot;</span>)]</span>
     <span class="macro">lookup_fn</span><span class="macro">!</span>(<span class="ident">srv_lookup</span>, <span class="ident">lookup</span>::<span class="ident">SrvLookupFuture</span>, <span class="ident">RecordType</span>::<span class="ident">SRV</span>);
     <span class="macro">lookup_fn</span><span class="macro">!</span>(<span class="ident">txt_lookup</span>, <span class="ident">lookup</span>::<span class="ident">TxtLookupFuture</span>, <span class="ident">RecordType</span>::<span class="ident">TXT</span>);
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_core</span>;
+    <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio</span>;
 
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 
-    <span class="kw">use</span> <span class="self">self</span>::<span class="ident">tokio_core</span>::<span class="ident">reactor</span>::<span class="ident">Core</span>;
+    <span class="kw">use</span> <span class="self">self</span>::<span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">current_thread</span>::<span class="ident">Runtime</span>;
+
     <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">error</span>::<span class="ident">ProtoErrorKind</span>;
 
     <span class="kw">use</span> <span class="ident">config</span>::{<span class="ident">LookupIpStrategy</span>, <span class="ident">NameServerConfig</span>};
 
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
+    <span class="kw">fn</span> <span class="ident">is_send_t</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="bool-val">true</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">is_sync_t</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Sync</span><span class="op">&gt;</span>() <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="bool-val">true</span>
+    }
+
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_lookup</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
-            <span class="ident">ResolverConfig</span>::<span class="ident">default</span>(),
-            <span class="ident">ResolverOpts</span>::<span class="ident">default</span>(),
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
-        );
+    <span class="kw">fn</span> <span class="ident">test_send_sync</span>() {
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">is_send_t</span>::<span class="op">&lt;</span><span class="ident">ResolverConfig</span><span class="op">&gt;</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">is_send_t</span>::<span class="op">&lt;</span><span class="ident">ResolverConfig</span><span class="op">&gt;</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">is_send_t</span>::<span class="op">&lt;</span><span class="ident">ResolverOpts</span><span class="op">&gt;</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">is_sync_t</span>::<span class="op">&lt;</span><span class="ident">ResolverOpts</span><span class="op">&gt;</span>());
+
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">is_send_t</span>::<span class="op">&lt;</span><span class="ident">ResolverFuture</span><span class="op">&gt;</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">is_sync_t</span>::<span class="op">&lt;</span><span class="ident">ResolverFuture</span><span class="op">&gt;</span>());
+
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">is_send_t</span>::<span class="op">&lt;</span><span class="ident">DnsRequest</span><span class="op">&gt;</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">is_send_t</span>::<span class="op">&lt;</span><span class="ident">LookupIpFuture</span><span class="op">&gt;</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">is_send_t</span>::<span class="op">&lt;</span><span class="ident">LookupFuture</span><span class="op">&gt;</span>());
+    }
+
+    <span class="kw">fn</span> <span class="ident">lookup_test</span>(<span class="ident">config</span>: <span class="ident">ResolverConfig</span>) {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(<span class="ident">config</span>, <span class="ident">ResolverOpts</span>::<span class="ident">default</span>());
 
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com.&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com.&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">1</span>);
@@ -1115,14 +1293,7 @@
                 <span class="macro">assert_eq</span><span class="macro">!</span>(
                     <span class="ident">address</span>,
                     <span class="ident">IpAddr</span>::<span class="ident">V6</span>(<span class="ident">Ipv6Addr</span>::<span class="ident">new</span>(
-                        <span class="number">0x2606</span>,
-                        <span class="number">0x2800</span>,
-                        <span class="number">0x220</span>,
-                        <span class="number">0x1</span>,
-                        <span class="number">0x248</span>,
-                        <span class="number">0x1893</span>,
-                        <span class="number">0x25c8</span>,
-                        <span class="number">0x1946</span>,
+                        <span class="number">0x2606</span>, <span class="number">0x2800</span>, <span class="number">0x220</span>, <span class="number">0x1</span>, <span class="number">0x248</span>, <span class="number">0x1893</span>, <span class="number">0x25c8</span>, <span class="number">0x1946</span>,
                     ))
                 );
             }
@@ -1130,16 +1301,30 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_ip_lookup</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
-            <span class="ident">ResolverConfig</span>::<span class="ident">default</span>(),
-            <span class="ident">ResolverOpts</span>::<span class="ident">default</span>(),
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
-        );
+    <span class="kw">fn</span> <span class="ident">test_lookup_google</span>() {
+        <span class="ident">lookup_test</span>(<span class="ident">ResolverConfig</span>::<span class="ident">google</span>())
+    }
 
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_lookup_cloudflare</span>() {
+        <span class="ident">lookup_test</span>(<span class="ident">ResolverConfig</span>::<span class="ident">cloudflare</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_lookup_quad9</span>() {
+        <span class="ident">lookup_test</span>(<span class="ident">ResolverConfig</span>::<span class="ident">quad9</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_ip_lookup</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(<span class="ident">ResolverConfig</span>::<span class="ident">default</span>(), <span class="ident">ResolverOpts</span>::<span class="ident">default</span>());
+
+        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">io_loop</span>
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to create resolver&quot;</span>);
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;10.1.0.2&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;10.1.0.2&quot;</span>))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
@@ -1148,19 +1333,12 @@
         );
 
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;2606:2800:220:1:248:1893:25c8:1946&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;2606:2800:220:1:248:1893:25c8:1946&quot;</span>))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="prelude-val">Some</span>(<span class="ident">IpAddr</span>::<span class="ident">V6</span>(<span class="ident">Ipv6Addr</span>::<span class="ident">new</span>(
-                <span class="number">0x2606</span>,
-                <span class="number">0x2800</span>,
-                <span class="number">0x220</span>,
-                <span class="number">0x1</span>,
-                <span class="number">0x248</span>,
-                <span class="number">0x1893</span>,
-                <span class="number">0x25c8</span>,
-                <span class="number">0x1946</span>,
+                <span class="number">0x2606</span>, <span class="number">0x2800</span>, <span class="number">0x220</span>, <span class="number">0x1</span>, <span class="number">0x248</span>, <span class="number">0x1893</span>, <span class="number">0x25c8</span>, <span class="number">0x1946</span>,
             ))),
             <span class="ident">response</span>.<span class="ident">iter</span>().<span class="ident">next</span>()
         );
@@ -1169,18 +1347,17 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">ignore</span>]</span> <span class="comment">// these appear to not work on travis</span>
     <span class="kw">fn</span> <span class="ident">test_sec_lookup</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
             <span class="ident">ResolverConfig</span>::<span class="ident">default</span>(),
             <span class="ident">ResolverOpts</span> {
                 <span class="ident">validate</span>: <span class="bool-val">true</span>,
                 ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
             },
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
         );
 
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com.&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com.&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="comment">// TODO: this test is flaky, sometimes 1 is returned, sometimes 2...</span>
@@ -1192,14 +1369,7 @@
                 <span class="macro">assert_eq</span><span class="macro">!</span>(
                     <span class="ident">address</span>,
                     <span class="ident">IpAddr</span>::<span class="ident">V6</span>(<span class="ident">Ipv6Addr</span>::<span class="ident">new</span>(
-                        <span class="number">0x2606</span>,
-                        <span class="number">0x2800</span>,
-                        <span class="number">0x220</span>,
-                        <span class="number">0x1</span>,
-                        <span class="number">0x248</span>,
-                        <span class="number">0x1893</span>,
-                        <span class="number">0x25c8</span>,
-                        <span class="number">0x1946</span>,
+                        <span class="number">0x2606</span>, <span class="number">0x2800</span>, <span class="number">0x220</span>, <span class="number">0x1</span>, <span class="number">0x248</span>, <span class="number">0x1893</span>, <span class="number">0x25c8</span>, <span class="number">0x1946</span>,
                     ))
                 );
             }
@@ -1209,7 +1379,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">ignore</span>]</span> <span class="comment">// these appear to not work on travis</span>
     <span class="kw">fn</span> <span class="ident">test_sec_lookup_fails</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
             <span class="ident">ResolverConfig</span>::<span class="ident">default</span>(),
             <span class="ident">ResolverOpts</span> {
@@ -1217,12 +1387,12 @@
                 <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4Only</span>,
                 ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
             },
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
         );
 
         <span class="comment">// needs to be a domain that exists, but is not signed (eventually this will be)</span>
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">Name</span>::<span class="ident">from_str</span>(<span class="string">&quot;www.trust-dns.org.&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>.<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.trust-dns.org.&quot;</span>));
+        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.trust-dns.org.&quot;</span>)));
 
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">is_err</span>());
         <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">unwrap_err</span>();
@@ -1237,11 +1407,11 @@
     <span class="attribute">#[<span class="ident">ignore</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">unix</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;windows&quot;</span>))]</span>
     <span class="kw">fn</span> <span class="ident">test_system_lookup</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">from_system_conf</span>(<span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">from_system_conf</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com.&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com.&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">2</span>);
@@ -1252,14 +1422,7 @@
                 <span class="macro">assert_eq</span><span class="macro">!</span>(
                     <span class="ident">address</span>,
                     <span class="ident">IpAddr</span>::<span class="ident">V6</span>(<span class="ident">Ipv6Addr</span>::<span class="ident">new</span>(
-                        <span class="number">0x2606</span>,
-                        <span class="number">0x2800</span>,
-                        <span class="number">0x220</span>,
-                        <span class="number">0x1</span>,
-                        <span class="number">0x248</span>,
-                        <span class="number">0x1893</span>,
-                        <span class="number">0x25c8</span>,
-                        <span class="number">0x1946</span>,
+                        <span class="number">0x2606</span>, <span class="number">0x2800</span>, <span class="number">0x220</span>, <span class="number">0x1</span>, <span class="number">0x248</span>, <span class="number">0x1893</span>, <span class="number">0x25c8</span>, <span class="number">0x1946</span>,
                     ))
                 );
             }
@@ -1271,11 +1434,11 @@
     <span class="comment">// these appear to not work on travis, test on macos with `10.1.0.104  a.com`</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_hosts_lookup</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">from_system_conf</span>(<span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>()).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">from_system_conf</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;a.com&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;a.com&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">1</span>);
@@ -1298,18 +1461,17 @@
         <span class="kw">let</span> <span class="ident">name_servers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServerConfig</span><span class="op">&gt;</span> <span class="op">=</span>
             <span class="ident">ResolverConfig</span>::<span class="ident">default</span>().<span class="ident">name_servers</span>().<span class="ident">to_owned</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
             <span class="ident">ResolverConfig</span>::<span class="ident">from_parts</span>(<span class="prelude-val">Some</span>(<span class="ident">domain</span>), <span class="ident">search</span>, <span class="ident">name_servers</span>),
             <span class="ident">ResolverOpts</span> {
                 <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4Only</span>,
                 ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
             },
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
         );
 
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com.&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com.&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">1</span>);
@@ -1332,7 +1494,7 @@
         <span class="kw">let</span> <span class="ident">name_servers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServerConfig</span><span class="op">&gt;</span> <span class="op">=</span>
             <span class="ident">ResolverConfig</span>::<span class="ident">default</span>().<span class="ident">name_servers</span>().<span class="ident">to_owned</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
             <span class="ident">ResolverConfig</span>::<span class="ident">from_parts</span>(<span class="prelude-val">Some</span>(<span class="ident">domain</span>), <span class="ident">search</span>, <span class="ident">name_servers</span>),
             <span class="ident">ResolverOpts</span> {
@@ -1341,12 +1503,11 @@
                 <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4Only</span>,
                 ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
             },
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
         );
 
         <span class="comment">// notice this is not a FQDN, no trailing dot.</span>
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">1</span>);
@@ -1369,7 +1530,7 @@
         <span class="kw">let</span> <span class="ident">name_servers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServerConfig</span><span class="op">&gt;</span> <span class="op">=</span>
             <span class="ident">ResolverConfig</span>::<span class="ident">default</span>().<span class="ident">name_servers</span>().<span class="ident">to_owned</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
             <span class="ident">ResolverConfig</span>::<span class="ident">from_parts</span>(<span class="prelude-val">Some</span>(<span class="ident">domain</span>), <span class="ident">search</span>, <span class="ident">name_servers</span>),
             <span class="ident">ResolverOpts</span> {
@@ -1378,12 +1539,11 @@
                 <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4Only</span>,
                 ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
             },
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
         );
 
         <span class="comment">// notice this is not a FQDN, no trailing dot.</span>
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www.example.com&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">1</span>);
@@ -1407,19 +1567,18 @@
         <span class="kw">let</span> <span class="ident">name_servers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServerConfig</span><span class="op">&gt;</span> <span class="op">=</span>
             <span class="ident">ResolverConfig</span>::<span class="ident">default</span>().<span class="ident">name_servers</span>().<span class="ident">to_owned</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
             <span class="ident">ResolverConfig</span>::<span class="ident">from_parts</span>(<span class="prelude-val">Some</span>(<span class="ident">domain</span>), <span class="ident">search</span>, <span class="ident">name_servers</span>),
             <span class="ident">ResolverOpts</span> {
                 <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4Only</span>,
                 ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
             },
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
         );
 
         <span class="comment">// notice no dots, should not trigger ndots rule</span>
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">1</span>);
@@ -1444,19 +1603,18 @@
         <span class="kw">let</span> <span class="ident">name_servers</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServerConfig</span><span class="op">&gt;</span> <span class="op">=</span>
             <span class="ident">ResolverConfig</span>::<span class="ident">default</span>().<span class="ident">name_servers</span>().<span class="ident">to_owned</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
             <span class="ident">ResolverConfig</span>::<span class="ident">from_parts</span>(<span class="prelude-val">Some</span>(<span class="ident">domain</span>), <span class="ident">search</span>, <span class="ident">name_servers</span>),
             <span class="ident">ResolverOpts</span> {
                 <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4Only</span>,
                 ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
             },
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
         );
 
         <span class="comment">// notice no dots, should not trigger ndots rule</span>
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;www&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">iter</span>().<span class="ident">count</span>(), <span class="number">1</span>);
@@ -1471,15 +1629,11 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_idna</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
-            <span class="ident">ResolverConfig</span>::<span class="ident">default</span>(),
-            <span class="ident">ResolverOpts</span>::<span class="ident">default</span>(),
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
-        );
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(<span class="ident">ResolverConfig</span>::<span class="ident">default</span>(), <span class="ident">ResolverOpts</span>::<span class="ident">default</span>());
 
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;中国.icom.museum.&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;中国.icom.museum.&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="comment">// we just care that the request succeeded, not about the actual content</span>
@@ -1489,47 +1643,123 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_localhost_ipv4</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
             <span class="ident">ResolverConfig</span>::<span class="ident">default</span>(),
-            <span class="ident">ResolverOpts</span>{<span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4thenIpv6</span>,.. <span class="ident">ResolverOpts</span>::<span class="ident">default</span>()},
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
+            <span class="ident">ResolverOpts</span> {
+                <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4thenIpv6</span>,
+                ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
+            },
         );
 
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;localhost&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;localhost&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">iter</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;no A&quot;</span>), <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;no A&quot;</span>),
+            <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>))
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_localhost_ipv6</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
             <span class="ident">ResolverConfig</span>::<span class="ident">default</span>(),
-            <span class="ident">ResolverOpts</span>{<span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv6thenIpv4</span>,.. <span class="ident">ResolverOpts</span>::<span class="ident">default</span>()},
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
+            <span class="ident">ResolverOpts</span> {
+                <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv6thenIpv4</span>,
+                ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
+            },
         );
 
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;localhost&quot;</span>))
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;localhost&quot;</span>)))
             .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">iter</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;no AAAA&quot;</span>),
-            <span class="ident">IpAddr</span>::<span class="ident">V6</span>(<span class="ident">Ipv6Addr</span>::<span class="ident">new</span>(
-                <span class="number">0</span>,
-                <span class="number">0</span>,
-                <span class="number">0</span>,
-                <span class="number">0</span>,
-                <span class="number">0</span>,
-                <span class="number">0</span>,
-                <span class="number">0</span>,
-                <span class="number">1</span>,
-            ))
+            <span class="ident">IpAddr</span>::<span class="ident">V6</span>(<span class="ident">Ipv6Addr</span>::<span class="ident">new</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>,))
+        );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_search_ipv4_large_ndots</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">ResolverConfig</span>::<span class="ident">default</span>();
+        <span class="ident">config</span>.<span class="ident">add_search</span>(<span class="ident">Name</span>::<span class="ident">from_str</span>(<span class="string">&quot;example.com&quot;</span>).<span class="ident">unwrap</span>());
+
+        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
+            <span class="ident">config</span>,
+            <span class="ident">ResolverOpts</span> {
+                <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4Only</span>,
+                <span class="ident">ndots</span>: <span class="number">5</span>,
+                ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
+            },
+        );
+
+        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;198.51.100.35&quot;</span>)))
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">iter</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;no rdatas&quot;</span>),
+            <span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">198</span>, <span class="number">51</span>, <span class="number">100</span>, <span class="number">35</span>))
+        );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_search_ipv6_large_ndots</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">ResolverConfig</span>::<span class="ident">default</span>();
+        <span class="ident">config</span>.<span class="ident">add_search</span>(<span class="ident">Name</span>::<span class="ident">from_str</span>(<span class="string">&quot;example.com&quot;</span>).<span class="ident">unwrap</span>());
+
+        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
+            <span class="ident">config</span>,
+            <span class="ident">ResolverOpts</span> {
+                <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4Only</span>,
+                <span class="ident">ndots</span>: <span class="number">5</span>,
+                ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
+            },
+        );
+
+        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;2001:db8::c633:6423&quot;</span>)))
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">iter</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;no rdatas&quot;</span>),
+            <span class="ident">IpAddr</span>::<span class="ident">V6</span>(<span class="ident">Ipv6Addr</span>::<span class="ident">new</span>(<span class="number">0x2001</span>, <span class="number">0xdb8</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0xc633</span>, <span class="number">0x6423</span>))
+        );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_search_ipv6_name_parse_fails</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">ResolverConfig</span>::<span class="ident">default</span>();
+        <span class="ident">config</span>.<span class="ident">add_search</span>(<span class="ident">Name</span>::<span class="ident">from_str</span>(<span class="string">&quot;example.com&quot;</span>).<span class="ident">unwrap</span>());
+
+        <span class="kw">let</span> <span class="ident">resolver</span> <span class="op">=</span> <span class="ident">ResolverFuture</span>::<span class="ident">new</span>(
+            <span class="ident">config</span>,
+            <span class="ident">ResolverOpts</span> {
+                <span class="ident">ip_strategy</span>: <span class="ident">LookupIpStrategy</span>::<span class="ident">Ipv4Only</span>,
+                <span class="ident">ndots</span>: <span class="number">5</span>,
+                ..<span class="ident">ResolverOpts</span>::<span class="ident">default</span>()
+            },
+        );
+
+        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
+            .<span class="ident">block_on</span>(<span class="ident">resolver</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">resolver</span><span class="op">|</span> <span class="ident">resolver</span>.<span class="ident">lookup_ip</span>(<span class="string">&quot;2001:db8::198.51.100.35&quot;</span>)))
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to run lookup&quot;</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">iter</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;no rdatas&quot;</span>),
+            <span class="ident">IpAddr</span>::<span class="ident">V6</span>(<span class="ident">Ipv6Addr</span>::<span class="ident">new</span>(<span class="number">0x2001</span>, <span class="number">0xdb8</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0xc633</span>, <span class="number">0x6423</span>))
         );
     }
 }

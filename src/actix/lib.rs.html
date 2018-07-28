@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-0.5.8/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-0.7.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -167,6 +167,69 @@
 <span id="167">167</span>
 <span id="168">168</span>
 <span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! # Actix is a rust actors framework.</span>
 <span class="doccomment">//!</span>
@@ -179,11 +242,11 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Documentation</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! * [User Guide](http://actix.github.io/actix/guide/)</span>
+<span class="doccomment">//! * [User Guide](https://actix.rs/book/actix/)</span>
 <span class="doccomment">//! * [Chat on gitter](https://gitter.im/actix/actix)</span>
 <span class="doccomment">//! * [GitHub repository](https://github.com/actix/actix)</span>
 <span class="doccomment">//! * [Cargo package](https://crates.io/crates/actix)</span>
-<span class="doccomment">//! * Supported Rust version: 1.21 or later</span>
+<span class="doccomment">//! * Minimum supported Rust version: 1.26 or later</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Features</span>
 <span class="doccomment">//!</span>
@@ -193,22 +256,33 @@
 <span class="doccomment">//! * HTTP1/HTTP2 support ([actix-web](https://github.com/actix/actix-web))</span>
 <span class="doccomment">//! * Actor supervision.</span>
 <span class="doccomment">//! * Typed messages (No `Any` type). Generic messages are allowed.</span>
-<span class="doccomment">//! * Minimum supported Rust version: 1.21 or later</span>
-
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Package feature</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! * `resolver` - enables dns resolver actor, `actix::actors::resolver`</span>
+<span class="doccomment">//! * `signal` - enables signals handling actor</span>
+<span class="doccomment">//!</span>
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">log</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">bytes</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">crossbeam_channel</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">fnv</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">libc</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">parking_lot</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">smallvec</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">uuid</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">bitflags</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">futures</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_core</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_codec</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_executor</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_io</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_signal</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">trust_dns_resolver</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_reactor</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_tcp</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_timer</span>;
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">failure</span>;
@@ -217,9 +291,6 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">actix_derive</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">bytes</span>;
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">actix_derive</span>::<span class="kw-2">*</span>;
@@ -245,14 +316,18 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">sync</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">utils</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">actor</span>::{<span class="ident">Actor</span>, <span class="ident">ActorContext</span>, <span class="ident">ActorState</span>, <span class="ident">AsyncContext</span>, <span class="ident">Running</span>, <span class="ident">SpawnHandle</span>,
-                <span class="ident">Supervised</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">address</span>::{<span class="ident">ActorAddress</span>, <span class="ident">Addr</span>, <span class="ident">MailboxError</span>, <span class="ident">Recipient</span>, <span class="ident">Syn</span>, <span class="ident">Unsync</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">actor</span>::{
+    <span class="ident">Actor</span>, <span class="ident">ActorContext</span>, <span class="ident">ActorState</span>, <span class="ident">AsyncContext</span>, <span class="ident">Running</span>, <span class="ident">SpawnHandle</span>, <span class="ident">Supervised</span>,
+};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">address</span>::{<span class="ident">Addr</span>, <span class="ident">MailboxError</span>, <span class="ident">Recipient</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">arbiter</span>::<span class="ident">Arbiter</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">context</span>::<span class="ident">Context</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fut</span>::{<span class="ident">ActorFuture</span>, <span class="ident">ActorStream</span>, <span class="ident">FinishStream</span>, <span class="ident">WrapFuture</span>, <span class="ident">WrapStream</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">handler</span>::{<span class="ident">ActorResponse</span>, <span class="ident">Handler</span>, <span class="ident">Message</span>, <span class="ident">MessageResult</span>, <span class="ident">Response</span>,
-                  <span class="ident">ResponseActFuture</span>, <span class="ident">ResponseFuture</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">handler</span>::{
+    <span class="ident">ActorResponse</span>, <span class="ident">Handler</span>, <span class="ident">Message</span>, <span class="ident">MessageResult</span>, <span class="ident">Response</span>, <span class="ident">ResponseActFuture</span>,
+    <span class="ident">ResponseFuture</span>,
+};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">registry</span>::{<span class="ident">ArbiterService</span>, <span class="ident">Registry</span>, <span class="ident">SystemRegistry</span>, <span class="ident">SystemService</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">stream</span>::<span class="ident">StreamHandler</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">supervisor</span>::<span class="ident">Supervisor</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sync</span>::{<span class="ident">SyncArbiter</span>, <span class="ident">SyncContext</span>};
@@ -260,13 +335,6 @@
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">context</span>::<span class="ident">ContextFutureSpawner</span>;
-
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use Addr&lt;Unsync&lt;T&gt;&gt;&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Address</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">T</span><span class="op">&gt;</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use Addr&lt;Syn&lt;T&gt;&gt;&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SyncAddress</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">prelude</span> {
     <span class="doccomment">//! The `actix` prelude</span>
@@ -282,21 +350,19 @@
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">actix_derive</span>::<span class="kw-2">*</span>;
 
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use Addr&lt;Unsync&lt;T&gt;&gt;&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Address</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="ident">T</span><span class="op">&gt;</span>;
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.5.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use Addr&lt;Syn&lt;T&gt;&gt;&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SyncAddress</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Syn</span>, <span class="ident">T</span><span class="op">&gt;</span>;
-
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">actor</span>::{<span class="ident">Actor</span>, <span class="ident">ActorContext</span>, <span class="ident">ActorState</span>, <span class="ident">AsyncContext</span>, <span class="ident">Running</span>,
-                    <span class="ident">SpawnHandle</span>, <span class="ident">Supervised</span>};
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">address</span>::{<span class="ident">Addr</span>, <span class="ident">MailboxError</span>, <span class="ident">Recipient</span>, <span class="ident">SendError</span>, <span class="ident">Syn</span>, <span class="ident">Unsync</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">actor</span>::{
+        <span class="ident">Actor</span>, <span class="ident">ActorContext</span>, <span class="ident">ActorState</span>, <span class="ident">AsyncContext</span>, <span class="ident">Running</span>, <span class="ident">SpawnHandle</span>, <span class="ident">Supervised</span>,
+    };
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">address</span>::{
+        <span class="ident">Addr</span>, <span class="ident">MailboxError</span>, <span class="ident">Recipient</span>, <span class="ident">RecipientRequest</span>, <span class="ident">Request</span>, <span class="ident">SendError</span>,
+    };
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">arbiter</span>::<span class="ident">Arbiter</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">context</span>::{<span class="ident">Context</span>, <span class="ident">ContextFutureSpawner</span>};
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fut</span>::{<span class="ident">ActorFuture</span>, <span class="ident">ActorStream</span>, <span class="ident">WrapFuture</span>, <span class="ident">WrapStream</span>};
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">handler</span>::{<span class="ident">ActorResponse</span>, <span class="ident">Handler</span>, <span class="ident">Message</span>, <span class="ident">MessageResult</span>, <span class="ident">Response</span>,
-                      <span class="ident">ResponseActFuture</span>, <span class="ident">ResponseFuture</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">handler</span>::{
+        <span class="ident">ActorResponse</span>, <span class="ident">Handler</span>, <span class="ident">Message</span>, <span class="ident">MessageResult</span>, <span class="ident">Response</span>, <span class="ident">ResponseActFuture</span>,
+        <span class="ident">ResponseFuture</span>,
+    };
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">registry</span>::{<span class="ident">ArbiterService</span>, <span class="ident">SystemService</span>};
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">stream</span>::<span class="ident">StreamHandler</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">supervisor</span>::<span class="ident">Supervisor</span>;
@@ -305,13 +371,12 @@
 
     <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">actix</span> {
         <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">actors</span>;
-        <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">address</span>::<span class="ident">ActorAddress</span>;
         <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">dev</span>;
         <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fut</span>;
         <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">io</span>;
         <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">msgs</span>;
         <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">prelude</span>::<span class="kw-2">*</span>;
-        <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">registry</span>::{<span class="ident">ArbiterService</span>, <span class="ident">SystemService</span>};
+        <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">registry</span>::<span class="ident">SystemService</span>;
         <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">utils</span>::<span class="ident">Condition</span>;
     }
 }
@@ -330,12 +395,73 @@
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">prelude</span>::<span class="ident">actix</span>::<span class="kw-2">*</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">prelude</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">address</span>::{<span class="ident">ActorAddress</span>, <span class="ident">Request</span>, <span class="ident">SyncEnvelope</span>, <span class="ident">SyncRecipientRequest</span>,
-                      <span class="ident">ToEnvelope</span>, <span class="ident">UnsyncRecipientRequest</span>};
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">address</span>::{<span class="ident">Destination</span>, <span class="ident">MessageDestination</span>, <span class="ident">MessageDestinationTransport</span>,
-                      <span class="ident">MessageRecipient</span>};
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">contextimpl</span>::<span class="ident">ContextImpl</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">address</span>::{<span class="ident">Envelope</span>, <span class="ident">RecipientRequest</span>, <span class="ident">Request</span>, <span class="ident">ToEnvelope</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">contextimpl</span>::{<span class="ident">AsyncContextParts</span>, <span class="ident">ContextFut</span>, <span class="ident">ContextParts</span>};
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">handler</span>::{<span class="ident">MessageResponse</span>, <span class="ident">ResponseChannel</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mailbox</span>::<span class="ident">Mailbox</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">registry</span>::{<span class="ident">Registry</span>, <span class="ident">SystemRegistry</span>};
+}
+
+<span class="doccomment">/// Start the System and execute supplied future.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This function does the following:</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// * Creates and starts actix System with default configuration.</span>
+<span class="doccomment">/// * Spawn the given future onto the current arbiter.</span>
+<span class="doccomment">/// * Block the current thread until the system shuts down.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `run` functions returns when `System::current().stop()` method get called.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Examples</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # extern crate actix;</span>
+<span class="doccomment">/// # extern crate tokio_timer;</span>
+<span class="doccomment">/// # extern crate futures;</span>
+<span class="doccomment">/// # use futures::Future;</span>
+<span class="doccomment">/// use std::time::{Duration, Instant};</span>
+<span class="doccomment">/// use tokio_timer::Delay;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// fn main() {</span>
+<span class="doccomment">///   actix::run(</span>
+<span class="doccomment">///       || Delay::new(Instant::now() + Duration::from_millis(100))</span>
+<span class="doccomment">///            .map(|_| actix::System::current().stop())</span>
+<span class="doccomment">///            .map_err(|_| ())</span>
+<span class="doccomment">///   );</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Panics</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This function panics if actix system is already running.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>)
+<span class="kw">where</span>
+    <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="ident">R</span>,
+    <span class="ident">R</span>: <span class="ident">futures</span>::<span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+{
+    <span class="kw">if</span> <span class="ident">System</span>::<span class="ident">is_set</span>() {
+        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;System is already running&quot;</span>);
+    }
+
+    <span class="kw">let</span> <span class="ident">sys</span> <span class="op">=</span> <span class="ident">System</span>::<span class="ident">new</span>(<span class="string">&quot;Default&quot;</span>);
+    <span class="ident">Arbiter</span>::<span class="ident">spawn</span>(<span class="ident">f</span>());
+    <span class="ident">sys</span>.<span class="ident">run</span>();
+}
+
+<span class="doccomment">/// Spawns a future on the current arbiter.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Panics</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This function panics if actix system is not running.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="ident">F</span>)
+<span class="kw">where</span>
+    <span class="ident">F</span>: <span class="ident">futures</span>::<span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+{
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">System</span>::<span class="ident">is_set</span>() {
+        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;System is not running&quot;</span>);
+    }
+
+    <span class="ident">Arbiter</span>::<span class="ident">spawn</span>(<span class="ident">f</span>);
 }
 </pre>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "actix";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/middleware/session.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>session.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/middleware/session.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>session.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -598,6 +598,21 @@
 <span id="598">598</span>
 <span id="599">599</span>
 <span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! User sessions.</span>
 <span class="doccomment">//!</span>
@@ -633,9 +648,8 @@
 <span class="doccomment">//! session data.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # extern crate actix;</span>
 <span class="doccomment">//! # extern crate actix_web;</span>
-<span class="doccomment">//! use actix_web::{server, App, HttpRequest, Result};</span>
+<span class="doccomment">//! use actix_web::{actix, server, App, HttpRequest, Result};</span>
 <span class="doccomment">//! use actix_web::middleware::session::{RequestSession, SessionStorage, CookieSessionBackend};</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn index(req: HttpRequest) -&gt; Result&lt;&amp;&#39;static str&gt; {</span>
@@ -651,17 +665,17 @@
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() {</span>
-<span class="doccomment">//!     let sys = actix::System::new(&quot;basic-example&quot;);</span>
-<span class="doccomment">//!     server::new(</span>
-<span class="doccomment">//!       || App::new().middleware(</span>
-<span class="doccomment">//!           SessionStorage::new(          // &lt;- create session middleware</span>
-<span class="doccomment">//!             CookieSessionBackend::signed(&amp;[0; 32]) // &lt;- create signed cookie session backend</span>
-<span class="doccomment">//!                 .secure(false)</span>
-<span class="doccomment">//!          )))</span>
-<span class="doccomment">//!         .bind(&quot;127.0.0.1:59880&quot;).unwrap()</span>
-<span class="doccomment">//!         .start();</span>
-<span class="doccomment">//! #     actix::Arbiter::system().do_send(actix::msgs::SystemExit(0));</span>
-<span class="doccomment">//!     let _ = sys.run();</span>
+<span class="doccomment">//!     actix::System::run(|| {</span>
+<span class="doccomment">//!         server::new(</span>
+<span class="doccomment">//!           || App::new().middleware(</span>
+<span class="doccomment">//!               SessionStorage::new(          // &lt;- create session middleware</span>
+<span class="doccomment">//!                 CookieSessionBackend::signed(&amp;[0; 32]) // &lt;- create signed cookie session backend</span>
+<span class="doccomment">//!                     .secure(false)</span>
+<span class="doccomment">//!              )))</span>
+<span class="doccomment">//!             .bind(&quot;127.0.0.1:59880&quot;).unwrap()</span>
+<span class="doccomment">//!             .start();</span>
+<span class="doccomment">//! #         actix::System::current().stop();</span>
+<span class="doccomment">//!     });</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
@@ -670,7 +684,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
 
-<span class="kw">use</span> <span class="ident">cookie</span>::{<span class="ident">Cookie</span>, <span class="ident">CookieJar</span>, <span class="ident">Key</span>};
+<span class="kw">use</span> <span class="ident">cookie</span>::{<span class="ident">Cookie</span>, <span class="ident">CookieJar</span>, <span class="ident">Key</span>, <span class="ident">SameSite</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::{<span class="ident">err</span> <span class="kw">as</span> <span class="ident">FutErr</span>, <span class="ident">ok</span> <span class="kw">as</span> <span class="ident">FutOk</span>, <span class="ident">FutureResult</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">Future</span>;
 <span class="kw">use</span> <span class="ident">http</span>::<span class="ident">header</span>::{<span class="self">self</span>, <span class="ident">HeaderValue</span>};
@@ -689,13 +703,13 @@
 <span class="doccomment">/// The helper trait to obtain your session data from a request.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use actix_web::*;</span>
 <span class="doccomment">/// use actix_web::middleware::session::RequestSession;</span>
+<span class="doccomment">/// use actix_web::*;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// fn index(mut req: HttpRequest) -&gt; Result&lt;&amp;&#39;static str&gt; {</span>
 <span class="doccomment">///     // access session data</span>
 <span class="doccomment">///     if let Some(count) = req.session().get::&lt;i32&gt;(&quot;counter&quot;)? {</span>
-<span class="doccomment">///         req.session().set(&quot;counter&quot;, count+1)?;</span>
+<span class="doccomment">///         req.session().set(&quot;counter&quot;, count + 1)?;</span>
 <span class="doccomment">///     } else {</span>
 <span class="doccomment">///         req.session().set(&quot;counter&quot;, 1)?;</span>
 <span class="doccomment">///     }</span>
@@ -705,6 +719,7 @@
 <span class="doccomment">/// # fn main() {}</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">RequestSession</span> {
+    <span class="doccomment">/// Get the session from the request</span>
     <span class="kw">fn</span> <span class="ident">session</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Session</span>;
 }
 
@@ -724,13 +739,13 @@
 <span class="doccomment">/// method. `RequestSession` trait is implemented for `HttpRequest`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use actix_web::*;</span>
 <span class="doccomment">/// use actix_web::middleware::session::RequestSession;</span>
+<span class="doccomment">/// use actix_web::*;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// fn index(mut req: HttpRequest) -&gt; Result&lt;&amp;&#39;static str&gt; {</span>
 <span class="doccomment">///     // access session data</span>
 <span class="doccomment">///     if let Some(count) = req.session().get::&lt;i32&gt;(&quot;counter&quot;)? {</span>
-<span class="doccomment">///         req.session().set(&quot;counter&quot;, count+1)?;</span>
+<span class="doccomment">///         req.session().set(&quot;counter&quot;, count + 1)?;</span>
 <span class="doccomment">///     } else {</span>
 <span class="doccomment">///         req.session().set(&quot;counter&quot;, 1)?;</span>
 <span class="doccomment">///     }</span>
@@ -801,7 +816,7 @@
 <span class="doccomment">/// fn index(session: Session) -&gt; Result&lt;&amp;&#39;static str&gt; {</span>
 <span class="doccomment">///     // access session data</span>
 <span class="doccomment">///     if let Some(count) = session.get::&lt;i32&gt;(&quot;counter&quot;)? {</span>
-<span class="doccomment">///         session.set(&quot;counter&quot;, count+1)?;</span>
+<span class="doccomment">///         session.set(&quot;counter&quot;, count + 1)?;</span>
 <span class="doccomment">///     } else {</span>
 <span class="doccomment">///         session.set(&quot;counter&quot;, 1)?;</span>
 <span class="doccomment">///     }</span>
@@ -822,25 +837,19 @@
 
 <span class="kw">struct</span> <span class="ident">SessionImplCell</span>(<span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">SessionImpl</span><span class="op">&gt;&gt;</span>);
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">SessionImplCell</span> {}
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">SessionImplCell</span> {}
-
 <span class="doccomment">/// Session storage middleware</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # extern crate actix;</span>
 <span class="doccomment">/// # extern crate actix_web;</span>
+<span class="doccomment">/// use actix_web::middleware::session::{CookieSessionBackend, SessionStorage};</span>
 <span class="doccomment">/// use actix_web::App;</span>
-<span class="doccomment">/// use actix_web::middleware::session::{SessionStorage, CookieSessionBackend};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///    let app = App::new().middleware(</span>
-<span class="doccomment">///        SessionStorage::new(                      // &lt;- create session middleware</span>
-<span class="doccomment">///            CookieSessionBackend::signed(&amp;[0; 32]) // &lt;- create cookie session backend</span>
-<span class="doccomment">///               .secure(false))</span>
-<span class="doccomment">///    );</span>
+<span class="doccomment">///     let app = App::new().middleware(SessionStorage::new(</span>
+<span class="doccomment">///         // &lt;- create session middleware</span>
+<span class="doccomment">///         CookieSessionBackend::signed(&amp;[0; 32]) // &lt;- create cookie session backend</span>
+<span class="doccomment">///               .secure(false),</span>
+<span class="doccomment">///     ));</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SessionStorage</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">T</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>);
@@ -853,7 +862,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span>, <span class="ident">T</span>: <span class="ident">SessionBackend</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span> <span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SessionStorage</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Started</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Started</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">clone</span>();
 
         <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">from_request</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>).<span class="ident">then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">res</span> {
@@ -867,10 +876,8 @@
         <span class="prelude-val">Ok</span>(<span class="ident">Started</span>::<span class="ident">Future</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">fut</span>)))
     }
 
-    <span class="kw">fn</span> <span class="ident">response</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">resp</span>: <span class="ident">HttpResponse</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s_box</span>) <span class="op">=</span> <span class="ident">req</span>.<span class="ident">extensions_mut</span>().<span class="ident">remove</span>::<span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">SessionImplCell</span><span class="op">&gt;&gt;</span>() {
+    <span class="kw">fn</span> <span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">resp</span>: <span class="ident">HttpResponse</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s_box</span>) <span class="op">=</span> <span class="ident">req</span>.<span class="ident">extensions</span>().<span class="ident">get</span>::<span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">SessionImplCell</span><span class="op">&gt;&gt;</span>() {
             <span class="ident">s_box</span>.<span class="number">0</span>.<span class="ident">borrow_mut</span>().<span class="ident">write</span>(<span class="ident">resp</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Response</span>::<span class="ident">Done</span>(<span class="ident">resp</span>))
@@ -967,7 +974,9 @@
     <span class="ident">path</span>: <span class="ident">String</span>,
     <span class="ident">domain</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="ident">secure</span>: <span class="ident">bool</span>,
+    <span class="ident">http_only</span>: <span class="ident">bool</span>,
     <span class="ident">max_age</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
+    <span class="ident">same_site</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SameSite</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CookieSessionInner</span> {
@@ -979,7 +988,9 @@
             <span class="ident">path</span>: <span class="string">&quot;/&quot;</span>.<span class="ident">to_owned</span>(),
             <span class="ident">domain</span>: <span class="prelude-val">None</span>,
             <span class="ident">secure</span>: <span class="bool-val">true</span>,
+            <span class="ident">http_only</span>: <span class="bool-val">true</span>,
             <span class="ident">max_age</span>: <span class="prelude-val">None</span>,
+            <span class="ident">same_site</span>: <span class="prelude-val">None</span>,
         }
     }
 
@@ -995,7 +1006,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cookie</span> <span class="op">=</span> <span class="ident">Cookie</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">value</span>);
         <span class="ident">cookie</span>.<span class="ident">set_path</span>(<span class="self">self</span>.<span class="ident">path</span>.<span class="ident">clone</span>());
         <span class="ident">cookie</span>.<span class="ident">set_secure</span>(<span class="self">self</span>.<span class="ident">secure</span>);
-        <span class="ident">cookie</span>.<span class="ident">set_http_only</span>(<span class="bool-val">true</span>);
+        <span class="ident">cookie</span>.<span class="ident">set_http_only</span>(<span class="self">self</span>.<span class="ident">http_only</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">domain</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">domain</span> {
             <span class="ident">cookie</span>.<span class="ident">set_domain</span>(<span class="ident">domain</span>.<span class="ident">clone</span>());
@@ -1003,6 +1014,10 @@
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">max_age</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">max_age</span> {
             <span class="ident">cookie</span>.<span class="ident">set_max_age</span>(<span class="ident">max_age</span>);
+        }
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">same_site</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">same_site</span> {
+            <span class="ident">cookie</span>.<span class="ident">set_same_site</span>(<span class="ident">same_site</span>);
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">jar</span> <span class="op">=</span> <span class="ident">CookieJar</span>::<span class="ident">new</span>();
@@ -1013,7 +1028,7 @@
         }
 
         <span class="kw">for</span> <span class="ident">cookie</span> <span class="kw">in</span> <span class="ident">jar</span>.<span class="ident">delta</span>() {
-            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">HeaderValue</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">cookie</span>.<span class="ident">to_string</span>())<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">HeaderValue</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">cookie</span>.<span class="ident">encoded</span>().<span class="ident">to_string</span>())<span class="question-mark">?</span>;
             <span class="ident">resp</span>.<span class="ident">headers_mut</span>().<span class="ident">append</span>(<span class="ident">header</span>::<span class="ident">SET_COOKIE</span>, <span class="ident">val</span>);
         }
 
@@ -1022,7 +1037,7 @@
 
     <span class="kw">fn</span> <span class="ident">load</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">cookies</span>) <span class="op">=</span> <span class="ident">req</span>.<span class="ident">cookies</span>() {
-            <span class="kw">for</span> <span class="ident">cookie</span> <span class="kw">in</span> <span class="ident">cookies</span> {
+            <span class="kw">for</span> <span class="ident">cookie</span> <span class="kw">in</span> <span class="ident">cookies</span>.<span class="ident">iter</span>() {
                 <span class="kw">if</span> <span class="ident">cookie</span>.<span class="ident">name</span>() <span class="op">==</span> <span class="self">self</span>.<span class="ident">name</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">jar</span> <span class="op">=</span> <span class="ident">CookieJar</span>::<span class="ident">new</span>();
                     <span class="ident">jar</span>.<span class="ident">add_original</span>(<span class="ident">cookie</span>.<span class="ident">clone</span>());
@@ -1067,6 +1082,9 @@
 <span class="doccomment">/// all session data is lost. The constructors will panic if the key is less</span>
 <span class="doccomment">/// than 32 bytes in length.</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// The backend relies on `cookie` crate to create and read cookies.</span>
+<span class="doccomment">/// By default all cookies are percent encoded, but certain symbols may</span>
+<span class="doccomment">/// cause troubles when reading cookie, if they are not properly percent encoded.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
@@ -1129,6 +1147,18 @@
     <span class="doccomment">/// connection is secure - i.e. `https`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">secure</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">CookieSessionBackend</span> {
         <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">secure</span> <span class="op">=</span> <span class="ident">value</span>;
+        <span class="self">self</span>
+    }
+
+    <span class="doccomment">/// Sets the `http_only` field in the session cookie being built.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http_only</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">CookieSessionBackend</span> {
+        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">http_only</span> <span class="op">=</span> <span class="ident">value</span>;
+        <span class="self">self</span>
+    }
+
+    <span class="doccomment">/// Sets the `same_site` field in the session cookie being built.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_site</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">SameSite</span>) <span class="op">-&gt;</span> <span class="ident">CookieSessionBackend</span> {
+        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">same_site</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
         <span class="self">self</span>
     }
 

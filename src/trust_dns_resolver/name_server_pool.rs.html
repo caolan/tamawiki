@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-resolver-0.8.2/src/name_server_pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>name_server_pool.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-resolver-0.9.0/src/name_server_pool.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>name_server_pool.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -719,6 +719,199 @@
 <span id="719">719</span>
 <span id="720">720</span>
 <span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2015-2017 Benjamin Fry &lt;benjaminfry@me.com&gt;</span>
 <span class="comment">//</span>
@@ -728,26 +921,24 @@
 <span class="comment">// copied, modified, or distributed except according to those terms.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">BinaryHeap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>, <span class="ident">TryLockError</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Instant</span>;
 
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future</span>, <span class="ident">task</span>, <span class="ident">Async</span>, <span class="ident">Future</span>, <span class="ident">Poll</span>};
-<span class="kw">use</span> <span class="ident">tokio_core</span>::<span class="ident">reactor</span>::<span class="ident">Handle</span>;
+<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::<span class="ident">Loop</span>;
+<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future</span>, <span class="ident">task</span>, <span class="ident">Async</span>, <span class="ident">Future</span>, <span class="ident">IntoFuture</span>, <span class="ident">Poll</span>};
 
-<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::{<span class="ident">DnsFuture</span>, <span class="ident">DnsHandle</span>};
-<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">op</span>::{<span class="ident">Edns</span>, <span class="ident">Message</span>, <span class="ident">NoopMessageFinalizer</span>, <span class="ident">ResponseCode</span>};
-<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">udp</span>::<span class="ident">UdpClientStream</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mdns&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">multicast</span>::{<span class="ident">MDNS_IPV4</span>, <span class="ident">MdnsClientStream</span>, <span class="ident">MdnsQueryType</span>};
+<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">op</span>::{<span class="ident">Edns</span>, <span class="ident">NoopMessageFinalizer</span>, <span class="ident">ResponseCode</span>};
 <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">tcp</span>::<span class="ident">TcpClientStream</span>;
+<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">udp</span>::<span class="ident">UdpClientStream</span>;
+<span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">xfer</span>::{<span class="ident">DnsFuture</span>, <span class="ident">DnsHandle</span>, <span class="ident">DnsRequest</span>, <span class="ident">DnsResponse</span>};
 
 <span class="kw">use</span> <span class="ident">config</span>::{<span class="ident">NameServerConfig</span>, <span class="ident">Protocol</span>, <span class="ident">ResolverConfig</span>, <span class="ident">ResolverOpts</span>};
 <span class="kw">use</span> <span class="ident">error</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">resolver_future</span>::<span class="ident">BasicResolverHandle</span>;
-
-<span class="kw">const</span> <span class="ident">MIN_RETRY_DELAY_MS</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">500</span>;
-<span class="kw">const</span> <span class="ident">MAX_RETRY_DELAY_S</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">360</span>;
 
 <span class="doccomment">/// State of a connection with a remote NameServer.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
@@ -762,13 +953,13 @@
     <span class="doccomment">///  failed at some point after. The Failed state should *not* be entered due to an</span>
     <span class="doccomment">///  error contained in a Message recieved from the server. In All cases to reestablish</span>
     <span class="doccomment">///  a new connection will need to be created.</span>
-    <span class="ident">Failed</span> { <span class="ident">error</span>: <span class="ident">ResolveError</span>, <span class="ident">when</span>: <span class="ident">Instant</span> }, <span class="comment">// TODO: make error Arc...</span>
+    <span class="ident">Failed</span> { <span class="ident">when</span>: <span class="ident">Instant</span> },
 }
 
 <span class="kw">impl</span> <span class="ident">NameServerState</span> {
     <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">NameServerState</span>::<span class="ident">Init</span> { .. } <span class="op">=&gt;</span> <span class="number">3</span>, <span class="comment">// Should we instead prefer already established connections?</span>
+            <span class="ident">NameServerState</span>::<span class="ident">Init</span> { .. } <span class="op">=&gt;</span> <span class="number">3</span>,
             <span class="ident">NameServerState</span>::<span class="ident">Established</span> { .. } <span class="op">=&gt;</span> <span class="number">2</span>,
             <span class="ident">NameServerState</span>::<span class="ident">Failed</span> { .. } <span class="op">=&gt;</span> <span class="number">1</span>,
         }
@@ -777,7 +968,24 @@
 
 <span class="kw">impl</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">NameServerState</span> {
     <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-&gt;</span> <span class="ident">Ordering</span> {
-        <span class="self">self</span>.<span class="ident">to_usize</span>().<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">to_usize</span>())
+        <span class="kw">let</span> (<span class="ident">self_num</span>, <span class="ident">other_num</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="ident">to_usize</span>(), <span class="ident">other</span>.<span class="ident">to_usize</span>());
+        <span class="kw">match</span> <span class="ident">self_num</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">other_num</span>) {
+            <span class="ident">Ordering</span>::<span class="ident">Equal</span> <span class="op">=&gt;</span> <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
+                (
+                    <span class="ident">NameServerState</span>::<span class="ident">Failed</span> {
+                        <span class="ident">when</span>: <span class="kw-2">ref</span> <span class="ident">self_when</span>,
+                    },
+                    <span class="ident">NameServerState</span>::<span class="ident">Failed</span> {
+                        <span class="ident">when</span>: <span class="kw-2">ref</span> <span class="ident">other_when</span>,
+                    },
+                ) <span class="op">=&gt;</span> {
+                    <span class="comment">// We reverse, because we want the &quot;older&quot; failures to be tried first...</span>
+                    <span class="ident">self_when</span>.<span class="ident">cmp</span>(<span class="ident">other_when</span>).<span class="ident">reverse</span>()
+                }
+                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">Ordering</span>::<span class="ident">Equal</span>,
+            },
+            <span class="ident">cmp</span> <span class="op">=&gt;</span> <span class="ident">cmp</span>,
+        }
     }
 }
 
@@ -845,9 +1053,10 @@
 
     <span class="kw">fn</span> <span class="ident">next_failure</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">error</span>: <span class="ident">ResolveError</span>, <span class="ident">when</span>: <span class="ident">Instant</span>) {
         <span class="self">self</span>.<span class="ident">failures</span> <span class="op">+=</span> <span class="number">1</span>;
+        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;name_server connection failure: {}&quot;</span>, <span class="ident">error</span>);
 
         <span class="comment">// update current state</span>
-        <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">state</span>, <span class="ident">NameServerState</span>::<span class="ident">Failed</span> { <span class="ident">error</span>, <span class="ident">when</span> });
+        <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">state</span>, <span class="ident">NameServerState</span>::<span class="ident">Failed</span> { <span class="ident">when</span> });
     }
 }
 
@@ -869,7 +1078,7 @@
 
         <span class="comment">// TODO: track latency and use lowest latency connection...</span>
 
-        <span class="comment">// invert failure comparison</span>
+        <span class="comment">// invert failure comparison, i.e. the one with the least failures, wins</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">failures</span> <span class="op">&lt;=</span> <span class="ident">other</span>.<span class="ident">failures</span> {
             <span class="kw">return</span> <span class="ident">Ordering</span>::<span class="ident">Greater</span>;
         }
@@ -886,56 +1095,87 @@
 }
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ConnectionProvider</span>: <span class="ident">Clone</span> {
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ConnectionProvider</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> {
     <span class="kw">type</span> <span class="ident">ConnHandle</span>;
 
-    <span class="kw">fn</span> <span class="ident">new_connection</span>(
-        <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">NameServerConfig</span>,
-        <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">ResolverOpts</span>,
-        <span class="ident">reactor</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>,
-    ) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">ConnHandle</span>;
+    <span class="kw">fn</span> <span class="ident">new_connection</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">NameServerConfig</span>, <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">ResolverOpts</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">ConnHandle</span>;
 }
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="doccomment">/// Standard connection implements the default mechanism for creating new Connections</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StandardConnection</span>;
 
 <span class="kw">impl</span> <span class="ident">ConnectionProvider</span> <span class="kw">for</span> <span class="ident">StandardConnection</span> {
     <span class="kw">type</span> <span class="ident">ConnHandle</span> <span class="op">=</span> <span class="ident">BasicResolverHandle</span>;
 
-    <span class="kw">fn</span> <span class="ident">new_connection</span>(
-        <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">NameServerConfig</span>,
-        <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">ResolverOpts</span>,
-        <span class="ident">reactor</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>,
-    ) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">ConnHandle</span> {
+    <span class="kw">fn</span> <span class="ident">new_connection</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">NameServerConfig</span>, <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">ResolverOpts</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">ConnHandle</span> {
         <span class="kw">let</span> <span class="ident">dns_handle</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">config</span>.<span class="ident">protocol</span> {
             <span class="ident">Protocol</span>::<span class="ident">Udp</span> <span class="op">=&gt;</span> {
-                <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="ident">UdpClientStream</span>::<span class="ident">new</span>(<span class="ident">config</span>.<span class="ident">socket_addr</span>, <span class="ident">reactor</span>);
+                <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="ident">UdpClientStream</span>::<span class="ident">new</span>(<span class="ident">config</span>.<span class="ident">socket_addr</span>);
                 <span class="comment">// TODO: need config for Signer...</span>
-                <span class="ident">DnsFuture</span>::<span class="ident">with_timeout</span>(<span class="ident">stream</span>, <span class="ident">handle</span>, <span class="ident">reactor</span>, <span class="ident">options</span>.<span class="ident">timeout</span>, <span class="ident">NoopMessageFinalizer</span>::<span class="ident">new</span>())
+                <span class="ident">DnsFuture</span>::<span class="ident">with_timeout</span>(
+                    <span class="ident">stream</span>,
+                    <span class="ident">handle</span>,
+                    <span class="ident">options</span>.<span class="ident">timeout</span>,
+                    <span class="ident">NoopMessageFinalizer</span>::<span class="ident">new</span>(),
+                )
             }
             <span class="ident">Protocol</span>::<span class="ident">Tcp</span> <span class="op">=&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">handle</span>) <span class="op">=</span>
-                    <span class="ident">TcpClientStream</span>::<span class="ident">with_timeout</span>(<span class="ident">config</span>.<span class="ident">socket_addr</span>, <span class="ident">reactor</span>, <span class="ident">options</span>.<span class="ident">timeout</span>);
+                    <span class="ident">TcpClientStream</span>::<span class="ident">with_timeout</span>(<span class="ident">config</span>.<span class="ident">socket_addr</span>, <span class="ident">options</span>.<span class="ident">timeout</span>);
                 <span class="comment">// TODO: need config for Signer...</span>
-                <span class="ident">DnsFuture</span>::<span class="ident">with_timeout</span>(<span class="ident">stream</span>, <span class="ident">handle</span>, <span class="ident">reactor</span>, <span class="ident">options</span>.<span class="ident">timeout</span>, <span class="ident">NoopMessageFinalizer</span>::<span class="ident">new</span>())
+                <span class="ident">DnsFuture</span>::<span class="ident">with_timeout</span>(
+                    <span class="ident">stream</span>,
+                    <span class="ident">handle</span>,
+                    <span class="ident">options</span>.<span class="ident">timeout</span>,
+                    <span class="ident">NoopMessageFinalizer</span>::<span class="ident">new</span>(),
+                )
             }
-            <span class="comment">// TODO: Protocol::Tls =&gt; TlsClientStream::new(config.socket_addr, reactor),</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dns-over-tls&quot;</span>)]</span>
+            <span class="ident">Protocol</span>::<span class="ident">Tls</span> <span class="op">=&gt;</span> {
+                <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">handle</span>) <span class="op">=</span> ::<span class="ident">tls</span>::<span class="ident">new_tls_stream</span>(
+                    <span class="ident">config</span>.<span class="ident">socket_addr</span>,
+                    <span class="ident">config</span>.<span class="ident">tls_dns_name</span>.<span class="ident">clone</span>().<span class="ident">unwrap_or_default</span>(),
+                );
+                <span class="ident">DnsFuture</span>::<span class="ident">with_timeout</span>(
+                    <span class="ident">stream</span>,
+                    <span class="ident">handle</span>,
+                    <span class="ident">options</span>.<span class="ident">timeout</span>,
+                    <span class="ident">NoopMessageFinalizer</span>::<span class="ident">new</span>(),
+                )
+            }
+            <span class="comment">// TODO: Protocol::Tls =&gt; TlsClientStream::new(config.socket_addr),</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mdns&quot;</span>)]</span>
+            <span class="ident">Protocol</span>::<span class="ident">Mdns</span> <span class="op">=&gt;</span> {
+                <span class="kw">let</span> (<span class="ident">stream</span>, <span class="ident">handle</span>) <span class="op">=</span> <span class="ident">MdnsClientStream</span>::<span class="ident">new</span>(
+                    <span class="ident">config</span>.<span class="ident">socket_addr</span>,
+                    <span class="ident">MdnsQueryType</span>::<span class="ident">OneShot</span>,
+                    <span class="prelude-val">None</span>,
+                    <span class="prelude-val">None</span>,
+                    <span class="prelude-val">None</span>,
+                );
+                <span class="comment">// TODO: need config for Signer...</span>
+                <span class="ident">DnsFuture</span>::<span class="ident">with_timeout</span>(
+                    <span class="ident">stream</span>,
+                    <span class="ident">handle</span>,
+                    <span class="ident">options</span>.<span class="ident">timeout</span>,
+                    <span class="ident">NoopMessageFinalizer</span>::<span class="ident">new</span>(),
+                )
+            }
         };
 
         <span class="ident">BasicResolverHandle</span>::<span class="ident">new</span>(<span class="ident">dns_handle</span>)
     }
 }
 
+<span class="doccomment">/// Specifies the details of a remote NameServer used for lookups</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">DnsHandle</span>, <span class="ident">P</span>: <span class="ident">ConnectionProvider</span><span class="op">&lt;</span><span class="ident">ConnHandle</span> <span class="op">=</span> <span class="ident">C</span><span class="op">&gt;&gt;</span> {
     <span class="ident">config</span>: <span class="ident">NameServerConfig</span>,
     <span class="ident">options</span>: <span class="ident">ResolverOpts</span>,
     <span class="ident">client</span>: <span class="ident">C</span>,
     <span class="comment">// TODO: switch to FuturesMutex? (Mutex will have some undesireable locking)</span>
     <span class="ident">stats</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">NameServerStats</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">reactor</span>: <span class="ident">Handle</span>,
     <span class="ident">phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
 }
 
@@ -943,9 +1183,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">config</span>: <span class="ident">NameServerConfig</span>,
         <span class="ident">options</span>: <span class="ident">ResolverOpts</span>,
-        <span class="ident">reactor</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>,
     ) <span class="op">-&gt;</span> <span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">StandardConnection</span>::<span class="ident">new_connection</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>, <span class="ident">reactor</span>);
+        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">StandardConnection</span>::<span class="ident">new_connection</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="kw-2">&amp;</span><span class="ident">options</span>);
 
         <span class="comment">// TODO: setup EDNS</span>
         <span class="ident">NameServer</span> {
@@ -953,7 +1192,6 @@
             <span class="ident">options</span>,
             <span class="ident">client</span>,
             <span class="ident">stats</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">NameServerStats</span>::<span class="ident">default</span>())),
-            <span class="ident">reactor</span>: <span class="ident">reactor</span>.<span class="ident">clone</span>(),
             <span class="ident">phantom</span>: <span class="ident">PhantomData</span>,
         }
     }
@@ -963,27 +1201,23 @@
         <span class="ident">config</span>: <span class="ident">NameServerConfig</span>,
         <span class="ident">options</span>: <span class="ident">ResolverOpts</span>,
         <span class="ident">client</span>: <span class="ident">C</span>,
-        <span class="ident">reactor</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>,
     ) <span class="op">-&gt;</span> <span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;</span> {
         <span class="ident">NameServer</span> {
             <span class="ident">config</span>,
             <span class="ident">options</span>,
             <span class="ident">client</span>,
             <span class="ident">stats</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">NameServerStats</span>::<span class="ident">default</span>())),
-            <span class="ident">reactor</span>: <span class="ident">reactor</span>.<span class="ident">clone</span>(),
             <span class="ident">phantom</span>: <span class="ident">PhantomData</span>,
         }
     }
 
-    <span class="doccomment">/// checks if the connection is failed, if so, then it</span>
-    <span class="doccomment">///  will check the last falure time, and if the retry period is acceptable,</span>
-    <span class="doccomment">///  then reconnect.</span>
+    <span class="doccomment">/// checks if the connection is failed, if so then reconnect.</span>
     <span class="kw">fn</span> <span class="ident">try_reconnect</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ResolveResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">error_opt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ResolveError</span>, <span class="ident">Instant</span>, <span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stats</span>
+        <span class="kw">let</span> <span class="ident">error_opt</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stats</span>
             .<span class="ident">lock</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">stats</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">NameServerState</span>::<span class="ident">Failed</span> { <span class="kw-2">ref</span> <span class="ident">error</span>, <span class="ident">when</span> } <span class="op">=</span> <span class="ident">stats</span>.<span class="ident">state</span> {
-                    <span class="prelude-val">Some</span>((<span class="ident">error</span>.<span class="ident">clone</span>(), <span class="ident">when</span>, <span class="ident">stats</span>.<span class="ident">successes</span>, <span class="ident">stats</span>.<span class="ident">failures</span>))
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">NameServerState</span>::<span class="ident">Failed</span> { .. } <span class="op">=</span> <span class="ident">stats</span>.<span class="ident">state</span> {
+                    <span class="prelude-val">Some</span>((<span class="ident">stats</span>.<span class="ident">successes</span>, <span class="ident">stats</span>.<span class="ident">failures</span>))
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 }
@@ -993,39 +1227,18 @@
             })<span class="question-mark">?</span>;
 
         <span class="comment">// if this is in a failure state</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">error</span>, <span class="ident">when</span>, <span class="ident">successes</span>, <span class="ident">failures</span>)) <span class="op">=</span> <span class="ident">error_opt</span> {
-            <span class="comment">// Backoff is based on successes vs. failures...</span>
-            <span class="kw">let</span> <span class="ident">max_delay</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="ident">MAX_RETRY_DELAY_S</span>);
-            <span class="kw">let</span> <span class="ident">min_delay</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="ident">MIN_RETRY_DELAY_MS</span>);
-            <span class="kw">let</span> <span class="ident">failures</span> <span class="op">=</span> <span class="ident">failures</span>.<span class="ident">saturating_sub</span>(<span class="ident">successes</span>);
-            <span class="kw">let</span> <span class="ident">retry_delay</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="ident">failures</span>.<span class="ident">saturating_mul</span>(<span class="number">10</span>) <span class="kw">as</span> <span class="ident">u64</span>); <span class="comment">// 10 ms backoff</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">successes</span>, <span class="ident">failures</span>)) <span class="op">=</span> <span class="ident">error_opt</span> {
+            <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;reconnecting: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">config</span>);
+            <span class="comment">// establish a new connection</span>
+            <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">P</span>::<span class="ident">new_connection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">options</span>);
+            <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">client</span>, <span class="ident">client</span>);
 
-            <span class="comment">// TODO: switch to min|max when they stabalize</span>
-            <span class="kw">let</span> <span class="ident">retry_delay</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">retry_delay</span> <span class="op">&lt;</span> <span class="ident">max_delay</span> {
-                <span class="kw">if</span> <span class="ident">retry_delay</span> <span class="op">&gt;</span> <span class="ident">min_delay</span> {
-                    <span class="ident">retry_delay</span>
-                } <span class="kw">else</span> {
-                    <span class="ident">min_delay</span>
-                }
-            } <span class="kw">else</span> {
-                <span class="ident">max_delay</span>
-            };
-
-            <span class="kw">if</span> <span class="ident">Instant</span>::<span class="ident">now</span>().<span class="ident">duration_since</span>(<span class="ident">when</span>) <span class="op">&gt;</span> <span class="ident">retry_delay</span> {
-                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;reconnecting: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">config</span>);
-                <span class="comment">// establish a new connection</span>
-                <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">P</span>::<span class="ident">new_connection</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">options</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">reactor</span>);
-                <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">client</span>, <span class="ident">client</span>);
-
-                <span class="comment">// reinitialize the mutex (in case it was poisoned before)</span>
-                <span class="ident">mem</span>::<span class="ident">replace</span>(
-                    <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">stats</span>,
-                    <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">NameServerStats</span>::<span class="ident">init</span>(<span class="prelude-val">None</span>, <span class="ident">successes</span>, <span class="ident">failures</span>))),
-                );
-                <span class="prelude-val">Ok</span>(())
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">error</span>)
-            }
+            <span class="comment">// reinitialize the mutex (in case it was poisoned before)</span>
+            <span class="ident">mem</span>::<span class="ident">replace</span>(
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">stats</span>,
+                <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">NameServerStats</span>::<span class="ident">init</span>(<span class="prelude-val">None</span>, <span class="ident">successes</span>, <span class="ident">failures</span>))),
+            );
+            <span class="prelude-val">Ok</span>(())
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(())
         }
@@ -1044,7 +1257,10 @@
     }
 
     <span class="comment">// TODO: there needs to be some way of customizing the connection based on EDNS options from the server side...</span>
-    <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">Message</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Message</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">send</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">DnsRequest</span><span class="op">&gt;&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">request</span>: <span class="ident">R</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">DnsResponse</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> {
         <span class="comment">// if state is failed, return future::err(), unless retry delay expired...</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_reconnect</span>() {
             <span class="kw">return</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">future</span>::<span class="ident">err</span>(<span class="ident">error</span>));
@@ -1057,7 +1273,7 @@
         <span class="kw">let</span> <span class="ident">mutex2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stats</span>.<span class="ident">clone</span>();
         <span class="ident">Box</span>::<span class="ident">new</span>(
             <span class="self">self</span>.<span class="ident">client</span>
-                .<span class="ident">send</span>(<span class="ident">message</span>)
+                .<span class="ident">send</span>(<span class="ident">request</span>)
                 .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">response</span><span class="op">|</span> {
                     <span class="comment">// TODO: consider making message::take_edns...</span>
                     <span class="kw">let</span> <span class="ident">remote_edns</span> <span class="op">=</span> <span class="ident">response</span>.<span class="ident">edns</span>().<span class="ident">cloned</span>();
@@ -1069,9 +1285,7 @@
                             <span class="ident">stats</span>.<span class="ident">next_success</span>(<span class="ident">remote_edns</span>);
                             <span class="prelude-val">Ok</span>(<span class="ident">response</span>)
                         })
-                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Error acquiring NameServerStats lock: {}&quot;</span>, <span class="ident">e</span>).<span class="ident">into</span>()
-                        });
+                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Error acquiring NameServerStats lock: {}&quot;</span>, <span class="ident">e</span>).<span class="ident">into</span>());
 
                     <span class="ident">future</span>::<span class="ident">result</span>(<span class="ident">response</span>)
                 })
@@ -1129,14 +1343,27 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">DnsHandle</span>, <span class="ident">P</span>: <span class="ident">ConnectionProvider</span><span class="op">&lt;</span><span class="ident">ConnHandle</span> <span class="op">=</span> <span class="ident">C</span><span class="op">&gt;&gt;</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;</span> {}
 
+<span class="comment">// TODO: once IPv6 is better understood, also make this a binary keep.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mdns&quot;</span>)]</span>
+<span class="kw">fn</span> <span class="ident">mdns_nameserver</span>(<span class="ident">options</span>: <span class="ident">ResolverOpts</span>) <span class="op">-&gt;</span> <span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">NameServerConfig</span> {
+        <span class="ident">socket_addr</span>: <span class="kw-2">*</span><span class="ident">MDNS_IPV4</span>,
+        <span class="ident">protocol</span>: <span class="ident">Protocol</span>::<span class="ident">Mdns</span>,
+        <span class="ident">tls_dns_name</span>: <span class="prelude-val">None</span>,
+    };
+    <span class="ident">NameServer</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">config</span>, <span class="ident">options</span>)
+}
+
 <span class="doccomment">/// A pool of NameServers</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This is not expected to be used directly, see `ResolverFuture`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NameServerPool</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">DnsHandle</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>, <span class="ident">P</span>: <span class="ident">ConnectionProvider</span><span class="op">&lt;</span><span class="ident">ConnHandle</span> <span class="op">=</span> <span class="ident">C</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="comment">// TODO: switch to FuturesMutex (Mutex will have some undesireable locking)</span>
-    <span class="ident">datagram_conns</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">BinaryHeap</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>, <span class="comment">/* All NameServers must be the same type */</span>
-    <span class="ident">stream_conns</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">BinaryHeap</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>, <span class="comment">/* All NameServers must be the same type */</span>
+    <span class="ident">datagram_conns</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>, <span class="comment">/* All NameServers must be the same type */</span>
+    <span class="ident">stream_conns</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,   <span class="comment">/* All NameServers must be the same type */</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mdns&quot;</span>)]</span>
+    <span class="ident">mdns_conns</span>: <span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;</span>, <span class="comment">/* All NameServers must be the same type */</span>
     <span class="ident">options</span>: <span class="ident">ResolverOpts</span>,
     <span class="ident">phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
 }
@@ -1145,44 +1372,37 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_config</span>(
         <span class="ident">config</span>: <span class="kw-2">&amp;</span><span class="ident">ResolverConfig</span>,
         <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">ResolverOpts</span>,
-        <span class="ident">reactor</span>: <span class="kw-2">&amp;</span><span class="ident">Handle</span>,
     ) <span class="op">-&gt;</span> <span class="ident">NameServerPool</span><span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">datagram_conns</span>: <span class="ident">BinaryHeap</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;&gt;</span> <span class="op">=</span>
-            <span class="ident">config</span>
-                .<span class="ident">name_servers</span>()
-                .<span class="ident">iter</span>()
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">ns_config</span><span class="op">|</span> <span class="ident">ns_config</span>.<span class="ident">protocol</span>.<span class="ident">is_datagram</span>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ns_config</span><span class="op">|</span> {
-                    <span class="ident">NameServer</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">new</span>(
-                        <span class="ident">ns_config</span>.<span class="ident">clone</span>(),
-                        <span class="ident">options</span>.<span class="ident">clone</span>(),
-                        <span class="ident">reactor</span>,
-                    )
-                })
-                .<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">datagram_conns</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">config</span>
+            .<span class="ident">name_servers</span>()
+            .<span class="ident">iter</span>()
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">ns_config</span><span class="op">|</span> <span class="ident">ns_config</span>.<span class="ident">protocol</span>.<span class="ident">is_datagram</span>())
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ns_config</span><span class="op">|</span> {
+                <span class="ident">NameServer</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">ns_config</span>.<span class="ident">clone</span>(), <span class="ident">options</span>.<span class="ident">clone</span>())
+            })
+            .<span class="ident">collect</span>();
 
-        <span class="kw">let</span> <span class="ident">stream_conns</span>: <span class="ident">BinaryHeap</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">config</span>
+        <span class="kw">let</span> <span class="ident">stream_conns</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">BasicResolverHandle</span>, <span class="ident">StandardConnection</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">config</span>
             .<span class="ident">name_servers</span>()
             .<span class="ident">iter</span>()
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">ns_config</span><span class="op">|</span> <span class="ident">ns_config</span>.<span class="ident">protocol</span>.<span class="ident">is_stream</span>())
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ns_config</span><span class="op">|</span> {
-                <span class="ident">NameServer</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">new</span>(
-                    <span class="ident">ns_config</span>.<span class="ident">clone</span>(),
-                    <span class="ident">options</span>.<span class="ident">clone</span>(),
-                    <span class="ident">reactor</span>,
-                )
+                <span class="ident">NameServer</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">ns_config</span>.<span class="ident">clone</span>(), <span class="ident">options</span>.<span class="ident">clone</span>())
             })
             .<span class="ident">collect</span>();
 
         <span class="ident">NameServerPool</span> {
             <span class="ident">datagram_conns</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">datagram_conns</span>)),
             <span class="ident">stream_conns</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">stream_conns</span>)),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mdns&quot;</span>)]</span>
+            <span class="ident">mdns_conns</span>: <span class="ident">mdns_nameserver</span>(<span class="ident">options</span>.<span class="ident">clone</span>()),
             <span class="ident">options</span>: <span class="ident">options</span>.<span class="ident">clone</span>(),
             <span class="ident">phantom</span>: <span class="ident">PhantomData</span>,
         }
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mdns&quot;</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_nameservers</span>(
         <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">ResolverOpts</span>,
         <span class="ident">datagram_conns</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span>,
@@ -1196,13 +1416,27 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">try_send</span>(
-        <span class="ident">conns</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">BinaryHeap</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
-        <span class="ident">message</span>: <span class="ident">Message</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">TrySend</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mdns&quot;</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_nameservers</span>(
+        <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">ResolverOpts</span>,
+        <span class="ident">datagram_conns</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">stream_conns</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">mdns_conns</span>: <span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;</span>,
+    ) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="ident">NameServerPool</span> {
+            <span class="ident">datagram_conns</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">datagram_conns</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>())),
+            <span class="ident">stream_conns</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">stream_conns</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>())),
+            <span class="ident">mdns_conns</span>: <span class="ident">mdns_conns</span>,
+            <span class="ident">options</span>: <span class="ident">options</span>.<span class="ident">clone</span>(),
+            <span class="ident">phantom</span>: <span class="ident">PhantomData</span>,
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">try_send</span>(<span class="ident">conns</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>, <span class="ident">request</span>: <span class="ident">DnsRequest</span>) <span class="op">-&gt;</span> <span class="ident">TrySend</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;</span> {
         <span class="ident">TrySend</span>::<span class="ident">Lock</span> {
             <span class="ident">conns</span>,
-            <span class="ident">message</span>: <span class="prelude-val">Some</span>(<span class="ident">message</span>),
+            <span class="ident">request</span>: <span class="prelude-val">Some</span>(<span class="ident">request</span>),
         }
     }
 }
@@ -1214,24 +1448,49 @@
 {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span>;
 
-    <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">Message</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Message</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">send</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">DnsRequest</span><span class="op">&gt;&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">request</span>: <span class="ident">R</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">DnsResponse</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">request</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">datagram_conns</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">datagram_conns</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">stream_conns1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream_conns</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">stream_conns2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">stream_conns</span>.<span class="ident">clone</span>();
         <span class="comment">// TODO: remove this clone, return the Message in the error?</span>
-        <span class="kw">let</span> <span class="ident">tcp_message1</span> <span class="op">=</span> <span class="ident">message</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">tcp_message2</span> <span class="op">=</span> <span class="ident">message</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">tcp_message1</span> <span class="op">=</span> <span class="ident">request</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">tcp_message2</span> <span class="op">=</span> <span class="ident">request</span>.<span class="ident">clone</span>();
 
+        <span class="comment">// if it&#39;s a .local. query, then we *only* query mDNS, these should never be sent on to upstream resolvers</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mdns&quot;</span>)]</span>
+        <span class="kw">let</span> <span class="ident">mdns</span> <span class="op">=</span> <span class="ident">mdns</span>::<span class="ident">maybe_local</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">mdns_conns</span>, <span class="ident">request</span>);
+
+        <span class="comment">// TODO: limited to only when mDNS is enabled, but this should probably always be enforced?</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mdns&quot;</span>))]</span>
+        <span class="kw">let</span> <span class="ident">mdns</span> <span class="op">=</span> <span class="ident">Local</span>::<span class="ident">NotMdns</span>(<span class="ident">request</span>);
+
+        <span class="comment">// local queries are queried through mDNS</span>
+        <span class="kw">if</span> <span class="ident">mdns</span>.<span class="ident">is_local</span>() {
+            <span class="kw">return</span> <span class="ident">mdns</span>.<span class="ident">take_future</span>();
+        }
+
+        <span class="comment">// TODO: should we allow mDNS to be used for standard lookups as well?</span>
+
+        <span class="comment">// it wasn&#39;t a local query, continue with standard looup path</span>
+        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">mdns</span>.<span class="ident">take_request</span>();
         <span class="ident">Box</span>::<span class="ident">new</span>(
-            <span class="self">Self</span>::<span class="ident">try_send</span>(<span class="ident">datagram_conns</span>, <span class="ident">message</span>)
+            <span class="comment">// First try the UDP connections</span>
+            <span class="self">Self</span>::<span class="ident">try_send</span>(<span class="ident">datagram_conns</span>, <span class="ident">request</span>)
                 .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">response</span><span class="op">|</span> {
                     <span class="comment">// handling promotion from datagram to stream base on truncation in message</span>
                     <span class="kw">if</span> <span class="ident">ResponseCode</span>::<span class="ident">NoError</span> <span class="op">==</span> <span class="ident">response</span>.<span class="ident">response_code</span>() <span class="op">&amp;&amp;</span> <span class="ident">response</span>.<span class="ident">truncated</span>() {
+                        <span class="comment">// TCP connections should not truncate</span>
                         <span class="ident">future</span>::<span class="ident">Either</span>::<span class="ident">A</span>(<span class="self">Self</span>::<span class="ident">try_send</span>(<span class="ident">stream_conns1</span>, <span class="ident">tcp_message1</span>))
                     } <span class="kw">else</span> {
+                        <span class="comment">// Return the result from the UDP connection</span>
                         <span class="ident">future</span>::<span class="ident">Either</span>::<span class="ident">B</span>(<span class="ident">future</span>::<span class="ident">ok</span>(<span class="ident">response</span>))
                     }
                 })
+                <span class="comment">// if UDP fails, try TCP</span>
                 .<span class="ident">or_else</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="self">Self</span>::<span class="ident">try_send</span>(<span class="ident">stream_conns2</span>, <span class="ident">tcp_message2</span>)),
         )
     }
@@ -1239,10 +1498,10 @@
 
 <span class="kw">enum</span> <span class="ident">TrySend</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">DnsHandle</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>, <span class="ident">P</span>: <span class="ident">ConnectionProvider</span><span class="op">&lt;</span><span class="ident">ConnHandle</span> <span class="op">=</span> <span class="ident">C</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="ident">Lock</span> {
-        <span class="ident">conns</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">BinaryHeap</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
-        <span class="ident">message</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Message</span><span class="op">&gt;</span>,
+        <span class="ident">conns</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">request</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DnsRequest</span><span class="op">&gt;</span>,
     },
-    <span class="ident">DoSend</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Message</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span><span class="op">&gt;&gt;</span>),
+    <span class="ident">DoSend</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">DnsResponse</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>),
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">TrySend</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;</span>
@@ -1250,7 +1509,7 @@
     <span class="ident">C</span>: <span class="ident">DnsHandle</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">P</span>: <span class="ident">ConnectionProvider</span><span class="op">&lt;</span><span class="ident">ConnHandle</span> <span class="op">=</span> <span class="ident">C</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Message</span>;
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">DnsResponse</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span>;
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
@@ -1259,7 +1518,7 @@
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">TrySend</span>::<span class="ident">Lock</span> {
                 <span class="kw-2">ref</span> <span class="ident">conns</span>,
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">message</span>,
+                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">request</span>,
             } <span class="op">=&gt;</span> {
                 <span class="comment">// pull a lock on the shared connections, lock releases at the end of the method</span>
                 <span class="kw">let</span> <span class="ident">conns</span> <span class="op">=</span> <span class="ident">conns</span>.<span class="ident">try_lock</span>();
@@ -1268,20 +1527,49 @@
                         <span class="comment">// TODO: what to do on poisoned errors? this is non-recoverable, right?</span>
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ResolveErrorKind</span>::<span class="ident">Msg</span>(<span class="string">&quot;Lock Poisoned&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">into</span>());
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">TryLockError</span>::<span class="ident">WouldBlock</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>),
+                    <span class="prelude-val">Err</span>(<span class="ident">TryLockError</span>::<span class="ident">WouldBlock</span>) <span class="op">=&gt;</span> {
+                        <span class="comment">// since there is nothing registered with Tokio, we need to yield...</span>
+                        <span class="ident">task</span>::<span class="ident">current</span>().<span class="ident">notify</span>();
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>);
+                    }
                     <span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">conns</span>) <span class="op">=&gt;</span> {
                         <span class="comment">// select the highest priority connection</span>
-                        <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <span class="ident">conns</span>.<span class="ident">peek_mut</span>();
+                        <span class="comment">//   reorder the connections based on current view...</span>
+                        <span class="comment">//   this reorders the inner set</span>
+                        <span class="ident">conns</span>.<span class="ident">sort_unstable</span>();
 
-                        <span class="kw">if</span> <span class="ident">conn</span>.<span class="ident">is_none</span>() {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                                <span class="ident">ResolveErrorKind</span>::<span class="ident">Message</span>(<span class="string">&quot;No connections available&quot;</span>).<span class="ident">into</span>(),
-                            );
-                        }
+                        <span class="comment">// TODO: restrict this size to a maximum # of NameServers to try</span>
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conns</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">conns</span>.<span class="ident">clone</span>(); <span class="comment">// get a stable view for trying all connections</span>
+                        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="ident">request</span>, <span class="prelude-val">None</span>);
+                        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">request</span>.<span class="ident">expect</span>(<span class="string">&quot;bad state, mesage should never be None&quot;</span>);
+                        <span class="kw">let</span> <span class="ident">request_loop</span> <span class="op">=</span> <span class="ident">request</span>.<span class="ident">clone</span>();
 
-                        <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="ident">message</span>, <span class="prelude-val">None</span>);
-                        <span class="ident">future</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">unwrap</span>()
-                            .<span class="ident">send</span>(<span class="ident">message</span>.<span class="ident">expect</span>(<span class="string">&quot;bad state, mesage should never be None&quot;</span>));
+                        <span class="kw">let</span> <span class="ident">loop_future</span> <span class="op">=</span> <span class="ident">future</span>::<span class="ident">loop_fn</span>(
+                            (
+                                <span class="ident">conns</span>,
+                                <span class="ident">request_loop</span>,
+                                <span class="ident">ResolveError</span>::<span class="ident">from</span>(<span class="ident">ResolveErrorKind</span>::<span class="ident">Message</span>(
+                                    <span class="string">&quot;No connections available&quot;</span>,
+                                )),
+                            ),
+                            <span class="op">|</span>(<span class="kw-2">mut</span> <span class="ident">conns</span>, <span class="ident">request</span>, <span class="ident">err</span>)<span class="op">|</span> {
+                                <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <span class="ident">conns</span>.<span class="ident">pop</span>();
+
+                                <span class="kw">let</span> <span class="ident">request_cont</span> <span class="op">=</span> <span class="ident">request</span>.<span class="ident">clone</span>();
+                                <span class="ident">conn</span>.<span class="ident">ok_or_else</span>(<span class="kw">move</span> <span class="op">||</span> <span class="ident">err</span>).<span class="ident">into_future</span>().<span class="ident">and_then</span>(
+                                    <span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">conn</span><span class="op">|</span> {
+                                        <span class="ident">conn</span>.<span class="ident">send</span>(<span class="ident">request</span>).<span class="ident">then</span>(<span class="op">|</span><span class="ident">sent_res</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">sent_res</span> {
+                                            <span class="prelude-val">Ok</span>(<span class="ident">sent</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Loop</span>::<span class="ident">Break</span>(<span class="ident">sent</span>)),
+                                            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                                                <span class="prelude-val">Ok</span>(<span class="ident">Loop</span>::<span class="ident">Continue</span>((<span class="ident">conns</span>, <span class="ident">request_cont</span>, <span class="ident">err</span>)))
+                                            }
+                                        })
+                                    },
+                                )
+                            },
+                        );
+
+                        <span class="ident">future</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">loop_future</span>);
                     }
                 }
             }
@@ -1296,18 +1584,100 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;mdns&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">mdns</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+
+    <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">rr</span>::<span class="ident">domain</span>::<span class="ident">usage</span>;
+    <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">DnsHandle</span>;
+
+    <span class="doccomment">/// Returns true</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">maybe_local</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">name_server</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">NameServer</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">P</span><span class="op">&gt;</span>, <span class="ident">request</span>: <span class="ident">DnsRequest</span>) <span class="op">-&gt;</span> <span class="ident">Local</span>
+    <span class="kw">where</span>
+        <span class="ident">C</span>: <span class="ident">DnsHandle</span><span class="op">&lt;</span><span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">P</span>: <span class="ident">ConnectionProvider</span><span class="op">&lt;</span><span class="ident">ConnHandle</span> <span class="op">=</span> <span class="ident">C</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    {
+        <span class="kw">if</span> <span class="ident">request</span>
+            .<span class="ident">queries</span>()
+            .<span class="ident">iter</span>()
+            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">query</span><span class="op">|</span> <span class="ident">usage</span>::<span class="ident">LOCAL</span>.<span class="ident">name</span>().<span class="ident">zone_of</span>(<span class="ident">query</span>.<span class="ident">name</span>()))
+        {
+            <span class="ident">Local</span>::<span class="ident">ResolveFuture</span>(<span class="ident">name_server</span>.<span class="ident">send</span>(<span class="ident">request</span>))
+        } <span class="kw">else</span> {
+            <span class="ident">Local</span>::<span class="ident">NotMdns</span>(<span class="ident">request</span>)
+        }
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Local</span> {
+    <span class="ident">ResolveFuture</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">DnsResponse</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>),
+    <span class="ident">NotMdns</span>(<span class="ident">DnsRequest</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">Local</span> {
+    <span class="kw">fn</span> <span class="ident">is_local</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Local</span>::<span class="ident">ResolveFuture</span>(..) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="bool-val">true</span>
+        } <span class="kw">else</span> {
+            <span class="bool-val">false</span>
+        }
+    }
+
+    <span class="doccomment">/// Takes the future</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Panics if this is in fact a Local::NotMdns</span>
+    <span class="kw">fn</span> <span class="ident">take_future</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">DnsResponse</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Local</span>::<span class="ident">ResolveFuture</span>(<span class="ident">future</span>) <span class="op">=&gt;</span> <span class="ident">future</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;non Local queries have no future, see take_message()&quot;</span>),
+        }
+    }
+
+    <span class="doccomment">/// Takes the message</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Panics if this is in fact a Local::ResolveFuture</span>
+    <span class="kw">fn</span> <span class="ident">take_request</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">DnsRequest</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Local</span>::<span class="ident">NotMdns</span>(<span class="ident">request</span>) <span class="op">=&gt;</span> <span class="ident">request</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Local queries must be polled, see take_future()&quot;</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">Local</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">DnsResponse</span>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">ResolveError</span>;
+
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+                <span class="ident">Local</span>::<span class="ident">ResolveFuture</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">ns</span>) <span class="op">=&gt;</span> <span class="ident">ns</span>.<span class="ident">poll</span>(),
+                <span class="comment">// TODO: making this a panic for now</span>
+                <span class="ident">Local</span>::<span class="ident">NotMdns</span>(..) <span class="op">=&gt;</span> {
+                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Local queries that are not mDNS should not be polled&quot;</span>)
+                }
+                <span class="comment">//Local::NotMdns(message) =&gt; return Err(ResolveErrorKind::Message(&quot;not mDNS&quot;)),</span>
+            }
+    }
+}
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">IpAddr</span>, <span class="ident">Ipv4Addr</span>, <span class="ident">SocketAddr</span>};
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
 
-    <span class="kw">use</span> <span class="ident">tokio_core</span>::<span class="ident">reactor</span>::<span class="ident">Core</span>;
+    <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>;
+    <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">current_thread</span>::<span class="ident">Runtime</span>;
 
-    <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">DnsHandle</span>;
     <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">op</span>::{<span class="ident">Query</span>, <span class="ident">ResponseCode</span>};
     <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">rr</span>::{<span class="ident">Name</span>, <span class="ident">RecordType</span>};
+    <span class="kw">use</span> <span class="ident">trust_dns_proto</span>::<span class="ident">xfer</span>::{<span class="ident">DnsHandle</span>, <span class="ident">DnsRequestOptions</span>};
 
-    <span class="kw">use</span> <span class="ident">config</span>::<span class="ident">Protocol</span>;
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">config</span>::<span class="ident">Protocol</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_state_cmp</span>() {
@@ -1325,7 +1695,6 @@
 
         <span class="kw">let</span> <span class="ident">failed</span> <span class="op">=</span> <span class="ident">NameServerStats</span> {
             <span class="ident">state</span>: <span class="ident">NameServerState</span>::<span class="ident">Failed</span> {
-                <span class="ident">error</span>: <span class="ident">ResolveErrorKind</span>::<span class="ident">Msg</span>(<span class="string">&quot;test&quot;</span>.<span class="ident">to_string</span>()).<span class="ident">into</span>(),
                 <span class="ident">when</span>: <span class="ident">Instant</span>::<span class="ident">now</span>(),
             },
             <span class="ident">successes</span>: <span class="number">0</span>,
@@ -1344,7 +1713,6 @@
             <span class="ident">failures</span>: <span class="number">1</span>,
         };
 
-
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">init</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">init</span>), <span class="ident">Ordering</span>::<span class="ident">Equal</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">init</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">established</span>), <span class="ident">Ordering</span>::<span class="ident">Greater</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">established</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">failed</span>), <span class="ident">Ordering</span>::<span class="ident">Greater</span>);
@@ -1357,17 +1725,24 @@
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">NameServerConfig</span> {
             <span class="ident">socket_addr</span>: <span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">8</span>, <span class="number">8</span>, <span class="number">8</span>, <span class="number">8</span>)), <span class="number">53</span>),
             <span class="ident">protocol</span>: <span class="ident">Protocol</span>::<span class="ident">Udp</span>,
+            <span class="ident">tls_dns_name</span>: <span class="prelude-val">None</span>,
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">name_server</span> <span class="op">=</span> <span class="ident">NameServer</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">new</span>(
-            <span class="ident">config</span>,
-            <span class="ident">ResolverOpts</span>::<span class="ident">default</span>(),
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
-        );
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">name_server</span> <span class="op">=</span> <span class="ident">future</span>::<span class="ident">lazy</span>(<span class="op">||</span> {
+            <span class="ident">future</span>::<span class="ident">ok</span>(<span class="ident">NameServer</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">new</span>(
+                <span class="ident">config</span>,
+                <span class="ident">ResolverOpts</span>::<span class="ident">default</span>(),
+            ))
+        });
 
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">Name</span>::<span class="ident">parse</span>(<span class="string">&quot;www.example.com.&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="ident">io_loop</span>
-            .<span class="ident">run</span>(<span class="ident">name_server</span>.<span class="ident">lookup</span>(<span class="ident">Query</span>::<span class="ident">query</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">RecordType</span>::<span class="ident">A</span>)))
+            .<span class="ident">block_on</span>(<span class="ident">name_server</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">name_server</span><span class="op">|</span> {
+                <span class="ident">name_server</span>.<span class="ident">lookup</span>(
+                    <span class="ident">Query</span>::<span class="ident">query</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">RecordType</span>::<span class="ident">A</span>),
+                    <span class="ident">DnsRequestOptions</span>::<span class="ident">default</span>(),
+                )
+            }))
             .<span class="ident">expect</span>(<span class="string">&quot;query failed&quot;</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">response</span>.<span class="ident">response_code</span>(), <span class="ident">ResponseCode</span>::<span class="ident">NoError</span>);
     }
@@ -1379,15 +1754,19 @@
         <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">NameServerConfig</span> {
             <span class="ident">socket_addr</span>: <span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">252</span>)), <span class="number">252</span>),
             <span class="ident">protocol</span>: <span class="ident">Protocol</span>::<span class="ident">Udp</span>,
+            <span class="ident">tls_dns_name</span>: <span class="prelude-val">None</span>,
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">name_server</span> <span class="op">=</span>
-            <span class="ident">NameServer</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">config</span>, <span class="ident">options</span>, <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">name_server</span> <span class="op">=</span>
+            <span class="ident">future</span>::<span class="ident">lazy</span>(<span class="op">||</span> <span class="ident">future</span>::<span class="ident">ok</span>(<span class="ident">NameServer</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">config</span>, <span class="ident">options</span>)));
 
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">Name</span>::<span class="ident">parse</span>(<span class="string">&quot;www.example.com.&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert</span><span class="macro">!</span>(
             <span class="ident">io_loop</span>
-                .<span class="ident">run</span>(<span class="ident">name_server</span>.<span class="ident">lookup</span>(<span class="ident">Query</span>::<span class="ident">query</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">RecordType</span>::<span class="ident">A</span>)))
+                .<span class="ident">block_on</span>(<span class="ident">name_server</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">name_server</span><span class="op">|</span> <span class="ident">name_server</span>.<span class="ident">lookup</span>(
+                    <span class="ident">Query</span>::<span class="ident">query</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">RecordType</span>::<span class="ident">A</span>),
+                    <span class="ident">DnsRequestOptions</span>::<span class="ident">default</span>()
+                )))
                 .<span class="ident">is_err</span>()
         );
     }
@@ -1399,22 +1778,23 @@
         <span class="kw">let</span> <span class="ident">config1</span> <span class="op">=</span> <span class="ident">NameServerConfig</span> {
             <span class="ident">socket_addr</span>: <span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">127</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">252</span>)), <span class="number">253</span>),
             <span class="ident">protocol</span>: <span class="ident">Protocol</span>::<span class="ident">Udp</span>,
+            <span class="ident">tls_dns_name</span>: <span class="prelude-val">None</span>,
         };
 
         <span class="kw">let</span> <span class="ident">config2</span> <span class="op">=</span> <span class="ident">NameServerConfig</span> {
             <span class="ident">socket_addr</span>: <span class="ident">SocketAddr</span>::<span class="ident">new</span>(<span class="ident">IpAddr</span>::<span class="ident">V4</span>(<span class="ident">Ipv4Addr</span>::<span class="ident">new</span>(<span class="number">8</span>, <span class="number">8</span>, <span class="number">8</span>, <span class="number">8</span>)), <span class="number">53</span>),
             <span class="ident">protocol</span>: <span class="ident">Protocol</span>::<span class="ident">Udp</span>,
+            <span class="ident">tls_dns_name</span>: <span class="prelude-val">None</span>,
         };
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resolver_config</span> <span class="op">=</span> <span class="ident">ResolverConfig</span>::<span class="ident">new</span>();
         <span class="ident">resolver_config</span>.<span class="ident">add_name_server</span>(<span class="ident">config1</span>);
         <span class="ident">resolver_config</span>.<span class="ident">add_name_server</span>(<span class="ident">config2</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Core</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_loop</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">NameServerPool</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">StandardConnection</span><span class="op">&gt;</span>::<span class="ident">from_config</span>(
             <span class="kw-2">&amp;</span><span class="ident">resolver_config</span>,
             <span class="kw-2">&amp;</span><span class="ident">ResolverOpts</span>::<span class="ident">default</span>(),
-            <span class="kw-2">&amp;</span><span class="ident">io_loop</span>.<span class="ident">handle</span>(),
         );
 
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">Name</span>::<span class="ident">parse</span>(<span class="string">&quot;www.example.com.&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
@@ -1423,7 +1803,10 @@
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">2</span> {
             <span class="macro">assert</span><span class="macro">!</span>(
                 <span class="ident">io_loop</span>
-                    .<span class="ident">run</span>(<span class="ident">pool</span>.<span class="ident">lookup</span>(<span class="ident">Query</span>::<span class="ident">query</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">RecordType</span>::<span class="ident">A</span>)))
+                    .<span class="ident">block_on</span>(<span class="ident">pool</span>.<span class="ident">lookup</span>(
+                        <span class="ident">Query</span>::<span class="ident">query</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">RecordType</span>::<span class="ident">A</span>),
+                        <span class="ident">DnsRequestOptions</span>::<span class="ident">default</span>()
+                    ))
                     .<span class="ident">is_err</span>(),
                 <span class="string">&quot;iter: {}&quot;</span>,
                 <span class="ident">i</span>
@@ -1433,7 +1816,10 @@
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">10</span> {
             <span class="macro">assert</span><span class="macro">!</span>(
                 <span class="ident">io_loop</span>
-                    .<span class="ident">run</span>(<span class="ident">pool</span>.<span class="ident">lookup</span>(<span class="ident">Query</span>::<span class="ident">query</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">RecordType</span>::<span class="ident">A</span>)))
+                    .<span class="ident">block_on</span>(<span class="ident">pool</span>.<span class="ident">lookup</span>(
+                        <span class="ident">Query</span>::<span class="ident">query</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">RecordType</span>::<span class="ident">A</span>),
+                        <span class="ident">DnsRequestOptions</span>::<span class="ident">default</span>()
+                    ))
                     .<span class="ident">is_ok</span>(),
                 <span class="string">&quot;iter: {}&quot;</span>,
                 <span class="ident">i</span>

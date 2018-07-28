@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/multipart.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multipart.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/multipart.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>multipart.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -788,9 +788,38 @@
 <span id="788">788</span>
 <span id="789">789</span>
 <span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Multipart requests support</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::{<span class="ident">RefCell</span>, <span class="ident">UnsafeCell</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp</span>, <span class="ident">fmt</span>};
@@ -798,13 +827,13 @@
 <span class="kw">use</span> <span class="ident">bytes</span>::<span class="ident">Bytes</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">task</span>::{<span class="ident">current</span> <span class="kw">as</span> <span class="ident">current_task</span>, <span class="ident">Task</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Async</span>, <span class="ident">Poll</span>, <span class="ident">Stream</span>};
-<span class="kw">use</span> <span class="ident">http</span>::<span class="ident">header</span>::{<span class="self">self</span>, <span class="ident">HeaderMap</span>, <span class="ident">HeaderName</span>, <span class="ident">HeaderValue</span>};
+<span class="kw">use</span> <span class="ident">http</span>::<span class="ident">header</span>::{<span class="self">self</span>, <span class="ident">ContentDisposition</span>, <span class="ident">HeaderMap</span>, <span class="ident">HeaderName</span>, <span class="ident">HeaderValue</span>};
 <span class="kw">use</span> <span class="ident">http</span>::<span class="ident">HttpTryFrom</span>;
 <span class="kw">use</span> <span class="ident">httparse</span>;
 <span class="kw">use</span> <span class="ident">mime</span>;
 
 <span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">MultipartError</span>, <span class="ident">ParseError</span>, <span class="ident">PayloadError</span>};
-<span class="kw">use</span> <span class="ident">payload</span>::<span class="ident">PayloadHelper</span>;
+<span class="kw">use</span> <span class="ident">payload</span>::<span class="ident">PayloadBuffer</span>;
 
 <span class="kw">const</span> <span class="ident">MAX_HEADERS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">32</span>;
 
@@ -888,7 +917,7 @@
                 <span class="ident">safety</span>: <span class="ident">Safety</span>::<span class="ident">new</span>(),
                 <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">InnerMultipart</span> {
                     <span class="ident">boundary</span>,
-                    <span class="ident">payload</span>: <span class="ident">PayloadRef</span>::<span class="ident">new</span>(<span class="ident">PayloadHelper</span>::<span class="ident">new</span>(<span class="ident">stream</span>)),
+                    <span class="ident">payload</span>: <span class="ident">PayloadRef</span>::<span class="ident">new</span>(<span class="ident">PayloadBuffer</span>::<span class="ident">new</span>(<span class="ident">stream</span>)),
                     <span class="ident">state</span>: <span class="ident">InnerState</span>::<span class="ident">FirstBoundary</span>,
                     <span class="ident">item</span>: <span class="ident">InnerMultipartItem</span>::<span class="prelude-val">None</span>,
                 }))),
@@ -924,7 +953,7 @@
 <span class="kw">where</span>
     <span class="ident">S</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Bytes</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">PayloadError</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">read_headers</span>(<span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadHelper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">HeaderMap</span>, <span class="ident">MultipartError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_headers</span>(<span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadBuffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">HeaderMap</span>, <span class="ident">MultipartError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">payload</span>.<span class="ident">read_until</span>(<span class="string">b&quot;\r\n\r\n&quot;</span>)<span class="question-mark">?</span> {
             <span class="ident">Async</span>::<span class="ident">NotReady</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>),
             <span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MultipartError</span>::<span class="ident">Incomplete</span>),
@@ -955,7 +984,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">read_boundary</span>(
-        <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadHelper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">boundary</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadBuffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">boundary</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">MultipartError</span><span class="op">&gt;</span> {
         <span class="comment">// TODO: need to read epilogue</span>
         <span class="kw">match</span> <span class="ident">payload</span>.<span class="ident">readline</span>()<span class="question-mark">?</span> {
@@ -981,7 +1010,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">skip_until_boundary</span>(
-        <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadHelper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">boundary</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadBuffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">boundary</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">MultipartError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">eof</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">loop</span> {
@@ -1190,12 +1219,27 @@
         }
     }
 
+    <span class="doccomment">/// Get a map of headers</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">HeaderMap</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">headers</span>
     }
 
+    <span class="doccomment">/// Get the content type of the field</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">content_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">mime</span>::<span class="ident">Mime</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ct</span>
+    }
+
+    <span class="doccomment">/// Get the content disposition of the field, if it exists</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">content_disposition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContentDisposition</span><span class="op">&gt;</span> {
+        <span class="comment">// RFC 7578: &#39;Each part MUST contain a Content-Disposition header field</span>
+        <span class="comment">// where the disposition type is &quot;form-data&quot;.&#39;</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">content_disposition</span>) <span class="op">=</span>
+            <span class="self">self</span>.<span class="ident">headers</span>.<span class="ident">get</span>(::<span class="ident">http</span>::<span class="ident">header</span>::<span class="ident">CONTENT_DISPOSITION</span>)
+        {
+            <span class="ident">ContentDisposition</span>::<span class="ident">from_raw</span>(<span class="ident">content_disposition</span>).<span class="ident">ok</span>()
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        }
     }
 }
 
@@ -1266,7 +1310,7 @@
     <span class="doccomment">/// Reads body part content chunk of the specified size.</span>
     <span class="doccomment">/// The body part must has `Content-Length` header with proper value.</span>
     <span class="kw">fn</span> <span class="ident">read_len</span>(
-        <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadHelper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">size</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u64</span>,
+        <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadBuffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">size</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u64</span>,
     ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>, <span class="ident">MultipartError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>))
@@ -1279,7 +1323,7 @@
                     <span class="kw-2">*</span><span class="ident">size</span> <span class="op">-=</span> <span class="ident">len</span>;
                     <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">split_to</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">usize</span>);
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">chunk</span>.<span class="ident">is_empty</span>() {
-                        <span class="ident">payload</span>.<span class="ident">unread_data</span>(<span class="ident">chunk</span>);
+                        <span class="ident">payload</span>.<span class="ident">unprocessed</span>(<span class="ident">chunk</span>);
                     }
                     <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">ch</span>)))
                 }
@@ -1291,14 +1335,14 @@
     <span class="doccomment">/// Reads content chunk of body part with unknown length.</span>
     <span class="doccomment">/// The `Content-Length` header for body part is not necessary.</span>
     <span class="kw">fn</span> <span class="ident">read_stream</span>(
-        <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadHelper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">boundary</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadBuffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">boundary</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     ) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>, <span class="ident">MultipartError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">payload</span>.<span class="ident">read_until</span>(<span class="string">b&quot;\r&quot;</span>)<span class="question-mark">?</span> {
             <span class="ident">Async</span>::<span class="ident">NotReady</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>),
             <span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MultipartError</span>::<span class="ident">Incomplete</span>),
             <span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">chunk</span>)) <span class="op">=&gt;</span> {
                 <span class="kw">if</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
-                    <span class="ident">payload</span>.<span class="ident">unread_data</span>(<span class="ident">chunk</span>);
+                    <span class="ident">payload</span>.<span class="ident">unprocessed</span>(<span class="ident">chunk</span>);
                     <span class="kw">match</span> <span class="ident">payload</span>.<span class="ident">read_exact</span>(<span class="ident">boundary</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">4</span>)<span class="question-mark">?</span> {
                         <span class="ident">Async</span>::<span class="ident">NotReady</span> <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>),
                         <span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">MultipartError</span>::<span class="ident">Incomplete</span>),
@@ -1307,12 +1351,12 @@
                                 <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">chunk</span>[<span class="number">2</span>..<span class="number">4</span>] <span class="op">==</span> <span class="string">b&quot;--&quot;</span>
                                 <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><span class="ident">chunk</span>[<span class="number">4</span>..] <span class="op">==</span> <span class="ident">boundary</span>.<span class="ident">as_bytes</span>()
                             {
-                                <span class="ident">payload</span>.<span class="ident">unread_data</span>(<span class="ident">chunk</span>);
+                                <span class="ident">payload</span>.<span class="ident">unprocessed</span>(<span class="ident">chunk</span>);
                                 <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>))
                             } <span class="kw">else</span> {
                                 <span class="comment">// \r might be part of data stream</span>
                                 <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">split_to</span>(<span class="number">1</span>);
-                                <span class="ident">payload</span>.<span class="ident">unread_data</span>(<span class="ident">chunk</span>);
+                                <span class="ident">payload</span>.<span class="ident">unprocessed</span>(<span class="ident">chunk</span>);
                                 <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">ch</span>)))
                             }
                         }
@@ -1320,7 +1364,7 @@
                 } <span class="kw">else</span> {
                     <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
                     <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">split_to</span>(<span class="ident">to</span>);
-                    <span class="ident">payload</span>.<span class="ident">unread_data</span>(<span class="ident">chunk</span>);
+                    <span class="ident">payload</span>.<span class="ident">unprocessed</span>(<span class="ident">chunk</span>);
                     <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">ch</span>)))
                 }
             }
@@ -1368,26 +1412,27 @@
 }
 
 <span class="kw">struct</span> <span class="ident">PayloadRef</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">payload</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">PayloadHelper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">payload</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">PayloadBuffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">PayloadRef</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">S</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Bytes</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">PayloadError</span><span class="op">&gt;</span>,
 {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">payload</span>: <span class="ident">PayloadHelper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">PayloadRef</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">payload</span>: <span class="ident">PayloadBuffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">PayloadRef</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">PayloadRef</span> {
-            <span class="ident">payload</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">payload</span>),
+            <span class="ident">payload</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">payload</span>.<span class="ident">into</span>()),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">get_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Safety</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">PayloadHelper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>
+    <span class="kw">fn</span> <span class="ident">get_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Safety</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">PayloadBuffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>
     <span class="kw">where</span>
         <span class="lifetime">&#39;a</span>: <span class="lifetime">&#39;b</span>,
     {
+        <span class="comment">// Unsafe: Invariant is inforced by Safety Safety is used as ref counter,</span>
+        <span class="comment">// only top most ref can have mutable access to payload.</span>
         <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">current</span>() {
-            <span class="kw">let</span> <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadHelper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span>
-                <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="self">self</span>.<span class="ident">payload</span>.<span class="ident">as_ref</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>) };
+            <span class="kw">let</span> <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PayloadBuffer</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">payload</span>.<span class="ident">get</span>() };
             <span class="prelude-val">Some</span>(<span class="ident">payload</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -1457,7 +1502,7 @@
     <span class="kw">use</span> <span class="ident">bytes</span>::<span class="ident">Bytes</span>;
     <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::{<span class="ident">lazy</span>, <span class="ident">result</span>};
     <span class="kw">use</span> <span class="ident">payload</span>::{<span class="ident">Payload</span>, <span class="ident">PayloadWriter</span>};
-    <span class="kw">use</span> <span class="ident">tokio_core</span>::<span class="ident">reactor</span>::<span class="ident">Core</span>;
+    <span class="kw">use</span> <span class="ident">tokio</span>::<span class="ident">runtime</span>::<span class="ident">current_thread</span>::<span class="ident">Runtime</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_boundary</span>() {
@@ -1504,14 +1549,15 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_multipart</span>() {
-        <span class="ident">Core</span>::<span class="ident">new</span>()
+        <span class="ident">Runtime</span>::<span class="ident">new</span>()
             .<span class="ident">unwrap</span>()
-            .<span class="ident">run</span>(<span class="ident">lazy</span>(<span class="op">||</span> {
+            .<span class="ident">block_on</span>(<span class="ident">lazy</span>(<span class="op">||</span> {
                 <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">sender</span>, <span class="ident">payload</span>) <span class="op">=</span> <span class="ident">Payload</span>::<span class="ident">new</span>(<span class="bool-val">false</span>);
 
                 <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">Bytes</span>::<span class="ident">from</span>(
                 <span class="string">&quot;testasdadsad\r\n\
                  --abbc761f78ff4d7cb7573b5a23f96ef0\r\n\
+                 Content-Disposition: form-data; name=\&quot;file\&quot;; filename=\&quot;fn.txt\&quot;\r\n\
                  Content-Type: text/plain; charset=utf-8\r\nContent-Length: 4\r\n\r\n\
                  test\r\n\
                  --abbc761f78ff4d7cb7573b5a23f96ef0\r\n\
@@ -1527,6 +1573,18 @@
                 <span class="kw">match</span> <span class="ident">multipart</span>.<span class="ident">poll</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">item</span>))) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="ident">item</span> {
                         <span class="ident">MultipartItem</span>::<span class="ident">Field</span>(<span class="kw-2">mut</span> <span class="ident">field</span>) <span class="op">=&gt;</span> {
+                            {
+                                <span class="kw">use</span> <span class="ident">http</span>::<span class="ident">header</span>::{<span class="ident">DispositionParam</span>, <span class="ident">DispositionType</span>};
+                                <span class="kw">let</span> <span class="ident">cd</span> <span class="op">=</span> <span class="ident">field</span>.<span class="ident">content_disposition</span>().<span class="ident">unwrap</span>();
+                                <span class="macro">assert_eq</span><span class="macro">!</span>(
+                                    <span class="ident">cd</span>.<span class="ident">disposition</span>,
+                                    <span class="ident">DispositionType</span>::<span class="ident">Ext</span>(<span class="string">&quot;form-data&quot;</span>.<span class="ident">into</span>())
+                                );
+                                <span class="macro">assert_eq</span><span class="macro">!</span>(
+                                    <span class="ident">cd</span>.<span class="ident">parameters</span>[<span class="number">0</span>],
+                                    <span class="ident">DispositionParam</span>::<span class="ident">Ext</span>(<span class="string">&quot;name&quot;</span>.<span class="ident">into</span>(), <span class="string">&quot;file&quot;</span>.<span class="ident">into</span>())
+                                );
+                            }
                             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">field</span>.<span class="ident">content_type</span>().<span class="ident">type_</span>(), <span class="ident">mime</span>::<span class="ident">TEXT</span>);
                             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">field</span>.<span class="ident">content_type</span>().<span class="ident">subtype</span>(), <span class="ident">mime</span>::<span class="ident">PLAIN</span>);
 

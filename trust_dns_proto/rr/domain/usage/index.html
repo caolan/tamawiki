@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `usage` mod in crate `trust_dns_proto`."><meta name="keywords" content="rust, rustlang, rust-lang, usage"><title>trust_dns_proto::rr::domain::usage - Rust</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module usage</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div><p class='location'><a href='../../../index.html'>trust_dns_proto</a>::<wbr><a href='../../index.html'>rr</a>::<wbr><a href='../index.html'>domain</a></p><script>window.sidebarCurrent = {name: 'usage', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Module <a href='../../../index.html'>trust_dns_proto</a>::<wbr><a href='../../index.html'>rr</a>::<wbr><a href='../index.html'>domain</a>::<wbr><a class="mod" href=''>usage</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../../../src/trust_dns_proto/rr/domain/usage.rs.html#8-412' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>Reserved zone names.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `usage` mod in crate `trust_dns_proto`."><meta name="keywords" content="rust, rustlang, rust-lang, usage"><title>trust_dns_proto::rr::domain::usage - Rust</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module usage</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div><p class='location'><a href='../../../index.html'>trust_dns_proto</a>::<wbr><a href='../../index.html'>rr</a>::<wbr><a href='../index.html'>domain</a></p><script>window.sidebarCurrent = {name: 'usage', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Module <a href='../../../index.html'>trust_dns_proto</a>::<wbr><a href='../../index.html'>rr</a>::<wbr><a href='../index.html'>domain</a>::<wbr><a class="mod" href=''>usage</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../../../src/trust_dns_proto/rr/domain/usage.rs.html#8-482' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>Reserved zone names.</p>
 <p>see <a href="https://tools.ietf.org/html/rfc6761">Special-Use Domain Names</a>, RFC 6761 February, 2013</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
@@ -35,6 +35,14 @@
                            </td>
                        </tr>
                        <tr class=' module-item'>
+                           <td><a class="struct" href="struct.IN_ADDR_ARPA_169_254.html"
+                                  title='struct trust_dns_proto::rr::domain::usage::IN_ADDR_ARPA_169_254'>IN_ADDR_ARPA_169_254</a></td>
+                           <td class='docblock-short'>
+                                <p>254.169.in-addr.arpa. usage link-local, i.e. mDNS</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
                            <td><a class="struct" href="struct.IP6_ARPA.html"
                                   title='struct trust_dns_proto::rr::domain::usage::IP6_ARPA'>IP6_ARPA</a></td>
                            <td class='docblock-short'>
@@ -47,6 +55,38 @@
                                   title='struct trust_dns_proto::rr::domain::usage::IP6_ARPA_1'>IP6_ARPA_1</a></td>
                            <td class='docblock-short'>
                                 <p>1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa. usage; 1/128 is the only address in ipv6 loopback</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.IP6_ARPA_FE_8.html"
+                                  title='struct trust_dns_proto::rr::domain::usage::IP6_ARPA_FE_8'>IP6_ARPA_FE_8</a></td>
+                           <td class='docblock-short'>
+                                <p>254.169.in-addr.arpa. usage link-local, i.e. mDNS</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.IP6_ARPA_FE_9.html"
+                                  title='struct trust_dns_proto::rr::domain::usage::IP6_ARPA_FE_9'>IP6_ARPA_FE_9</a></td>
+                           <td class='docblock-short'>
+                                <p>254.169.in-addr.arpa. usage link-local, i.e. mDNS</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.IP6_ARPA_FE_B.html"
+                                  title='struct trust_dns_proto::rr::domain::usage::IP6_ARPA_FE_B'>IP6_ARPA_FE_B</a></td>
+                           <td class='docblock-short'>
+                                <p>254.169.in-addr.arpa. usage link-local, i.e. mDNS</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="struct" href="struct.LOCAL.html"
+                                  title='struct trust_dns_proto::rr::domain::usage::LOCAL'>LOCAL</a></td>
+                           <td class='docblock-short'>
+                                <p>localhost. usage</p>
 
                            </td>
                        </tr>

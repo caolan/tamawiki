@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/httpresponse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>httpresponse.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/httpresponse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>httpresponse.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1186,12 +1186,159 @@
 <span id="1186">1186</span>
 <span id="1187">1187</span>
 <span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
+<span id="1194">1194</span>
+<span id="1195">1195</span>
+<span id="1196">1196</span>
+<span id="1197">1197</span>
+<span id="1198">1198</span>
+<span id="1199">1199</span>
+<span id="1200">1200</span>
+<span id="1201">1201</span>
+<span id="1202">1202</span>
+<span id="1203">1203</span>
+<span id="1204">1204</span>
+<span id="1205">1205</span>
+<span id="1206">1206</span>
+<span id="1207">1207</span>
+<span id="1208">1208</span>
+<span id="1209">1209</span>
+<span id="1210">1210</span>
+<span id="1211">1211</span>
+<span id="1212">1212</span>
+<span id="1213">1213</span>
+<span id="1214">1214</span>
+<span id="1215">1215</span>
+<span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
+<span id="1221">1221</span>
+<span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
+<span id="1229">1229</span>
+<span id="1230">1230</span>
+<span id="1231">1231</span>
+<span id="1232">1232</span>
+<span id="1233">1233</span>
+<span id="1234">1234</span>
+<span id="1235">1235</span>
+<span id="1236">1236</span>
+<span id="1237">1237</span>
+<span id="1238">1238</span>
+<span id="1239">1239</span>
+<span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
+<span id="1291">1291</span>
+<span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
+<span id="1311">1311</span>
+<span id="1312">1312</span>
+<span id="1313">1313</span>
+<span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Http response</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">UnsafeCell</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">VecDeque</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">mem</span>, <span class="ident">str</span>};
 
 <span class="kw">use</span> <span class="ident">bytes</span>::{<span class="ident">BufMut</span>, <span class="ident">Bytes</span>, <span class="ident">BytesMut</span>};
@@ -1225,30 +1372,17 @@
 }
 
 <span class="doccomment">/// An HTTP Response</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HttpResponse</span>(
-    <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerHttpResponse</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">HttpResponsePool</span><span class="op">&gt;&gt;</span>,
-);
-
-<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">HttpResponse</span> {
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">take</span>() {
-            <span class="ident">HttpResponsePool</span>::<span class="ident">release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">1</span>, <span class="ident">inner</span>)
-        }
-    }
-}
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HttpResponse</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerHttpResponse</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HttpResponsePool</span>);
 
 <span class="kw">impl</span> <span class="ident">HttpResponse</span> {
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">inline_always</span>))]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">get_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">InnerHttpResponse</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>()
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">inline_always</span>))]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">InnerHttpResponse</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>()
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_mut</span>()
     }
 
     <span class="doccomment">/// Create http response builder with specific status.</span>
@@ -1275,7 +1409,7 @@
         <span class="ident">HttpResponsePool</span>::<span class="ident">with_body</span>(<span class="ident">status</span>, <span class="ident">body</span>.<span class="ident">into</span>())
     }
 
-    <span class="doccomment">/// Constructs a error response</span>
+    <span class="doccomment">/// Constructs an error response</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_error</span>(<span class="ident">error</span>: <span class="ident">Error</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponse</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">as_response_error</span>().<span class="ident">error_response</span>();
@@ -1285,15 +1419,24 @@
 
     <span class="doccomment">/// Convert `HttpResponse` to a `HttpResponseBuilder`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_builder</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponseBuilder</span> {
-        <span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">take</span>();
-        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">1</span>));
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_builder</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponseBuilder</span> {
+        <span class="comment">// If this response has cookies, load them into a jar</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">jar</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CookieJar</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cookies</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">j</span>) <span class="op">=</span> <span class="ident">jar</span> {
+                <span class="ident">j</span>.<span class="ident">add_original</span>(<span class="ident">c</span>.<span class="ident">into_owned</span>());
+            } <span class="kw">else</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">j</span> <span class="op">=</span> <span class="ident">CookieJar</span>::<span class="ident">new</span>();
+                <span class="ident">j</span>.<span class="ident">add_original</span>(<span class="ident">c</span>.<span class="ident">into_owned</span>());
+                <span class="ident">jar</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">j</span>);
+            }
+        }
 
         <span class="ident">HttpResponseBuilder</span> {
-            <span class="ident">response</span>,
-            <span class="ident">pool</span>,
+            <span class="ident">pool</span>: <span class="self">self</span>.<span class="number">1</span>,
+            <span class="ident">response</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="number">0</span>),
             <span class="ident">err</span>: <span class="prelude-val">None</span>,
-            <span class="ident">cookies</span>: <span class="prelude-val">None</span>, <span class="comment">// TODO: convert set-cookie headers</span>
+            <span class="ident">cookies</span>: <span class="ident">jar</span>,
         }
     }
 
@@ -1319,6 +1462,52 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">headers_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HeaderMap</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">headers</span>
+    }
+
+    <span class="doccomment">/// Get an iterator for the cookies set by this response</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cookies</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">CookieIter</span> {
+        <span class="ident">CookieIter</span> {
+            <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">get_ref</span>().<span class="ident">headers</span>.<span class="ident">get_all</span>(<span class="ident">header</span>::<span class="ident">SET_COOKIE</span>).<span class="ident">iter</span>(),
+        }
+    }
+
+    <span class="doccomment">/// Add a cookie to this response</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_cookie</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cookie</span>: <span class="kw-2">&amp;</span><span class="ident">Cookie</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">HttpError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">h</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">headers</span>;
+        <span class="ident">HeaderValue</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">cookie</span>.<span class="ident">to_string</span>())
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> {
+                <span class="ident">h</span>.<span class="ident">append</span>(<span class="ident">header</span>::<span class="ident">SET_COOKIE</span>, <span class="ident">c</span>);
+            })
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">into</span>())
+    }
+
+    <span class="doccomment">/// Remove all cookies with the given name from this response. Returns</span>
+    <span class="doccomment">/// the number of cookies removed.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">del_cookie</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">let</span> <span class="ident">h</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">headers</span>;
+        <span class="kw">let</span> <span class="ident">vals</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">HeaderValue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">h</span>
+            .<span class="ident">get_all</span>(<span class="ident">header</span>::<span class="ident">SET_COOKIE</span>)
+            .<span class="ident">iter</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_owned</span>())
+            .<span class="ident">collect</span>();
+        <span class="ident">h</span>.<span class="ident">remove</span>(<span class="ident">header</span>::<span class="ident">SET_COOKIE</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="ident">vals</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">v</span>.<span class="ident">to_str</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">Cookie</span>::<span class="ident">parse_encoded</span>(<span class="ident">s</span>) {
+                    <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">name</span>() <span class="op">==</span> <span class="ident">name</span> {
+                        <span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
+                        <span class="kw">continue</span>;
+                    }
+                }
+            }
+            <span class="ident">h</span>.<span class="ident">append</span>(<span class="ident">header</span>::<span class="ident">SET_COOKIE</span>, <span class="ident">v</span>);
+        }
+        <span class="ident">count</span>
     }
 
     <span class="doccomment">/// Get the response status code</span>
@@ -1431,12 +1620,19 @@
         <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">write_capacity</span> <span class="op">=</span> <span class="ident">cap</span>;
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerHttpResponse</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">release</span>(<span class="self">self</span>) {
+        <span class="self">self</span>.<span class="number">1</span>.<span class="ident">release</span>(<span class="self">self</span>.<span class="number">0</span>);
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_inner</span>(<span class="ident">inner</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerHttpResponse</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponse</span> {
-        <span class="ident">HttpResponse</span>(<span class="prelude-val">Some</span>(<span class="ident">inner</span>), <span class="ident">HttpResponsePool</span>::<span class="ident">pool</span>())
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">into_parts</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponseParts</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">into_parts</span>()
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_parts</span>(<span class="ident">parts</span>: <span class="ident">HttpResponseParts</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponse</span> {
+        <span class="ident">HttpResponse</span>(
+            <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">InnerHttpResponse</span>::<span class="ident">from_parts</span>(<span class="ident">parts</span>)),
+            <span class="ident">HttpResponsePool</span>::<span class="ident">get_pool</span>(),
+        )
     }
 }
 
@@ -1458,13 +1654,31 @@
     }
 }
 
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CookieIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">iter</span>: <span class="ident">header</span>::<span class="ident">ValueIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">HeaderValue</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">CookieIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>;
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">by_ref</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">Cookie</span>::<span class="ident">parse_encoded</span>(<span class="ident">v</span>.<span class="ident">to_str</span>().<span class="ident">ok</span>()<span class="question-mark">?</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>);
+            }
+        }
+        <span class="prelude-val">None</span>
+    }
+}
+
 <span class="doccomment">/// An HTTP response builder</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This type can be used to construct an instance of `HttpResponse` through a</span>
 <span class="doccomment">/// builder-like pattern.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HttpResponseBuilder</span> {
+    <span class="ident">pool</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HttpResponsePool</span>,
     <span class="ident">response</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerHttpResponse</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">pool</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">HttpResponsePool</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
     <span class="ident">err</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HttpError</span><span class="op">&gt;</span>,
     <span class="ident">cookies</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CookieJar</span><span class="op">&gt;</span>,
 }
@@ -1658,7 +1872,6 @@
     <span class="doccomment">///         )</span>
     <span class="doccomment">///         .finish()</span>
     <span class="doccomment">/// }</span>
-    <span class="doccomment">/// fn main() {}</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cookie</span>: <span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cookies</span>.<span class="ident">is_none</span>() {
@@ -1671,8 +1884,22 @@
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Remove cookie, cookie has to be cookie from `HttpRequest::cookies()`</span>
-    <span class="doccomment">/// method.</span>
+    <span class="doccomment">/// Remove cookie</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// # extern crate actix_web;</span>
+    <span class="doccomment">/// use actix_web::{http, HttpRequest, HttpResponse, Result};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// fn index(req: &amp;HttpRequest) -&gt; HttpResponse {</span>
+    <span class="doccomment">///     let mut builder = HttpResponse::Ok();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///     if let Some(ref cookie) = req.cookie(&quot;name&quot;) {</span>
+    <span class="doccomment">///         builder.del_cookie(cookie);</span>
+    <span class="doccomment">///     }</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///     builder.finish()</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">del_cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cookie</span>: <span class="kw-2">&amp;</span><span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cookies</span>.<span class="ident">is_none</span>() {
@@ -1741,7 +1968,7 @@
             }
         }
         <span class="ident">response</span>.<span class="ident">body</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">into</span>();
-        <span class="ident">HttpResponse</span>(<span class="prelude-val">Some</span>(<span class="ident">response</span>), <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>())
+        <span class="ident">HttpResponse</span>(<span class="ident">response</span>, <span class="self">self</span>.<span class="ident">pool</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1789,8 +2016,8 @@
     <span class="doccomment">/// This method construct new `HttpResponseBuilder`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponseBuilder</span> {
         <span class="ident">HttpResponseBuilder</span> {
+            <span class="ident">pool</span>: <span class="self">self</span>.<span class="ident">pool</span>,
             <span class="ident">response</span>: <span class="self">self</span>.<span class="ident">response</span>.<span class="ident">take</span>(),
-            <span class="ident">pool</span>: <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">take</span>(),
             <span class="ident">err</span>: <span class="self">self</span>.<span class="ident">err</span>.<span class="ident">take</span>(),
             <span class="ident">cookies</span>: <span class="self">self</span>.<span class="ident">cookies</span>.<span class="ident">take</span>(),
         }
@@ -1970,23 +2197,19 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">HttpResponseBuilder</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponseBuilder</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">router</span>) <span class="op">=</span> <span class="ident">req</span>.<span class="ident">router</span>() {
-            <span class="ident">router</span>
-                .<span class="ident">server_settings</span>()
-                .<span class="ident">get_response_builder</span>(<span class="ident">StatusCode</span>::<span class="ident">OK</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()
-        }
+        <span class="ident">req</span>.<span class="ident">request</span>()
+            .<span class="ident">server_settings</span>()
+            .<span class="ident">get_response_builder</span>(<span class="ident">StatusCode</span>::<span class="ident">OK</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">InnerHttpResponse</span> {
+<span class="kw">struct</span> <span class="ident">InnerHttpResponse</span> {
     <span class="ident">version</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Version</span><span class="op">&gt;</span>,
     <span class="ident">headers</span>: <span class="ident">HeaderMap</span>,
     <span class="ident">status</span>: <span class="ident">StatusCode</span>,
     <span class="ident">reason</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">body</span>: <span class="ident">Body</span>,
+    <span class="ident">body</span>: <span class="ident">Body</span>,
     <span class="ident">chunked</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContentEncoding</span><span class="op">&gt;</span>,
     <span class="ident">connection_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConnectionType</span><span class="op">&gt;</span>,
@@ -1995,8 +2218,16 @@
     <span class="ident">error</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">InnerHttpResponse</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">InnerHttpResponse</span> {}
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">HttpResponseParts</span> {
+    <span class="ident">version</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Version</span><span class="op">&gt;</span>,
+    <span class="ident">headers</span>: <span class="ident">HeaderMap</span>,
+    <span class="ident">status</span>: <span class="ident">StatusCode</span>,
+    <span class="ident">reason</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="ident">body</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>,
+    <span class="ident">encoding</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ContentEncoding</span><span class="op">&gt;</span>,
+    <span class="ident">connection_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConnectionType</span><span class="op">&gt;</span>,
+    <span class="ident">error</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span>,
+}
 
 <span class="kw">impl</span> <span class="ident">InnerHttpResponse</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2015,38 +2246,85 @@
             <span class="ident">error</span>: <span class="prelude-val">None</span>,
         }
     }
+
+    <span class="doccomment">/// This is for failure, we can not have Send + Sync on Streaming and Actor response</span>
+    <span class="kw">fn</span> <span class="ident">into_parts</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">HttpResponseParts</span> {
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">body</span>, <span class="ident">Body</span>::<span class="ident">Empty</span>) {
+            <span class="ident">Body</span>::<span class="ident">Empty</span> <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Body</span>::<span class="ident">Binary</span>(<span class="kw-2">mut</span> <span class="ident">bin</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">bin</span>.<span class="ident">take</span>()),
+            <span class="ident">Body</span>::<span class="ident">Streaming</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Body</span>::<span class="ident">Actor</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> {
+                <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Streaming or Actor body is not support by error response&quot;</span>);
+                <span class="prelude-val">None</span>
+            }
+        };
+
+        <span class="ident">HttpResponseParts</span> {
+            <span class="ident">body</span>,
+            <span class="ident">version</span>: <span class="self">self</span>.<span class="ident">version</span>,
+            <span class="ident">headers</span>: <span class="self">self</span>.<span class="ident">headers</span>,
+            <span class="ident">status</span>: <span class="self">self</span>.<span class="ident">status</span>,
+            <span class="ident">reason</span>: <span class="self">self</span>.<span class="ident">reason</span>,
+            <span class="ident">encoding</span>: <span class="self">self</span>.<span class="ident">encoding</span>,
+            <span class="ident">connection_type</span>: <span class="self">self</span>.<span class="ident">connection_type</span>,
+            <span class="ident">error</span>: <span class="self">self</span>.<span class="ident">error</span>,
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">from_parts</span>(<span class="ident">parts</span>: <span class="ident">HttpResponseParts</span>) <span class="op">-&gt;</span> <span class="ident">InnerHttpResponse</span> {
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">body</span> {
+            <span class="ident">Body</span>::<span class="ident">Binary</span>(<span class="ident">body</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
+        } <span class="kw">else</span> {
+            <span class="ident">Body</span>::<span class="ident">Empty</span>
+        };
+
+        <span class="ident">InnerHttpResponse</span> {
+            <span class="ident">body</span>,
+            <span class="ident">status</span>: <span class="ident">parts</span>.<span class="ident">status</span>,
+            <span class="ident">version</span>: <span class="ident">parts</span>.<span class="ident">version</span>,
+            <span class="ident">headers</span>: <span class="ident">parts</span>.<span class="ident">headers</span>,
+            <span class="ident">reason</span>: <span class="ident">parts</span>.<span class="ident">reason</span>,
+            <span class="ident">chunked</span>: <span class="prelude-val">None</span>,
+            <span class="ident">encoding</span>: <span class="ident">parts</span>.<span class="ident">encoding</span>,
+            <span class="ident">connection_type</span>: <span class="ident">parts</span>.<span class="ident">connection_type</span>,
+            <span class="ident">response_size</span>: <span class="number">0</span>,
+            <span class="ident">write_capacity</span>: <span class="ident">MAX_WRITE_BUFFER_SIZE</span>,
+            <span class="ident">error</span>: <span class="ident">parts</span>.<span class="ident">error</span>,
+        }
+    }
 }
 
-<span class="doccomment">/// Internal use only! unsafe</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">HttpResponsePool</span>(<span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerHttpResponse</span><span class="op">&gt;&gt;</span>);
+<span class="doccomment">/// Internal use only!</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">HttpResponsePool</span>(<span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerHttpResponse</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>);
 
-<span class="macro">thread_local</span><span class="macro">!</span>(<span class="kw">static</span> <span class="ident">POOL</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">HttpResponsePool</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">HttpResponsePool</span>::<span class="ident">pool</span>());
+<span class="macro">thread_local</span><span class="macro">!</span>(<span class="kw">static</span> <span class="ident">POOL</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HttpResponsePool</span> <span class="op">=</span> <span class="ident">HttpResponsePool</span>::<span class="ident">pool</span>());
 
 <span class="kw">impl</span> <span class="ident">HttpResponsePool</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pool</span>() <span class="op">-&gt;</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">HttpResponsePool</span><span class="op">&gt;&gt;</span> {
-        <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">HttpResponsePool</span>(<span class="ident">VecDeque</span>::<span class="ident">with_capacity</span>(
-            <span class="number">128</span>,
-        ))))
+    <span class="kw">fn</span> <span class="ident">pool</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HttpResponsePool</span> {
+        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">HttpResponsePool</span>(<span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">VecDeque</span>::<span class="ident">with_capacity</span>(<span class="number">128</span>)));
+        <span class="ident">Box</span>::<span class="ident">leak</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">pool</span>))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_pool</span>() <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HttpResponsePool</span> {
+        <span class="ident">POOL</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">p</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_builder</span>(
-        <span class="ident">pool</span>: <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">HttpResponsePool</span><span class="op">&gt;&gt;</span>, <span class="ident">status</span>: <span class="ident">StatusCode</span>,
+        <span class="ident">pool</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HttpResponsePool</span>, <span class="ident">status</span>: <span class="ident">StatusCode</span>,
     ) <span class="op">-&gt;</span> <span class="ident">HttpResponseBuilder</span> {
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">pool</span>.<span class="ident">as_ref</span>().<span class="ident">get</span>() };
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">msg</span>) <span class="op">=</span> <span class="ident">p</span>.<span class="number">0</span>.<span class="ident">pop_front</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">msg</span>) <span class="op">=</span> <span class="ident">pool</span>.<span class="number">0</span>.<span class="ident">borrow_mut</span>().<span class="ident">pop_front</span>() {
             <span class="ident">msg</span>.<span class="ident">status</span> <span class="op">=</span> <span class="ident">status</span>;
             <span class="ident">HttpResponseBuilder</span> {
+                <span class="ident">pool</span>,
                 <span class="ident">response</span>: <span class="prelude-val">Some</span>(<span class="ident">msg</span>),
-                <span class="ident">pool</span>: <span class="prelude-val">Some</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="ident">pool</span>)),
                 <span class="ident">err</span>: <span class="prelude-val">None</span>,
                 <span class="ident">cookies</span>: <span class="prelude-val">None</span>,
             }
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">InnerHttpResponse</span>::<span class="ident">new</span>(<span class="ident">status</span>, <span class="ident">Body</span>::<span class="ident">Empty</span>));
             <span class="ident">HttpResponseBuilder</span> {
+                <span class="ident">pool</span>,
                 <span class="ident">response</span>: <span class="prelude-val">Some</span>(<span class="ident">msg</span>),
-                <span class="ident">pool</span>: <span class="prelude-val">Some</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="ident">pool</span>)),
                 <span class="ident">err</span>: <span class="prelude-val">None</span>,
                 <span class="ident">cookies</span>: <span class="prelude-val">None</span>,
             }
@@ -2055,16 +2333,15 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_response</span>(
-        <span class="ident">pool</span>: <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">HttpResponsePool</span><span class="op">&gt;&gt;</span>, <span class="ident">status</span>: <span class="ident">StatusCode</span>, <span class="ident">body</span>: <span class="ident">Body</span>,
+        <span class="ident">pool</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HttpResponsePool</span>, <span class="ident">status</span>: <span class="ident">StatusCode</span>, <span class="ident">body</span>: <span class="ident">Body</span>,
     ) <span class="op">-&gt;</span> <span class="ident">HttpResponse</span> {
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">pool</span>.<span class="ident">as_ref</span>().<span class="ident">get</span>() };
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">msg</span>) <span class="op">=</span> <span class="ident">p</span>.<span class="number">0</span>.<span class="ident">pop_front</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">msg</span>) <span class="op">=</span> <span class="ident">pool</span>.<span class="number">0</span>.<span class="ident">borrow_mut</span>().<span class="ident">pop_front</span>() {
             <span class="ident">msg</span>.<span class="ident">status</span> <span class="op">=</span> <span class="ident">status</span>;
             <span class="ident">msg</span>.<span class="ident">body</span> <span class="op">=</span> <span class="ident">body</span>;
-            <span class="ident">HttpResponse</span>(<span class="prelude-val">Some</span>(<span class="ident">msg</span>), <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="ident">pool</span>))
+            <span class="ident">HttpResponse</span>(<span class="ident">msg</span>, <span class="ident">pool</span>)
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">InnerHttpResponse</span>::<span class="ident">new</span>(<span class="ident">status</span>, <span class="ident">body</span>));
-            <span class="ident">HttpResponse</span>(<span class="prelude-val">Some</span>(<span class="ident">msg</span>), <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="ident">pool</span>))
+            <span class="ident">HttpResponse</span>(<span class="ident">msg</span>, <span class="ident">pool</span>)
         }
     }
 
@@ -2078,13 +2355,10 @@
         <span class="ident">POOL</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">pool</span><span class="op">|</span> <span class="ident">HttpResponsePool</span>::<span class="ident">get_response</span>(<span class="ident">pool</span>, <span class="ident">status</span>, <span class="ident">body</span>))
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">boxed_local</span>, <span class="ident">inline_always</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">release</span>(
-        <span class="ident">pool</span>: <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">HttpResponsePool</span><span class="op">&gt;&gt;</span>, <span class="kw-2">mut</span> <span class="ident">inner</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerHttpResponse</span><span class="op">&gt;</span>,
-    ) {
-        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">pool</span>.<span class="ident">as_ref</span>().<span class="ident">get</span>() };
-        <span class="kw">if</span> <span class="ident">pool</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">128</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">inner</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">InnerHttpResponse</span><span class="op">&gt;</span>) {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">128</span> {
             <span class="ident">inner</span>.<span class="ident">headers</span>.<span class="ident">clear</span>();
             <span class="ident">inner</span>.<span class="ident">version</span> <span class="op">=</span> <span class="prelude-val">None</span>;
             <span class="ident">inner</span>.<span class="ident">chunked</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -2094,7 +2368,7 @@
             <span class="ident">inner</span>.<span class="ident">response_size</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="ident">inner</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">None</span>;
             <span class="ident">inner</span>.<span class="ident">write_capacity</span> <span class="op">=</span> <span class="ident">MAX_WRITE_BUFFER_SIZE</span>;
-            <span class="ident">pool</span>.<span class="number">0</span>.<span class="ident">push_front</span>(<span class="ident">inner</span>);
+            <span class="ident">p</span>.<span class="ident">push_front</span>(<span class="ident">inner</span>);
         }
     }
 }
@@ -2105,9 +2379,9 @@
     <span class="kw">use</span> <span class="ident">body</span>::<span class="ident">Binary</span>;
     <span class="kw">use</span> <span class="ident">http</span>;
     <span class="kw">use</span> <span class="ident">http</span>::<span class="ident">header</span>::{<span class="ident">HeaderValue</span>, <span class="ident">CONTENT_TYPE</span>, <span class="ident">COOKIE</span>};
-    <span class="kw">use</span> <span class="ident">http</span>::{<span class="ident">Method</span>, <span class="ident">Uri</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
     <span class="kw">use</span> <span class="ident">time</span>::<span class="ident">Duration</span>;
+
+    <span class="kw">use</span> <span class="ident">test</span>::<span class="ident">TestRequest</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_debug</span>() {
@@ -2121,17 +2395,10 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_response_cookies</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">headers</span> <span class="op">=</span> <span class="ident">HeaderMap</span>::<span class="ident">new</span>();
-        <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="ident">COOKIE</span>, <span class="ident">HeaderValue</span>::<span class="ident">from_static</span>(<span class="string">&quot;cookie1=value1&quot;</span>));
-        <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="ident">COOKIE</span>, <span class="ident">HeaderValue</span>::<span class="ident">from_static</span>(<span class="string">&quot;cookie2=value2&quot;</span>));
-
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">HttpRequest</span>::<span class="ident">new</span>(
-            <span class="ident">Method</span>::<span class="ident">GET</span>,
-            <span class="ident">Uri</span>::<span class="ident">from_str</span>(<span class="string">&quot;/&quot;</span>).<span class="ident">unwrap</span>(),
-            <span class="ident">Version</span>::<span class="ident">HTTP_11</span>,
-            <span class="ident">headers</span>,
-            <span class="prelude-val">None</span>,
-        );
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">default</span>()
+            .<span class="ident">header</span>(<span class="ident">COOKIE</span>, <span class="string">&quot;cookie1=value1&quot;</span>)
+            .<span class="ident">header</span>(<span class="ident">COOKIE</span>, <span class="string">&quot;cookie2=value2&quot;</span>)
+            .<span class="ident">finish</span>();
         <span class="kw">let</span> <span class="ident">cookies</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">cookies</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()
@@ -2153,11 +2420,34 @@
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_owned</span>())
             .<span class="ident">collect</span>();
         <span class="ident">val</span>.<span class="ident">sort</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">val</span>[<span class="number">0</span>].<span class="ident">starts_with</span>(<span class="string">&quot;cookie2=; Max-Age=0;&quot;</span>));
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">val</span>[<span class="number">0</span>].<span class="ident">starts_with</span>(<span class="string">&quot;cookie1=; Max-Age=0;&quot;</span>));
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">val</span>[<span class="number">1</span>],
             <span class="string">&quot;name=value; HttpOnly; Path=/test; Domain=www.rust-lang.org; Max-Age=86400&quot;</span>
         );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_update_response_cookies</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()
+            .<span class="ident">cookie</span>(<span class="ident">http</span>::<span class="ident">Cookie</span>::<span class="ident">new</span>(<span class="string">&quot;original&quot;</span>, <span class="string">&quot;val100&quot;</span>))
+            .<span class="ident">finish</span>();
+
+        <span class="ident">r</span>.<span class="ident">add_cookie</span>(<span class="kw-2">&amp;</span><span class="ident">http</span>::<span class="ident">Cookie</span>::<span class="ident">new</span>(<span class="string">&quot;cookie2&quot;</span>, <span class="string">&quot;val200&quot;</span>))
+            .<span class="ident">unwrap</span>();
+        <span class="ident">r</span>.<span class="ident">add_cookie</span>(<span class="kw-2">&amp;</span><span class="ident">http</span>::<span class="ident">Cookie</span>::<span class="ident">new</span>(<span class="string">&quot;cookie2&quot;</span>, <span class="string">&quot;val250&quot;</span>))
+            .<span class="ident">unwrap</span>();
+        <span class="ident">r</span>.<span class="ident">add_cookie</span>(<span class="kw-2">&amp;</span><span class="ident">http</span>::<span class="ident">Cookie</span>::<span class="ident">new</span>(<span class="string">&quot;cookie3&quot;</span>, <span class="string">&quot;val300&quot;</span>))
+            .<span class="ident">unwrap</span>();
+
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">r</span>.<span class="ident">cookies</span>().<span class="ident">count</span>(), <span class="number">4</span>);
+        <span class="ident">r</span>.<span class="ident">del_cookie</span>(<span class="string">&quot;cookie2&quot;</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">r</span>.<span class="ident">cookies</span>();
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">v</span>.<span class="ident">name</span>(), <span class="ident">v</span>.<span class="ident">value</span>()), (<span class="string">&quot;original&quot;</span>, <span class="string">&quot;val100&quot;</span>));
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">v</span>.<span class="ident">name</span>(), <span class="ident">v</span>.<span class="ident">value</span>()), (<span class="string">&quot;cookie3&quot;</span>, <span class="string">&quot;val300&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2244,7 +2534,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_into_response</span>() {
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">HttpRequest</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">default</span>().<span class="ident">finish</span>();
 
         <span class="kw">let</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span> <span class="string">&quot;test&quot;</span>.<span class="ident">into</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
@@ -2367,12 +2657,18 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_into_builder</span>() {
-        <span class="kw">let</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span> <span class="string">&quot;test&quot;</span>.<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span> <span class="op">=</span> <span class="string">&quot;test&quot;</span>.<span class="ident">into</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
+
+        <span class="ident">resp</span>.<span class="ident">add_cookie</span>(<span class="kw-2">&amp;</span><span class="ident">http</span>::<span class="ident">Cookie</span>::<span class="ident">new</span>(<span class="string">&quot;cookie1&quot;</span>, <span class="string">&quot;val100&quot;</span>))
+            .<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">resp</span>.<span class="ident">into_builder</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">status</span>(<span class="ident">StatusCode</span>::<span class="ident">BAD_REQUEST</span>).<span class="ident">finish</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">BAD_REQUEST</span>);
+
+        <span class="kw">let</span> <span class="ident">cookie</span> <span class="op">=</span> <span class="ident">resp</span>.<span class="ident">cookies</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">cookie</span>.<span class="ident">name</span>(), <span class="ident">cookie</span>.<span class="ident">value</span>()), (<span class="string">&quot;cookie1&quot;</span>, <span class="string">&quot;val100&quot;</span>));
     }
 }
 </pre>

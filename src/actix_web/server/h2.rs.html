@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/server/h2.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>h2.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/server/h2.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>h2.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -416,35 +416,56 @@
 <span id="416">416</span>
 <span id="417">417</span>
 <span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
 </pre><pre class="rust ">
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">redundant_field_names</span>))]</span>
-
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">VecDeque</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="ident">Read</span>, <span class="ident">Write</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">SocketAddr</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::<span class="ident">Duration</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp</span>, <span class="ident">io</span>, <span class="ident">mem</span>};
 
-<span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">Arbiter</span>;
 <span class="kw">use</span> <span class="ident">bytes</span>::{<span class="ident">Buf</span>, <span class="ident">Bytes</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Async</span>, <span class="ident">Future</span>, <span class="ident">Poll</span>, <span class="ident">Stream</span>};
 <span class="kw">use</span> <span class="ident">http2</span>::<span class="ident">server</span>::{<span class="self">self</span>, <span class="ident">Connection</span>, <span class="ident">Handshake</span>, <span class="ident">SendResponse</span>};
 <span class="kw">use</span> <span class="ident">http2</span>::{<span class="ident">Reason</span>, <span class="ident">RecvStream</span>};
 <span class="kw">use</span> <span class="ident">modhttp</span>::<span class="ident">request</span>::<span class="ident">Parts</span>;
-<span class="kw">use</span> <span class="ident">tokio_core</span>::<span class="ident">reactor</span>::<span class="ident">Timeout</span>;
 <span class="kw">use</span> <span class="ident">tokio_io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
+<span class="kw">use</span> <span class="ident">tokio_timer</span>::<span class="ident">Delay</span>;
 
-<span class="kw">use</span> <span class="ident">error</span>::<span class="ident">PayloadError</span>;
-<span class="kw">use</span> <span class="ident">httpmessage</span>::<span class="ident">HttpMessage</span>;
-<span class="kw">use</span> <span class="ident">httprequest</span>::<span class="ident">HttpRequest</span>;
-<span class="kw">use</span> <span class="ident">httpresponse</span>::<span class="ident">HttpResponse</span>;
+<span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">PayloadError</span>};
+<span class="kw">use</span> <span class="ident">http</span>::{<span class="ident">StatusCode</span>, <span class="ident">Version</span>};
 <span class="kw">use</span> <span class="ident">payload</span>::{<span class="ident">Payload</span>, <span class="ident">PayloadStatus</span>, <span class="ident">PayloadWriter</span>};
-<span class="kw">use</span> <span class="ident">pipeline</span>::<span class="ident">Pipeline</span>;
 <span class="kw">use</span> <span class="ident">uri</span>::<span class="ident">Url</span>;
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">encoding</span>::<span class="ident">PayloadType</span>;
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">error</span>::<span class="ident">ServerError</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">h2writer</span>::<span class="ident">H2Writer</span>;
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">input</span>::<span class="ident">PayloadType</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">settings</span>::<span class="ident">WorkerSettings</span>;
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">HttpHandler</span>, <span class="ident">HttpHandlerTask</span>, <span class="ident">Writer</span>};
 
@@ -458,14 +479,14 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Http2</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">H</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">H</span>: <span class="lifetime">&#39;static</span>,
+    <span class="ident">H</span>: <span class="ident">HttpHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="ident">flags</span>: <span class="ident">Flags</span>,
     <span class="ident">settings</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">WorkerSettings</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;&gt;</span>,
     <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>,
     <span class="ident">state</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">IoWrapper</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
     <span class="ident">tasks</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">Entry</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">keepalive_timer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Timeout</span><span class="op">&gt;</span>,
+    <span class="ident">keepalive_timer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Delay</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">enum</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsyncRead</span> <span class="op">+</span> <span class="ident">AsyncWrite</span><span class="op">&gt;</span> {
@@ -562,7 +583,7 @@
                             <span class="kw">break</span>;
                         }
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">item</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">EntryFlags</span>::<span class="ident">FINISHED</span>) {
-                        <span class="kw">match</span> <span class="ident">item</span>.<span class="ident">task</span>.<span class="ident">poll</span>() {
+                        <span class="kw">match</span> <span class="ident">item</span>.<span class="ident">task</span>.<span class="ident">poll_completed</span>() {
                             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> (),
                             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> {
                                 <span class="ident">not_ready</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -579,7 +600,9 @@
                         }
                     }
 
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">item</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">EntryFlags</span>::<span class="ident">WRITE_DONE</span>) {
+                    <span class="kw">if</span> <span class="ident">item</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">EntryFlags</span>::<span class="ident">FINISHED</span>)
+                        <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">item</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">EntryFlags</span>::<span class="ident">WRITE_DONE</span>)
+                    {
                         <span class="kw">match</span> <span class="ident">item</span>.<span class="ident">stream</span>.<span class="ident">poll_completed</span>(<span class="bool-val">false</span>) {
                             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> (),
                             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="kw">_</span>)) <span class="op">=&gt;</span> {
@@ -637,9 +660,10 @@
                                     <span class="kw">let</span> <span class="ident">keep_alive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">settings</span>.<span class="ident">keep_alive</span>();
                                     <span class="kw">if</span> <span class="ident">keep_alive</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">keepalive_timer</span>.<span class="ident">is_none</span>() {
                                         <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;Start keep-alive timer&quot;</span>);
-                                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="ident">Timeout</span>::<span class="ident">new</span>(
-                                            <span class="ident">Duration</span>::<span class="ident">new</span>(<span class="ident">keep_alive</span>, <span class="number">0</span>),
-                                            <span class="ident">Arbiter</span>::<span class="ident">handle</span>()).<span class="ident">unwrap</span>();
+                                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">timeout</span> <span class="op">=</span> <span class="ident">Delay</span>::<span class="ident">new</span>(
+                                            <span class="ident">Instant</span>::<span class="ident">now</span>()
+                                                <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">new</span>(<span class="ident">keep_alive</span>, <span class="number">0</span>),
+                                        );
                                         <span class="comment">// register timeout</span>
                                         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">timeout</span>.<span class="ident">poll</span>();
                                         <span class="self">self</span>.<span class="ident">keepalive_timer</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">timeout</span>);
@@ -707,15 +731,41 @@
     }
 }
 
-<span class="kw">struct</span> <span class="ident">Entry</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-    <span class="ident">task</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandlerTask</span><span class="op">&gt;</span>,
+<span class="kw">enum</span> <span class="ident">EntryPipe</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">HttpHandler</span><span class="op">&gt;</span> {
+    <span class="ident">Task</span>(<span class="ident">H</span>::<span class="ident">Task</span>),
+    <span class="ident">Error</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandlerTask</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">HttpHandler</span><span class="op">&gt;</span> <span class="ident">EntryPipe</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">disconnected</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">EntryPipe</span>::<span class="ident">Task</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">task</span>) <span class="op">=&gt;</span> <span class="ident">task</span>.<span class="ident">disconnected</span>(),
+            <span class="ident">EntryPipe</span>::<span class="ident">Error</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">task</span>) <span class="op">=&gt;</span> <span class="ident">task</span>.<span class="ident">disconnected</span>(),
+        }
+    }
+    <span class="kw">fn</span> <span class="ident">poll_io</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">io</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Writer</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">EntryPipe</span>::<span class="ident">Task</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">task</span>) <span class="op">=&gt;</span> <span class="ident">task</span>.<span class="ident">poll_io</span>(<span class="ident">io</span>),
+            <span class="ident">EntryPipe</span>::<span class="ident">Error</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">task</span>) <span class="op">=&gt;</span> <span class="ident">task</span>.<span class="ident">poll_io</span>(<span class="ident">io</span>),
+        }
+    }
+    <span class="kw">fn</span> <span class="ident">poll_completed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">EntryPipe</span>::<span class="ident">Task</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">task</span>) <span class="op">=&gt;</span> <span class="ident">task</span>.<span class="ident">poll_completed</span>(),
+            <span class="ident">EntryPipe</span>::<span class="ident">Error</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">task</span>) <span class="op">=&gt;</span> <span class="ident">task</span>.<span class="ident">poll_completed</span>(),
+        }
+    }
+}
+
+<span class="kw">struct</span> <span class="ident">Entry</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">HttpHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+    <span class="ident">task</span>: <span class="ident">EntryPipe</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
     <span class="ident">payload</span>: <span class="ident">PayloadType</span>,
     <span class="ident">recv</span>: <span class="ident">RecvStream</span>,
     <span class="ident">stream</span>: <span class="ident">H2Writer</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
     <span class="ident">flags</span>: <span class="ident">EntryFlags</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Entry</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">HttpHandler</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Entry</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">parts</span>: <span class="ident">Parts</span>, <span class="ident">recv</span>: <span class="ident">RecvStream</span>, <span class="ident">resp</span>: <span class="ident">SendResponse</span><span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>,
         <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SocketAddr</span><span class="op">&gt;</span>, <span class="ident">settings</span>: <span class="kw-2">&amp;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">WorkerSettings</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;&gt;</span>,
@@ -726,39 +776,41 @@
         <span class="comment">// Payload and Content-Encoding</span>
         <span class="kw">let</span> (<span class="ident">psender</span>, <span class="ident">payload</span>) <span class="op">=</span> <span class="ident">Payload</span>::<span class="ident">new</span>(<span class="bool-val">false</span>);
 
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">settings</span>.<span class="ident">get_http_message</span>();
-        <span class="ident">msg</span>.<span class="ident">get_mut</span>().<span class="ident">url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">new</span>(<span class="ident">parts</span>.<span class="ident">uri</span>);
-        <span class="ident">msg</span>.<span class="ident">get_mut</span>().<span class="ident">method</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">method</span>;
-        <span class="ident">msg</span>.<span class="ident">get_mut</span>().<span class="ident">version</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">version</span>;
-        <span class="ident">msg</span>.<span class="ident">get_mut</span>().<span class="ident">headers</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">headers</span>;
-        <span class="ident">msg</span>.<span class="ident">get_mut</span>().<span class="ident">payload</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">payload</span>);
-        <span class="ident">msg</span>.<span class="ident">get_mut</span>().<span class="ident">addr</span> <span class="op">=</span> <span class="ident">addr</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">HttpRequest</span>::<span class="ident">from_message</span>(<span class="ident">msg</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">settings</span>.<span class="ident">get_request</span>();
+        {
+            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">msg</span>.<span class="ident">inner_mut</span>();
+            <span class="ident">inner</span>.<span class="ident">url</span> <span class="op">=</span> <span class="ident">Url</span>::<span class="ident">new</span>(<span class="ident">parts</span>.<span class="ident">uri</span>);
+            <span class="ident">inner</span>.<span class="ident">method</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">method</span>;
+            <span class="ident">inner</span>.<span class="ident">version</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">version</span>;
+            <span class="ident">inner</span>.<span class="ident">headers</span> <span class="op">=</span> <span class="ident">parts</span>.<span class="ident">headers</span>;
+            <span class="kw-2">*</span><span class="ident">inner</span>.<span class="ident">payload</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">payload</span>);
+            <span class="ident">inner</span>.<span class="ident">addr</span> <span class="op">=</span> <span class="ident">addr</span>;
+        }
 
         <span class="comment">// Payload sender</span>
-        <span class="kw">let</span> <span class="ident">psender</span> <span class="op">=</span> <span class="ident">PayloadType</span>::<span class="ident">new</span>(<span class="ident">req</span>.<span class="ident">headers</span>(), <span class="ident">psender</span>);
+        <span class="kw">let</span> <span class="ident">psender</span> <span class="op">=</span> <span class="ident">PayloadType</span>::<span class="ident">new</span>(<span class="ident">msg</span>.<span class="ident">headers</span>(), <span class="ident">psender</span>);
 
         <span class="comment">// start request processing</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">task</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">for</span> <span class="ident">h</span> <span class="kw">in</span> <span class="ident">settings</span>.<span class="ident">handlers</span>().<span class="ident">iter_mut</span>() {
-            <span class="ident">req</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">h</span>.<span class="ident">handle</span>(<span class="ident">req</span>) {
+            <span class="ident">msg</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">h</span>.<span class="ident">handle</span>(<span class="ident">msg</span>) {
                 <span class="prelude-val">Ok</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> {
                     <span class="ident">task</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>);
                     <span class="kw">break</span>;
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">req</span>) <span class="op">=&gt;</span> <span class="ident">req</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">msg</span>) <span class="op">=&gt;</span> <span class="ident">msg</span>,
             }
         }
 
         <span class="ident">Entry</span> {
-            <span class="ident">task</span>: <span class="ident">task</span>.<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">Pipeline</span>::<span class="ident">error</span>(<span class="ident">HttpResponse</span>::<span class="ident">NotFound</span>())),
+            <span class="ident">task</span>: <span class="ident">task</span>.<span class="ident">map</span>(<span class="ident">EntryPipe</span>::<span class="ident">Task</span>).<span class="ident">unwrap_or_else</span>(<span class="op">||</span> {
+                <span class="ident">EntryPipe</span>::<span class="ident">Error</span>(<span class="ident">ServerError</span>::<span class="ident">err</span>(
+                    <span class="ident">Version</span>::<span class="ident">HTTP_2</span>,
+                    <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>,
+                ))
+            }),
             <span class="ident">payload</span>: <span class="ident">psender</span>,
-            <span class="ident">stream</span>: <span class="ident">H2Writer</span>::<span class="ident">new</span>(
-                <span class="ident">resp</span>,
-                <span class="ident">settings</span>.<span class="ident">get_shared_bytes</span>(),
-                <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="ident">settings</span>),
-            ),
+            <span class="ident">stream</span>: <span class="ident">H2Writer</span>::<span class="ident">new</span>(<span class="ident">resp</span>, <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="ident">settings</span>)),
             <span class="ident">flags</span>: <span class="ident">EntryFlags</span>::<span class="ident">empty</span>(),
             <span class="ident">recv</span>,
         }

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/cookie-0.10.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/cookie-0.11.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1061,6 +1061,48 @@
 <span id="1061">1061</span>
 <span id="1062">1062</span>
 <span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! HTTP cookie parsing and cookie jar management.</span>
 <span class="doccomment">//!</span>
@@ -1074,7 +1116,7 @@
 <span class="doccomment">//! Add the following to the `[dependencies]` section of your `Cargo.toml`:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```ignore</span>
-<span class="doccomment">//! cookie = &quot;0.10&quot;</span>
+<span class="doccomment">//! cookie = &quot;0.11&quot;</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Then add the following line to your crate root:</span>
@@ -1122,7 +1164,7 @@
 <span class="doccomment">//! features = [&quot;secure&quot;, &quot;percent-encode&quot;]</span>
 <span class="doccomment">//! ```</span>
 
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/cookie/0.10&quot;</span>)]</span>
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/cookie/0.11&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;percent-encode&quot;</span>)]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">url</span>;
@@ -1138,9 +1180,11 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;secure&quot;</span>)]</span> <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">secure</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ascii</span>::<span class="ident">AsciiExt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>, <span class="ident">deprecated</span>)]</span>
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ascii</span>::<span class="ident">AsciiExt</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;percent-encode&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">url</span>::<span class="ident">percent_encoding</span>::{<span class="ident">USERINFO_ENCODE_SET</span>, <span class="ident">percent_encode</span>};
@@ -1228,7 +1272,7 @@
     <span class="ident">name</span>: <span class="ident">CookieStr</span>,
     <span class="doccomment">/// The cookie&#39;s value.</span>
     <span class="ident">value</span>: <span class="ident">CookieStr</span>,
-    <span class="doccomment">/// The cookie&#39;s experiation, if any.</span>
+    <span class="doccomment">/// The cookie&#39;s expiration, if any.</span>
     <span class="ident">expires</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Tm</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The cookie&#39;s maximum age, if any.</span>
     <span class="ident">max_age</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
@@ -1236,10 +1280,10 @@
     <span class="ident">domain</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CookieStr</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The cookie&#39;s path domain, if any.</span>
     <span class="ident">path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CookieStr</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Whether this cookie was marked secure.</span>
-    <span class="ident">secure</span>: <span class="ident">bool</span>,
-    <span class="doccomment">/// Whether this cookie was marked httponly.</span>
-    <span class="ident">http_only</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// Whether this cookie was marked Secure.</span>
+    <span class="ident">secure</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Whether this cookie was marked HttpOnly.</span>
+    <span class="ident">http_only</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The draft `SameSite` attribute.</span>
     <span class="ident">same_site</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SameSite</span><span class="op">&gt;</span>,
 }
@@ -1267,8 +1311,8 @@
             <span class="ident">max_age</span>: <span class="prelude-val">None</span>,
             <span class="ident">domain</span>: <span class="prelude-val">None</span>,
             <span class="ident">path</span>: <span class="prelude-val">None</span>,
-            <span class="ident">secure</span>: <span class="bool-val">false</span>,
-            <span class="ident">http_only</span>: <span class="bool-val">false</span>,
+            <span class="ident">secure</span>: <span class="prelude-val">None</span>,
+            <span class="ident">http_only</span>: <span class="prelude-val">None</span>,
             <span class="ident">same_site</span>: <span class="prelude-val">None</span>,
         }
     }
@@ -1320,7 +1364,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let c = Cookie::parse(&quot;foo=bar%20baz; HttpOnly&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(c.name_value(), (&quot;foo&quot;, &quot;bar%20baz&quot;));</span>
-    <span class="doccomment">/// assert_eq!(c.http_only(), true);</span>
+    <span class="doccomment">/// assert_eq!(c.http_only(), Some(true));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">str</span><span class="op">&gt;&gt;</span>
@@ -1342,7 +1386,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let c = Cookie::parse_encoded(&quot;foo=bar%20baz; HttpOnly&quot;).unwrap();</span>
     <span class="doccomment">/// assert_eq!(c.name_value(), (&quot;foo&quot;, &quot;bar baz&quot;));</span>
-    <span class="doccomment">/// assert_eq!(c.http_only(), true);</span>
+    <span class="doccomment">/// assert_eq!(c.http_only(), Some(true));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;percent-encode&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_encoded</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="ident">S</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cookie</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
@@ -1443,7 +1487,10 @@
         (<span class="self">self</span>.<span class="ident">name</span>(), <span class="self">self</span>.<span class="ident">value</span>())
     }
 
-    <span class="doccomment">/// Returns whether this cookie was marked `HttpOnly` or not.</span>
+    <span class="doccomment">/// Returns whether this cookie was marked `HttpOnly` or not. Returns</span>
+    <span class="doccomment">/// `Some(true)` when the cookie was explicitly set (manually or parsed) as</span>
+    <span class="doccomment">/// `HttpOnly`, `Some(false)` when `http_only` was manually set to `false`,</span>
+    <span class="doccomment">/// and `None` otherwise.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Example</span>
     <span class="doccomment">///</span>
@@ -1451,14 +1498,31 @@
     <span class="doccomment">/// use cookie::Cookie;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let c = Cookie::parse(&quot;name=value; httponly&quot;).unwrap();</span>
-    <span class="doccomment">/// assert_eq!(c.http_only(), true);</span>
+    <span class="doccomment">/// assert_eq!(c.http_only(), Some(true));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut c = Cookie::new(&quot;name&quot;, &quot;value&quot;);</span>
+    <span class="doccomment">/// assert_eq!(c.http_only(), None);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut c = Cookie::new(&quot;name&quot;, &quot;value&quot;);</span>
+    <span class="doccomment">/// assert_eq!(c.http_only(), None);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // An explicitly set &quot;false&quot; value.</span>
+    <span class="doccomment">/// c.set_http_only(false);</span>
+    <span class="doccomment">/// assert_eq!(c.http_only(), Some(false));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // An explicitly set &quot;true&quot; value.</span>
+    <span class="doccomment">/// c.set_http_only(true);</span>
+    <span class="doccomment">/// assert_eq!(c.http_only(), Some(true));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http_only</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http_only</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">http_only</span>
     }
 
-    <span class="doccomment">/// Returns whether this cookie was marked `Secure` or not.</span>
+    <span class="doccomment">/// Returns whether this cookie was marked `Secure` or not. Returns</span>
+    <span class="doccomment">/// `Some(true)` when the cookie was explicitly set (manually or parsed) as</span>
+    <span class="doccomment">/// `Secure`, `Some(false)` when `secure` was manually set to `false`, and</span>
+    <span class="doccomment">/// `None` otherwise.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Example</span>
     <span class="doccomment">///</span>
@@ -1466,10 +1530,24 @@
     <span class="doccomment">/// use cookie::Cookie;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let c = Cookie::parse(&quot;name=value; Secure&quot;).unwrap();</span>
-    <span class="doccomment">/// assert_eq!(c.secure(), true);</span>
+    <span class="doccomment">/// assert_eq!(c.secure(), Some(true));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut c = Cookie::parse(&quot;name=value&quot;).unwrap();</span>
+    <span class="doccomment">/// assert_eq!(c.secure(), None);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut c = Cookie::new(&quot;name&quot;, &quot;value&quot;);</span>
+    <span class="doccomment">/// assert_eq!(c.secure(), None);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // An explicitly set &quot;false&quot; value.</span>
+    <span class="doccomment">/// c.set_secure(false);</span>
+    <span class="doccomment">/// assert_eq!(c.secure(), Some(false));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // An explicitly set &quot;true&quot; value.</span>
+    <span class="doccomment">/// c.set_secure(true);</span>
+    <span class="doccomment">/// assert_eq!(c.secure(), Some(true));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">secure</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">secure</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">secure</span>
     }
 
@@ -1613,14 +1691,14 @@
     <span class="doccomment">/// use cookie::Cookie;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let mut c = Cookie::new(&quot;name&quot;, &quot;value&quot;);</span>
-    <span class="doccomment">/// assert_eq!(c.http_only(), false);</span>
+    <span class="doccomment">/// assert_eq!(c.http_only(), None);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// c.set_http_only(true);</span>
-    <span class="doccomment">/// assert_eq!(c.http_only(), true);</span>
+    <span class="doccomment">/// assert_eq!(c.http_only(), Some(true));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_http_only</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">http_only</span> <span class="op">=</span> <span class="ident">value</span>;
+        <span class="self">self</span>.<span class="ident">http_only</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
     }
 
     <span class="doccomment">/// Sets the value of `secure` in `self` to `value`.</span>
@@ -1631,14 +1709,14 @@
     <span class="doccomment">/// use cookie::Cookie;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let mut c = Cookie::new(&quot;name&quot;, &quot;value&quot;);</span>
-    <span class="doccomment">/// assert_eq!(c.secure(), false);</span>
+    <span class="doccomment">/// assert_eq!(c.secure(), None);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// c.set_secure(true);</span>
-    <span class="doccomment">/// assert_eq!(c.secure(), true);</span>
+    <span class="doccomment">/// assert_eq!(c.secure(), Some(true));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_secure</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">secure</span> <span class="op">=</span> <span class="ident">value</span>;
+        <span class="self">self</span>.<span class="ident">secure</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
     }
 
     <span class="doccomment">/// Sets the value of `same_site` in `self` to `value`.</span>
@@ -1772,16 +1850,18 @@
     }
 
     <span class="kw">fn</span> <span class="ident">fmt_parameters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">http_only</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">http_only</span>() {
             <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;; HttpOnly&quot;</span>)<span class="question-mark">?</span>;
         }
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">secure</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">secure</span>() {
             <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;; Secure&quot;</span>)<span class="question-mark">?</span>;
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">same_site</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">same_site</span>() {
-            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;; SameSite={}&quot;</span>, <span class="ident">same_site</span>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">same_site</span>.<span class="ident">is_none</span>() {
+                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;; SameSite={}&quot;</span>, <span class="ident">same_site</span>)<span class="question-mark">?</span>;
+            }
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">path</span>() {
@@ -2066,6 +2146,10 @@
         <span class="kw">let</span> <span class="ident">cookie</span> <span class="op">=</span> <span class="ident">Cookie</span>::<span class="ident">build</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>)
             .<span class="ident">same_site</span>(<span class="ident">SameSite</span>::<span class="ident">Lax</span>).<span class="ident">finish</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="ident">cookie</span>.<span class="ident">to_string</span>(), <span class="string">&quot;foo=bar; SameSite=Lax&quot;</span>);
+
+        <span class="kw">let</span> <span class="ident">cookie</span> <span class="op">=</span> <span class="ident">Cookie</span>::<span class="ident">build</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;bar&quot;</span>)
+            .<span class="ident">same_site</span>(<span class="ident">SameSite</span>::<span class="prelude-val">None</span>).<span class="ident">finish</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="ident">cookie</span>.<span class="ident">to_string</span>(), <span class="string">&quot;foo=bar&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>

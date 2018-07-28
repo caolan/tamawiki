@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/pipeline.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pipeline.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/pipeline.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pipeline.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -770,75 +770,15 @@
 <span id="770">770</span>
 <span id="771">771</span>
 <span id="772">772</span>
-<span id="773">773</span>
-<span id="774">774</span>
-<span id="775">775</span>
-<span id="776">776</span>
-<span id="777">777</span>
-<span id="778">778</span>
-<span id="779">779</span>
-<span id="780">780</span>
-<span id="781">781</span>
-<span id="782">782</span>
-<span id="783">783</span>
-<span id="784">784</span>
-<span id="785">785</span>
-<span id="786">786</span>
-<span id="787">787</span>
-<span id="788">788</span>
-<span id="789">789</span>
-<span id="790">790</span>
-<span id="791">791</span>
-<span id="792">792</span>
-<span id="793">793</span>
-<span id="794">794</span>
-<span id="795">795</span>
-<span id="796">796</span>
-<span id="797">797</span>
-<span id="798">798</span>
-<span id="799">799</span>
-<span id="800">800</span>
-<span id="801">801</span>
-<span id="802">802</span>
-<span id="803">803</span>
-<span id="804">804</span>
-<span id="805">805</span>
-<span id="806">806</span>
-<span id="807">807</span>
-<span id="808">808</span>
-<span id="809">809</span>
-<span id="810">810</span>
-<span id="811">811</span>
-<span id="812">812</span>
-<span id="813">813</span>
-<span id="814">814</span>
-<span id="815">815</span>
-<span id="816">816</span>
-<span id="817">817</span>
-<span id="818">818</span>
-<span id="819">819</span>
-<span id="820">820</span>
-<span id="821">821</span>
-<span id="822">822</span>
-<span id="823">823</span>
-<span id="824">824</span>
-<span id="825">825</span>
-<span id="826">826</span>
-<span id="827">827</span>
-<span id="828">828</span>
-<span id="829">829</span>
-<span id="830">830</span>
 </pre><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">UnsafeCell</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io</span>, <span class="ident">mem</span>};
 
-<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">unsync</span>::<span class="ident">oneshot</span>;
+<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">sync</span>::<span class="ident">oneshot</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Async</span>, <span class="ident">Future</span>, <span class="ident">Poll</span>, <span class="ident">Stream</span>};
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">Level</span>::<span class="ident">Debug</span>;
 
-<span class="kw">use</span> <span class="ident">application</span>::<span class="ident">Inner</span>;
 <span class="kw">use</span> <span class="ident">body</span>::{<span class="ident">Body</span>, <span class="ident">BodyStream</span>};
 <span class="kw">use</span> <span class="ident">context</span>::{<span class="ident">ActorHttpContext</span>, <span class="ident">Frame</span>};
 <span class="kw">use</span> <span class="ident">error</span>::<span class="ident">Error</span>;
@@ -849,22 +789,19 @@
 <span class="kw">use</span> <span class="ident">middleware</span>::{<span class="ident">Finished</span>, <span class="ident">Middleware</span>, <span class="ident">Response</span>, <span class="ident">Started</span>};
 <span class="kw">use</span> <span class="ident">server</span>::{<span class="ident">HttpHandlerTask</span>, <span class="ident">Writer</span>, <span class="ident">WriterState</span>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">HandlerType</span> {
-    <span class="ident">Normal</span>(<span class="ident">usize</span>),
-    <span class="ident">Handler</span>(<span class="ident">usize</span>),
-    <span class="ident">Default</span>,
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">PipelineHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PipelineHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">encoding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">ContentEncoding</span>;
 
-    <span class="kw">fn</span> <span class="ident">handle</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">htype</span>: <span class="ident">HandlerType</span>,
-    ) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span>;
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Pipeline</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span>);
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pipeline</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span>, <span class="ident">H</span><span class="op">&gt;</span>(
+    <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+    <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span>,
+    <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
+);
 
 <span class="kw">enum</span> <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
     <span class="prelude-val">None</span>,
@@ -885,12 +822,14 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>],
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">PipelineState</span>::<span class="ident">Starting</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=&gt;</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>),
-            <span class="ident">PipelineState</span>::<span class="ident">Handler</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=&gt;</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>),
-            <span class="ident">PipelineState</span>::<span class="ident">RunMiddlewares</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=&gt;</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>),
-            <span class="ident">PipelineState</span>::<span class="ident">Finishing</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=&gt;</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>),
+            <span class="ident">PipelineState</span>::<span class="ident">Starting</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=&gt;</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>, <span class="ident">mws</span>),
+            <span class="ident">PipelineState</span>::<span class="ident">Handler</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=&gt;</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>, <span class="ident">mws</span>),
+            <span class="ident">PipelineState</span>::<span class="ident">RunMiddlewares</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=&gt;</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>, <span class="ident">mws</span>),
+            <span class="ident">PipelineState</span>::<span class="ident">Finishing</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=&gt;</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>, <span class="ident">mws</span>),
             <span class="ident">PipelineState</span>::<span class="ident">Completed</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">state</span>) <span class="op">=&gt;</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>),
             <span class="ident">PipelineState</span>::<span class="ident">Response</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">PipelineState</span>::<span class="prelude-val">None</span> <span class="op">|</span> <span class="ident">PipelineState</span>::<span class="ident">Error</span> <span class="op">=&gt;</span> {
                 <span class="prelude-val">None</span>
@@ -899,43 +838,16 @@
     }
 }
 
-<span class="kw">struct</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="ident">req</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>,
+<span class="kw">struct</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+    <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
     <span class="ident">count</span>: <span class="ident">u16</span>,
-    <span class="ident">mws</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
     <span class="ident">context</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ActorHttpContext</span><span class="op">&gt;&gt;</span>,
     <span class="ident">error</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Error</span><span class="op">&gt;</span>,
     <span class="ident">disconnected</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
     <span class="ident">encoding</span>: <span class="ident">ContentEncoding</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="ident">PipelineInfo</span> {
-            <span class="ident">req</span>: <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">req</span>),
-            <span class="ident">count</span>: <span class="number">0</span>,
-            <span class="ident">mws</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">Vec</span>::<span class="ident">new</span>()),
-            <span class="ident">error</span>: <span class="prelude-val">None</span>,
-            <span class="ident">context</span>: <span class="prelude-val">None</span>,
-            <span class="ident">disconnected</span>: <span class="prelude-val">None</span>,
-            <span class="ident">encoding</span>: <span class="ident">ContentEncoding</span>::<span class="ident">Auto</span>,
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">req</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">req</span>.<span class="ident">get</span>() }
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">mut_from_ref</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">req_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">mutable_transmutes</span>)]</span>
-        <span class="kw">unsafe</span> {
-            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">req</span>.<span class="ident">get</span>()
-        }
-    }
-
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">poll_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span> {
             <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">poll</span>() {
@@ -951,30 +863,19 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span>, <span class="ident">H</span>: <span class="ident">PipelineHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span> <span class="ident">Pipeline</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
-        <span class="ident">handler</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;&gt;</span>, <span class="ident">htype</span>: <span class="ident">HandlerType</span>,
+        <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>, <span class="ident">handler</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="ident">Pipeline</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">PipelineInfo</span> {
-            <span class="ident">mws</span>,
-            <span class="ident">req</span>: <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">req</span>),
+            <span class="ident">req</span>,
             <span class="ident">count</span>: <span class="number">0</span>,
             <span class="ident">error</span>: <span class="prelude-val">None</span>,
             <span class="ident">context</span>: <span class="prelude-val">None</span>,
             <span class="ident">disconnected</span>: <span class="prelude-val">None</span>,
-            <span class="ident">encoding</span>: <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">handler</span>.<span class="ident">get</span>() }.<span class="ident">encoding</span>(),
+            <span class="ident">encoding</span>: <span class="ident">handler</span>.<span class="ident">encoding</span>(),
         };
-        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">StartMiddlewares</span>::<span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>, <span class="ident">handler</span>, <span class="ident">htype</span>);
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">StartMiddlewares</span>::<span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>, <span class="kw-2">&amp;</span><span class="ident">mws</span>, <span class="ident">handler</span>);
 
-        <span class="ident">Pipeline</span>(<span class="ident">info</span>, <span class="ident">state</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Pipeline</span><span class="op">&lt;</span>(), <span class="ident">Inner</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;&gt;</span>(<span class="ident">err</span>: <span class="ident">R</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandlerTask</span><span class="op">&gt;</span> {
-        <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Pipeline</span>::<span class="op">&lt;</span>(), <span class="ident">Inner</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span>(
-            <span class="ident">PipelineInfo</span>::<span class="ident">new</span>(<span class="ident">HttpRequest</span>::<span class="ident">default</span>()),
-            <span class="ident">ProcessResponse</span>::<span class="ident">init</span>(<span class="ident">err</span>.<span class="ident">into</span>()),
-        ))
+        <span class="ident">Pipeline</span>(<span class="ident">info</span>, <span class="ident">state</span>, <span class="ident">mws</span>)
     }
 }
 
@@ -999,13 +900,12 @@
     }
 
     <span class="kw">fn</span> <span class="ident">poll_io</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">io</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Writer</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>) };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">1</span>, <span class="ident">PipelineState</span>::<span class="prelude-val">None</span>);
 
         <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">is_response</span>() {
-                <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">1</span>, <span class="ident">PipelineState</span>::<span class="prelude-val">None</span>);
+            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_response</span>() {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PipelineState</span>::<span class="ident">Response</span>(<span class="ident">st</span>) <span class="op">=</span> <span class="ident">state</span> {
-                    <span class="kw">match</span> <span class="ident">st</span>.<span class="ident">poll_io</span>(<span class="ident">io</span>, <span class="ident">info</span>) {
+                    <span class="kw">match</span> <span class="ident">st</span>.<span class="ident">poll_io</span>(<span class="ident">io</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">2</span>) {
                         <span class="prelude-val">Ok</span>(<span class="ident">state</span>) <span class="op">=&gt;</span> {
                             <span class="self">self</span>.<span class="number">1</span> <span class="op">=</span> <span class="ident">state</span>;
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">error</span>.<span class="ident">take</span>() {
@@ -1021,7 +921,7 @@
                     }
                 }
             }
-            <span class="kw">match</span> <span class="self">self</span>.<span class="number">1</span> {
+            <span class="kw">match</span> <span class="ident">state</span> {
                 <span class="ident">PipelineState</span>::<span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="bool-val">true</span>)),
                 <span class="ident">PipelineState</span>::<span class="ident">Error</span> <span class="op">=&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(
@@ -1031,27 +931,32 @@
                 <span class="kw">_</span> <span class="op">=&gt;</span> (),
             }
 
-            <span class="kw">match</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">poll</span>(<span class="ident">info</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=&gt;</span> <span class="self">self</span>.<span class="number">1</span> <span class="op">=</span> <span class="ident">state</span>,
-                <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>),
+            <span class="kw">match</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">2</span>) {
+                <span class="prelude-val">Some</span>(<span class="ident">st</span>) <span class="op">=&gt;</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">st</span>,
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
+                    <span class="kw">return</span> {
+                        <span class="self">self</span>.<span class="number">1</span> <span class="op">=</span> <span class="ident">state</span>;
+                        <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>)
+                    }
+                }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>) };
-
+    <span class="kw">fn</span> <span class="ident">poll_completed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">1</span>, <span class="ident">PipelineState</span>::<span class="prelude-val">None</span>);
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="number">1</span> {
+            <span class="kw">match</span> <span class="ident">state</span> {
                 <span class="ident">PipelineState</span>::<span class="prelude-val">None</span> <span class="op">|</span> <span class="ident">PipelineState</span>::<span class="ident">Error</span> <span class="op">=&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(()))
                 }
                 <span class="kw">_</span> <span class="op">=&gt;</span> (),
             }
 
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">poll</span>(<span class="ident">info</span>) {
-                <span class="self">self</span>.<span class="number">1</span> <span class="op">=</span> <span class="ident">state</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">st</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">2</span>) {
+                <span class="ident">state</span> <span class="op">=</span> <span class="ident">st</span>;
             } <span class="kw">else</span> {
+                <span class="self">self</span>.<span class="number">1</span> <span class="op">=</span> <span class="ident">state</span>;
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>);
             }
         }
@@ -1062,76 +967,88 @@
 
 <span class="doccomment">/// Middlewares start executor</span>
 <span class="kw">struct</span> <span class="ident">StartMiddlewares</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
-    <span class="ident">hnd</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">htype</span>: <span class="ident">HandlerType</span>,
+    <span class="ident">hnd</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
     <span class="ident">fut</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span>,
     <span class="ident">_s</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span>, <span class="ident">H</span>: <span class="ident">PipelineHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span> <span class="ident">StartMiddlewares</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">init</span>(
-        <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">hnd</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;&gt;</span>, <span class="ident">htype</span>: <span class="ident">HandlerType</span>,
+        <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>], <span class="ident">hnd</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
         <span class="comment">// execute middlewares, we need this stage because middlewares could be</span>
         <span class="comment">// non-async and we can move to next state immediately</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u16</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">mws</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u16</span>;
+
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">==</span> <span class="ident">len</span> {
-                <span class="kw">let</span> <span class="ident">reply</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">hnd</span>.<span class="ident">get</span>() }.<span class="ident">handle</span>(<span class="ident">info</span>.<span class="ident">req</span>().<span class="ident">clone</span>(), <span class="ident">htype</span>);
-                <span class="kw">return</span> <span class="ident">WaitingResponse</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">reply</span>);
+                <span class="kw">let</span> <span class="ident">reply</span> <span class="op">=</span> <span class="ident">hnd</span>.<span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>);
+                <span class="kw">return</span> <span class="ident">WaitingResponse</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">reply</span>);
             } <span class="kw">else</span> {
-                <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">start</span>(<span class="ident">info</span>.<span class="ident">req_mut</span>()) {
+                <span class="kw">match</span> <span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>) {
                     <span class="prelude-val">Ok</span>(<span class="ident">Started</span>::<span class="ident">Done</span>) <span class="op">=&gt;</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>,
                     <span class="prelude-val">Ok</span>(<span class="ident">Started</span>::<span class="ident">Response</span>(<span class="ident">resp</span>)) <span class="op">=&gt;</span> {
-                        <span class="kw">return</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">resp</span>)
+                        <span class="kw">return</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">resp</span>);
                     }
                     <span class="prelude-val">Ok</span>(<span class="ident">Started</span>::<span class="ident">Future</span>(<span class="ident">fut</span>)) <span class="op">=&gt;</span> {
                         <span class="kw">return</span> <span class="ident">PipelineState</span>::<span class="ident">Starting</span>(<span class="ident">StartMiddlewares</span> {
                             <span class="ident">hnd</span>,
-                            <span class="ident">htype</span>,
                             <span class="ident">fut</span>: <span class="prelude-val">Some</span>(<span class="ident">fut</span>),
                             <span class="ident">_s</span>: <span class="ident">PhantomData</span>,
                         })
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>()),
+                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                        <span class="kw">return</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">err</span>.<span class="ident">into</span>());
+                    }
                 }
             }
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u16</span>;
+    <span class="kw">fn</span> <span class="ident">poll</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>],
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">mws</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u16</span>;
+
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">poll</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> {
+                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+                }
                 <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">resp</span>)) <span class="op">=&gt;</span> {
                     <span class="ident">info</span>.<span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">resp</span>) <span class="op">=</span> <span class="ident">resp</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">resp</span>));
+                        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">resp</span>));
                     }
                     <span class="kw">loop</span> {
                         <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">==</span> <span class="ident">len</span> {
-                            <span class="kw">let</span> <span class="ident">reply</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">hnd</span>.<span class="ident">get</span>() }
-                                .<span class="ident">handle</span>(<span class="ident">info</span>.<span class="ident">req</span>().<span class="ident">clone</span>(), <span class="self">self</span>.<span class="ident">htype</span>);
-                            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">WaitingResponse</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">reply</span>));
+                            <span class="kw">let</span> <span class="ident">reply</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hnd</span>.<span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>);
+                            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">WaitingResponse</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">reply</span>));
                         } <span class="kw">else</span> {
-                            <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">start</span>(<span class="ident">info</span>.<span class="ident">req_mut</span>()) {
+                            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>);
+                            <span class="kw">match</span> <span class="ident">res</span> {
                                 <span class="prelude-val">Ok</span>(<span class="ident">Started</span>::<span class="ident">Done</span>) <span class="op">=&gt;</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>,
                                 <span class="prelude-val">Ok</span>(<span class="ident">Started</span>::<span class="ident">Response</span>(<span class="ident">resp</span>)) <span class="op">=&gt;</span> {
-                                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">resp</span>));
+                                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">resp</span>));
                                 }
                                 <span class="prelude-val">Ok</span>(<span class="ident">Started</span>::<span class="ident">Future</span>(<span class="ident">fut</span>)) <span class="op">=&gt;</span> {
                                     <span class="self">self</span>.<span class="ident">fut</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">fut</span>);
                                     <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
                                 }
                                 <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
-                                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>()))
+                                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(
+                                        <span class="ident">info</span>,
+                                        <span class="ident">mws</span>,
+                                        <span class="ident">err</span>.<span class="ident">into</span>(),
+                                    ));
                                 }
                             }
                         }
                     }
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>())),
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">err</span>.<span class="ident">into</span>()));
+                }
             }
         }
     }
@@ -1147,11 +1064,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span>, <span class="ident">H</span><span class="op">&gt;</span> <span class="ident">WaitingResponse</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">init</span>(
-        <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">reply</span>: <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span>,
+        <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>],
+        <span class="ident">reply</span>: <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">reply</span>.<span class="ident">into</span>() {
-            <span class="ident">AsyncResultItem</span>::<span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>()),
-            <span class="ident">AsyncResultItem</span>::<span class="prelude-val">Ok</span>(<span class="ident">resp</span>) <span class="op">=&gt;</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">resp</span>),
+            <span class="ident">AsyncResultItem</span>::<span class="prelude-val">Ok</span>(<span class="ident">resp</span>) <span class="op">=&gt;</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">resp</span>),
+            <span class="ident">AsyncResultItem</span>::<span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">err</span>.<span class="ident">into</span>()),
             <span class="ident">AsyncResultItem</span>::<span class="ident">Future</span>(<span class="ident">fut</span>) <span class="op">=&gt;</span> <span class="ident">PipelineState</span>::<span class="ident">Handler</span>(<span class="ident">WaitingResponse</span> {
                 <span class="ident">fut</span>,
                 <span class="ident">_s</span>: <span class="ident">PhantomData</span>,
@@ -1160,11 +1078,13 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>],
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">poll</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">response</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">response</span>)),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>())),
+            <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">resp</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">resp</span>)),
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="ident">err</span>.<span class="ident">into</span>())),
         }
     }
 }
@@ -1179,15 +1099,18 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span>, <span class="ident">H</span><span class="op">&gt;</span> <span class="ident">RunMiddlewares</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span>) <span class="op">-&gt;</span> <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(
+        <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>], <span class="kw-2">mut</span> <span class="ident">resp</span>: <span class="ident">HttpResponse</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="ident">ProcessResponse</span>::<span class="ident">init</span>(<span class="ident">resp</span>);
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">mws</span>.<span class="ident">len</span>();
 
         <span class="kw">loop</span> {
-            <span class="ident">resp</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">curr</span>].<span class="ident">response</span>(<span class="ident">info</span>.<span class="ident">req_mut</span>(), <span class="ident">resp</span>) {
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">mws</span>[<span class="ident">curr</span>].<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>, <span class="ident">resp</span>);
+            <span class="ident">resp</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">state</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
                     <span class="ident">info</span>.<span class="ident">count</span> <span class="op">=</span> (<span class="ident">curr</span> <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">u16</span>;
                     <span class="kw">return</span> <span class="ident">ProcessResponse</span>::<span class="ident">init</span>(<span class="ident">err</span>.<span class="ident">into</span>());
@@ -1206,14 +1129,16 @@
                         <span class="ident">fut</span>: <span class="prelude-val">Some</span>(<span class="ident">fut</span>),
                         <span class="ident">_s</span>: <span class="ident">PhantomData</span>,
                         <span class="ident">_h</span>: <span class="ident">PhantomData</span>,
-                    })
+                    });
                 }
             };
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>.<span class="ident">len</span>();
+    <span class="kw">fn</span> <span class="ident">poll</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>],
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">mws</span>.<span class="ident">len</span>();
 
         <span class="kw">loop</span> {
             <span class="comment">// poll latest fut</span>
@@ -1230,7 +1155,8 @@
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">curr</span> <span class="op">==</span> <span class="ident">len</span> {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">ProcessResponse</span>::<span class="ident">init</span>(<span class="ident">resp</span>));
                 } <span class="kw">else</span> {
-                    <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="self">self</span>.<span class="ident">curr</span>].<span class="ident">response</span>(<span class="ident">info</span>.<span class="ident">req_mut</span>(), <span class="ident">resp</span>) {
+                    <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">mws</span>[<span class="self">self</span>.<span class="ident">curr</span>].<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>, <span class="ident">resp</span>);
+                    <span class="kw">match</span> <span class="ident">state</span> {
                         <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">ProcessResponse</span>::<span class="ident">init</span>(<span class="ident">err</span>.<span class="ident">into</span>())),
                         <span class="prelude-val">Ok</span>(<span class="ident">Response</span>::<span class="ident">Done</span>(<span class="ident">r</span>)) <span class="op">=&gt;</span> {
                             <span class="self">self</span>.<span class="ident">curr</span> <span class="op">+=</span> <span class="number">1</span>;
@@ -1256,7 +1182,7 @@
     <span class="ident">_h</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">RunningState</span> {
     <span class="ident">Running</span>,
     <span class="ident">Paused</span>,
@@ -1300,6 +1226,7 @@
 
     <span class="kw">fn</span> <span class="ident">poll_io</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">io</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Writer</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+        <span class="ident">mws</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>],
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span>, <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">drain</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">running</span> <span class="op">!=</span> <span class="ident">RunningState</span>::<span class="ident">Paused</span> {
@@ -1310,19 +1237,16 @@
                             <span class="kw">let</span> <span class="ident">encoding</span> <span class="op">=</span>
                                 <span class="self">self</span>.<span class="ident">resp</span>.<span class="ident">content_encoding</span>().<span class="ident">unwrap_or</span>(<span class="ident">info</span>.<span class="ident">encoding</span>);
 
-                            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">io</span>.<span class="ident">start</span>(
-                                <span class="ident">info</span>.<span class="ident">req_mut</span>().<span class="ident">get_inner</span>(),
-                                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">resp</span>,
-                                <span class="ident">encoding</span>,
-                            ) {
-                                <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=&gt;</span> <span class="ident">res</span>,
-                                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
-                                    <span class="ident">info</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>.<span class="ident">into</span>());
-                                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(
-                                        <span class="ident">info</span>, <span class="self">self</span>.<span class="ident">resp</span>,
-                                    ));
-                                }
-                            };
+                            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
+                                <span class="kw">match</span> <span class="ident">io</span>.<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">resp</span>, <span class="ident">encoding</span>) {
+                                    <span class="prelude-val">Ok</span>(<span class="ident">res</span>) <span class="op">=&gt;</span> <span class="ident">res</span>,
+                                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                                        <span class="ident">info</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>.<span class="ident">into</span>());
+                                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(
+                                            <span class="ident">info</span>, <span class="ident">mws</span>, <span class="self">self</span>.<span class="ident">resp</span>,
+                                        ));
+                                    }
+                                };
 
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">resp</span>.<span class="ident">error</span>() {
                                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">resp</span>.<span class="ident">status</span>().<span class="ident">is_server_error</span>() {
@@ -1361,18 +1285,18 @@
                                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">io</span>.<span class="ident">write_eof</span>() {
                                     <span class="ident">info</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>.<span class="ident">into</span>());
                                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(
-                                        <span class="ident">info</span>, <span class="self">self</span>.<span class="ident">resp</span>,
+                                        <span class="ident">info</span>, <span class="ident">mws</span>, <span class="self">self</span>.<span class="ident">resp</span>,
                                     ));
                                 }
                                 <span class="kw">break</span>;
                             }
                             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">chunk</span>))) <span class="op">=&gt;</span> {
                                 <span class="self">self</span>.<span class="ident">iostate</span> <span class="op">=</span> <span class="ident">IOState</span>::<span class="ident">Payload</span>(<span class="ident">body</span>);
-                                <span class="kw">match</span> <span class="ident">io</span>.<span class="ident">write</span>(<span class="ident">chunk</span>.<span class="ident">into</span>()) {
+                                <span class="kw">match</span> <span class="ident">io</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">chunk</span>.<span class="ident">into</span>()) {
                                     <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
                                         <span class="ident">info</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>.<span class="ident">into</span>());
                                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(
-                                            <span class="ident">info</span>, <span class="self">self</span>.<span class="ident">resp</span>,
+                                            <span class="ident">info</span>, <span class="ident">mws</span>, <span class="self">self</span>.<span class="ident">resp</span>,
                                         ));
                                     }
                                     <span class="prelude-val">Ok</span>(<span class="ident">result</span>) <span class="op">=&gt;</span> <span class="ident">result</span>,
@@ -1384,7 +1308,9 @@
                             }
                             <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
                                 <span class="ident">info</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>);
-                                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="self">self</span>.<span class="ident">resp</span>));
+                                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(
+                                    <span class="ident">info</span>, <span class="ident">mws</span>, <span class="self">self</span>.<span class="ident">resp</span>,
+                                ));
                             }
                         },
                         <span class="ident">IOState</span>::<span class="ident">Actor</span>(<span class="kw-2">mut</span> <span class="ident">ctx</span>) <span class="op">=&gt;</span> {
@@ -1406,19 +1332,20 @@
                                                     <span class="ident">info</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>.<span class="ident">into</span>());
                                                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(
                                                         <span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(
-                                                            <span class="ident">info</span>, <span class="self">self</span>.<span class="ident">resp</span>,
+                                                            <span class="ident">info</span>, <span class="ident">mws</span>, <span class="self">self</span>.<span class="ident">resp</span>,
                                                         ),
                                                     );
                                                 }
                                                 <span class="kw">break</span> <span class="lifetime">&#39;inner</span>;
                                             }
                                             <span class="ident">Frame</span>::<span class="ident">Chunk</span>(<span class="prelude-val">Some</span>(<span class="ident">chunk</span>)) <span class="op">=&gt;</span> {
-                                                <span class="kw">match</span> <span class="ident">io</span>.<span class="ident">write</span>(<span class="ident">chunk</span>) {
+                                                <span class="kw">match</span> <span class="ident">io</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">chunk</span>) {
                                                     <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                                                        <span class="ident">info</span>.<span class="ident">context</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ctx</span>);
                                                         <span class="ident">info</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>.<span class="ident">into</span>());
                                                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(
                                                             <span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(
-                                                                <span class="ident">info</span>, <span class="self">self</span>.<span class="ident">resp</span>,
+                                                                <span class="ident">info</span>, <span class="ident">mws</span>, <span class="self">self</span>.<span class="ident">resp</span>,
                                                             ),
                                                         );
                                                     }
@@ -1441,9 +1368,10 @@
                                     <span class="kw">break</span>;
                                 }
                                 <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                                    <span class="ident">info</span>.<span class="ident">context</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ctx</span>);
                                     <span class="ident">info</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>);
                                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(
-                                        <span class="ident">info</span>, <span class="self">self</span>.<span class="ident">resp</span>,
+                                        <span class="ident">info</span>, <span class="ident">mws</span>, <span class="self">self</span>.<span class="ident">resp</span>,
                                     ));
                                 }
                             }
@@ -1476,8 +1404,14 @@
                     }
                     <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PipelineState</span>::<span class="ident">Response</span>(<span class="self">self</span>)),
                     <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">IOState</span>::<span class="ident">Actor</span>(<span class="kw-2">mut</span> <span class="ident">ctx</span>) <span class="op">=</span>
+                            <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">iostate</span>, <span class="ident">IOState</span>::<span class="ident">Done</span>)
+                        {
+                            <span class="ident">ctx</span>.<span class="ident">disconnected</span>();
+                            <span class="ident">info</span>.<span class="ident">context</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ctx</span>);
+                        }
                         <span class="ident">info</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>.<span class="ident">into</span>());
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="self">self</span>.<span class="ident">resp</span>));
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="self">self</span>.<span class="ident">resp</span>));
                     }
                 }
             }
@@ -1491,11 +1425,11 @@
                     <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> (),
                     <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
                         <span class="ident">info</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>.<span class="ident">into</span>());
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="self">self</span>.<span class="ident">resp</span>));
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="self">self</span>.<span class="ident">resp</span>));
                     }
                 }
                 <span class="self">self</span>.<span class="ident">resp</span>.<span class="ident">set_response_size</span>(<span class="ident">io</span>.<span class="ident">written</span>());
-                <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="self">self</span>.<span class="ident">resp</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">mws</span>, <span class="self">self</span>.<span class="ident">resp</span>))
             }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">PipelineState</span>::<span class="ident">Response</span>(<span class="self">self</span>)),
         }
@@ -1504,7 +1438,7 @@
 
 <span class="doccomment">/// Middlewares start executor</span>
 <span class="kw">struct</span> <span class="ident">FinishingMiddlewares</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
-    <span class="ident">resp</span>: <span class="ident">HttpResponse</span>,
+    <span class="ident">resp</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span>,
     <span class="ident">fut</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> <span class="ident">Error</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
     <span class="ident">_s</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
     <span class="ident">_h</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>,
@@ -1512,17 +1446,20 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span>, <span class="ident">H</span><span class="op">&gt;</span> <span class="ident">FinishingMiddlewares</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">resp</span>: <span class="ident">HttpResponse</span>) <span class="op">-&gt;</span> <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(
+        <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>], <span class="ident">resp</span>: <span class="ident">HttpResponse</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="ident">resp</span>.<span class="ident">release</span>();
             <span class="ident">Completed</span>::<span class="ident">init</span>(<span class="ident">info</span>)
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">FinishingMiddlewares</span> {
-                <span class="ident">resp</span>,
+                <span class="ident">resp</span>: <span class="prelude-val">Some</span>(<span class="ident">resp</span>),
                 <span class="ident">fut</span>: <span class="prelude-val">None</span>,
                 <span class="ident">_s</span>: <span class="ident">PhantomData</span>,
                 <span class="ident">_h</span>: <span class="ident">PhantomData</span>,
             };
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">st</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">st</span>) <span class="op">=</span> <span class="ident">state</span>.<span class="ident">poll</span>(<span class="ident">info</span>, <span class="ident">mws</span>) {
                 <span class="ident">st</span>
             } <span class="kw">else</span> {
                 <span class="ident">PipelineState</span>::<span class="ident">Finishing</span>(<span class="ident">state</span>)
@@ -1530,7 +1467,9 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">PipelineInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="kw-2">&amp;</span>[<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>],
+    ) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
         <span class="kw">loop</span> {
             <span class="comment">// poll latest fut</span>
             <span class="kw">let</span> <span class="ident">not_ready</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">fut</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fut</span> {
@@ -1550,13 +1489,17 @@
             }
             <span class="self">self</span>.<span class="ident">fut</span> <span class="op">=</span> <span class="prelude-val">None</span>;
             <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">==</span> <span class="number">0</span> {
+                <span class="self">self</span>.<span class="ident">resp</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">release</span>();
                 <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Completed</span>::<span class="ident">init</span>(<span class="ident">info</span>));
             }
 
             <span class="ident">info</span>.<span class="ident">count</span> <span class="op">-=</span> <span class="number">1</span>;
-            <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">finish</span>(<span class="ident">info</span>.<span class="ident">req_mut</span>(), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">resp</span>) {
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span>
+                <span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>, <span class="self">self</span>.<span class="ident">resp</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>());
+            <span class="kw">match</span> <span class="ident">state</span> {
                 <span class="ident">Finished</span>::<span class="ident">Done</span> <span class="op">=&gt;</span> {
                     <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">==</span> <span class="number">0</span> {
+                        <span class="self">self</span>.<span class="ident">resp</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>().<span class="ident">release</span>();
                         <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Completed</span>::<span class="ident">init</span>(<span class="ident">info</span>));
                     }
                 }
@@ -1581,7 +1524,13 @@
         <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">context</span>.<span class="ident">is_none</span>() {
             <span class="ident">PipelineState</span>::<span class="prelude-val">None</span>
         } <span class="kw">else</span> {
-            <span class="ident">PipelineState</span>::<span class="ident">Completed</span>(<span class="ident">Completed</span>(<span class="ident">PhantomData</span>, <span class="ident">PhantomData</span>))
+            <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">poll_context</span>() {
+                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> {
+                    <span class="ident">PipelineState</span>::<span class="ident">Completed</span>(<span class="ident">Completed</span>(<span class="ident">PhantomData</span>, <span class="ident">PhantomData</span>))
+                }
+                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(())) <span class="op">=&gt;</span> <span class="ident">PipelineState</span>::<span class="prelude-val">None</span>,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="ident">PipelineState</span>::<span class="ident">Error</span>,
+            }
         }
     }
 
@@ -1592,71 +1541,6 @@
             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(())) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PipelineState</span>::<span class="prelude-val">None</span>),
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">PipelineState</span>::<span class="ident">Error</span>),
         }
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">actix</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">context</span>::<span class="ident">HttpContext</span>;
-    <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::{<span class="ident">lazy</span>, <span class="ident">result</span>};
-    <span class="kw">use</span> <span class="ident">tokio_core</span>::<span class="ident">reactor</span>::<span class="ident">Core</span>;
-
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> <span class="ident">PipelineState</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">is_none</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PipelineState</span>::<span class="prelude-val">None</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            }
-        }
-        <span class="kw">fn</span> <span class="ident">completed</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Completed</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">H</span><span class="op">&gt;&gt;</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PipelineState</span>::<span class="ident">Completed</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="self">self</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">c</span>)
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
-            }
-        }
-    }
-
-    <span class="kw">struct</span> <span class="ident">MyActor</span>;
-    <span class="kw">impl</span> <span class="ident">Actor</span> <span class="kw">for</span> <span class="ident">MyActor</span> {
-        <span class="kw">type</span> <span class="ident">Context</span> <span class="op">=</span> <span class="ident">HttpContext</span><span class="op">&lt;</span><span class="ident">MyActor</span><span class="op">&gt;</span>;
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_completed</span>() {
-        <span class="ident">Core</span>::<span class="ident">new</span>()
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">run</span>(<span class="ident">lazy</span>(<span class="op">||</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">PipelineInfo</span>::<span class="ident">new</span>(<span class="ident">HttpRequest</span>::<span class="ident">default</span>());
-                <span class="ident">Completed</span>::<span class="op">&lt;</span>(), <span class="ident">Inner</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span>::<span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>)
-                    .<span class="ident">is_none</span>()
-                    .<span class="ident">unwrap</span>();
-
-                <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">HttpRequest</span>::<span class="ident">default</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">HttpContext</span>::<span class="ident">new</span>(<span class="ident">req</span>.<span class="ident">clone</span>(), <span class="ident">MyActor</span>);
-                <span class="kw">let</span> <span class="ident">addr</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">address</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">PipelineInfo</span>::<span class="ident">new</span>(<span class="ident">req</span>);
-                <span class="ident">info</span>.<span class="ident">context</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">ctx</span>));
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">Completed</span>::<span class="op">&lt;</span>(), <span class="ident">Inner</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span>::<span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>)
-                    .<span class="ident">completed</span>()
-                    .<span class="ident">unwrap</span>();
-
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">state</span>.<span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>).<span class="ident">is_none</span>());
-                <span class="kw">let</span> <span class="ident">pp</span> <span class="op">=</span> <span class="ident">Pipeline</span>(<span class="ident">info</span>, <span class="ident">PipelineState</span>::<span class="ident">Completed</span>(<span class="ident">state</span>));
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">pp</span>.<span class="ident">is_done</span>());
-
-                <span class="kw">let</span> <span class="ident">Pipeline</span>(<span class="kw-2">mut</span> <span class="ident">info</span>, <span class="ident">st</span>) <span class="op">=</span> <span class="ident">pp</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">st</span> <span class="op">=</span> <span class="ident">st</span>.<span class="ident">completed</span>().<span class="ident">unwrap</span>();
-                <span class="ident">drop</span>(<span class="ident">addr</span>);
-
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">st</span>.<span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>).<span class="ident">unwrap</span>().<span class="ident">is_none</span>().<span class="ident">unwrap</span>());
-
-                <span class="ident">result</span>(<span class="prelude-val">Ok</span>::<span class="op">&lt;</span><span class="kw">_</span>, ()<span class="op">&gt;</span>(()))
-            }))
-            .<span class="ident">unwrap</span>();
     }
 }
 </pre>

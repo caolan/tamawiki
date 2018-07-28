@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["DnsFuture","A DNS Client implemented over futures-rs."]]});

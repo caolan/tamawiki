@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -253,26 +253,44 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Actix web is a small, pragmatic, and extremely fast web framework</span>
 <span class="doccomment">//! for Rust.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! use actix_web::{server, App, Path};</span>
+<span class="doccomment">//! use actix_web::{server, App, Path, Responder};</span>
 <span class="doccomment">//! # use std::thread;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! fn index(info: Path&lt;(String, u32)&gt;) -&gt; String {</span>
+<span class="doccomment">//! fn index(info: Path&lt;(String, u32)&gt;) -&gt; impl Responder {</span>
 <span class="doccomment">//!     format!(&quot;Hello {}! id:{}&quot;, info.0, info.1)</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! fn main() {</span>
-<span class="doccomment">//! # thread::spawn(|| {</span>
+<span class="doccomment">//!     # thread::spawn(|| {</span>
 <span class="doccomment">//!     server::new(|| {</span>
 <span class="doccomment">//!         App::new().resource(&quot;/{name}/{id}/index.html&quot;, |r| r.with(index))</span>
 <span class="doccomment">//!     }).bind(&quot;127.0.0.1:8080&quot;)</span>
 <span class="doccomment">//!         .unwrap()</span>
 <span class="doccomment">//!         .run();</span>
-<span class="doccomment">//! # });</span>
+<span class="doccomment">//!     # });</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -315,7 +333,7 @@
 <span class="doccomment">//! * SSL support with OpenSSL or `native-tls`</span>
 <span class="doccomment">//! * Middlewares (`Logger`, `Session`, `CORS`, `CSRF`, `DefaultHeaders`)</span>
 <span class="doccomment">//! * Built on top of [Actix actor framework](https://github.com/actix/actix)</span>
-<span class="doccomment">//! * Supported Rust version: 1.24 or later</span>
+<span class="doccomment">//! * Supported Rust version: 1.26 or later</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Package feature</span>
 <span class="doccomment">//!</span>
@@ -326,9 +344,9 @@
 <span class="doccomment">//!   dependency</span>
 <span class="doccomment">//! * `brotli` - enables `brotli` compression support, requires `c`</span>
 <span class="doccomment">//!   compiler</span>
-<span class="doccomment">//! * `flate-c` - enables `gzip`, `deflate` compression support, requires</span>
+<span class="doccomment">//! * `flate2-c` - enables `gzip`, `deflate` compression support, requires</span>
 <span class="doccomment">//!   `c` compiler</span>
-<span class="doccomment">//! * `flate-rust` - experimental rust based implementation for</span>
+<span class="doccomment">//! * `flate2-rust` - experimental rust based implementation for</span>
 <span class="doccomment">//!   `gzip`, `deflate` compression.</span>
 <span class="doccomment">//!</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">actix_nightly</span>, <span class="ident">feature</span>(
@@ -339,6 +357,7 @@
     <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>,
     <span class="ident">allow</span>(<span class="ident">decimal_literal_representation</span>, <span class="ident">suspicious_arithmetic_impl</span>)
 )]</span>
+<span class="attribute">#![<span class="ident">warn</span>(<span class="ident">missing_docs</span>)]</span>
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">log</span>;
@@ -358,19 +377,23 @@
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">futures</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">cookie</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">futures_cpupool</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">htmlescape</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">http</span> <span class="kw">as</span> <span class="ident">modhttp</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">http_range</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">httparse</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">language_tags</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">libc</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">lazycell</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">mime</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">mime_guess</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">mio</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">net2</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">parking_lot</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">rand</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">slab</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_core</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_io</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_reactor</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_tcp</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_timer</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">url</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">serde</span>;
@@ -381,12 +404,12 @@
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">flate2</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">h2</span> <span class="kw">as</span> <span class="ident">http2</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">num_cpus</span>;
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">percent_encoding</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">serde_json</span>;
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">serde_urlencoded</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">smallvec</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">actix</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">actix</span> <span class="kw">as</span> <span class="ident">actix_inner</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
@@ -406,6 +429,7 @@
 <span class="kw">mod</span> <span class="ident">body</span>;
 <span class="kw">mod</span> <span class="ident">context</span>;
 <span class="kw">mod</span> <span class="ident">de</span>;
+<span class="kw">mod</span> <span class="ident">extensions</span>;
 <span class="kw">mod</span> <span class="ident">extractor</span>;
 <span class="kw">mod</span> <span class="ident">handler</span>;
 <span class="kw">mod</span> <span class="ident">header</span>;
@@ -423,6 +447,7 @@
 <span class="kw">mod</span> <span class="ident">route</span>;
 <span class="kw">mod</span> <span class="ident">router</span>;
 <span class="kw">mod</span> <span class="ident">scope</span>;
+<span class="kw">mod</span> <span class="ident">serde_urlencoded</span>;
 <span class="kw">mod</span> <span class="ident">uri</span>;
 <span class="kw">mod</span> <span class="ident">with</span>;
 
@@ -439,6 +464,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">body</span>::{<span class="ident">Binary</span>, <span class="ident">Body</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">context</span>::<span class="ident">HttpContext</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">error</span>::{<span class="ident">Error</span>, <span class="ident">ResponseError</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">extensions</span>::<span class="ident">Extensions</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">extractor</span>::{<span class="ident">Form</span>, <span class="ident">Path</span>, <span class="ident">Query</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">handler</span>::{
     <span class="ident">AsyncResponder</span>, <span class="ident">Either</span>, <span class="ident">FromRequest</span>, <span class="ident">FutureResponse</span>, <span class="ident">Responder</span>, <span class="ident">State</span>,
@@ -448,10 +474,19 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">httpresponse</span>::<span class="ident">HttpResponse</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">json</span>::<span class="ident">Json</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">scope</span>::<span class="ident">Scope</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">server</span>::<span class="ident">Request</span>;
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.6.2&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;please use `use actix_web::ws::WsWriter`&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ws</span>::<span class="ident">WsWriter</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">actix</span> {
+    <span class="doccomment">//! Re-exports [actix&#39;s](https://docs.rs/actix/) prelude</span>
+
+    <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">actix</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">actix</span>::<span class="ident">actors</span>::<span class="ident">resolver</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">actix</span>::<span class="ident">actors</span>::<span class="ident">signal</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">actix</span>::<span class="ident">fut</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">actix</span>::<span class="ident">msgs</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">actix</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">actix</span>::{<span class="ident">run</span>, <span class="ident">spawn</span>};
+}
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;openssl&quot;</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">HAS_OPENSSL</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -483,10 +518,10 @@
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">info</span>::<span class="ident">ConnectionInfo</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">json</span>::{<span class="ident">JsonBody</span>, <span class="ident">JsonConfig</span>};
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">param</span>::{<span class="ident">FromParam</span>, <span class="ident">Params</span>};
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">resource</span>::<span class="ident">ResourceHandler</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">payload</span>::{<span class="ident">Payload</span>, <span class="ident">PayloadBuffer</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">resource</span>::<span class="ident">Resource</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">route</span>::<span class="ident">Route</span>;
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">router</span>::{<span class="ident">Resource</span>, <span class="ident">ResourceType</span>, <span class="ident">Router</span>};
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">with</span>::<span class="ident">ExtractorConfig</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">router</span>::{<span class="ident">ResourceDef</span>, <span class="ident">ResourceInfo</span>, <span class="ident">ResourceType</span>, <span class="ident">Router</span>};
 }
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">http</span> {
@@ -499,12 +534,13 @@
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">modhttp</span>::{<span class="ident">uri</span>, <span class="ident">Error</span>, <span class="ident">Extensions</span>, <span class="ident">HeaderMap</span>, <span class="ident">HttpTryFrom</span>, <span class="ident">Uri</span>};
 
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">cookie</span>::{<span class="ident">Cookie</span>, <span class="ident">CookieBuilder</span>};
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">http_range</span>::<span class="ident">HttpRange</span>;
 
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">helpers</span>::<span class="ident">NormalizePath</span>;
 
+    <span class="doccomment">/// Various http headers</span>
     <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">header</span> {
         <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">header</span>::<span class="kw-2">*</span>;
+        <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">header</span>::{<span class="ident">ContentDisposition</span>, <span class="ident">DispositionType</span>, <span class="ident">DispositionParam</span>, <span class="ident">Charset</span>, <span class="ident">LanguageTag</span>};
     }
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">header</span>::<span class="ident">ContentEncoding</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">httpresponse</span>::<span class="ident">ConnectionType</span>;

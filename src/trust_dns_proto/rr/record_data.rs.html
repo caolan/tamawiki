@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-proto-0.3.3/src/rr/record_data.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>record_data.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/trust-dns-proto-0.4.0/src/rr/record_data.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>record_data.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -807,124 +807,6 @@
 <span id="807">807</span>
 <span id="808">808</span>
 <span id="809">809</span>
-<span id="810">810</span>
-<span id="811">811</span>
-<span id="812">812</span>
-<span id="813">813</span>
-<span id="814">814</span>
-<span id="815">815</span>
-<span id="816">816</span>
-<span id="817">817</span>
-<span id="818">818</span>
-<span id="819">819</span>
-<span id="820">820</span>
-<span id="821">821</span>
-<span id="822">822</span>
-<span id="823">823</span>
-<span id="824">824</span>
-<span id="825">825</span>
-<span id="826">826</span>
-<span id="827">827</span>
-<span id="828">828</span>
-<span id="829">829</span>
-<span id="830">830</span>
-<span id="831">831</span>
-<span id="832">832</span>
-<span id="833">833</span>
-<span id="834">834</span>
-<span id="835">835</span>
-<span id="836">836</span>
-<span id="837">837</span>
-<span id="838">838</span>
-<span id="839">839</span>
-<span id="840">840</span>
-<span id="841">841</span>
-<span id="842">842</span>
-<span id="843">843</span>
-<span id="844">844</span>
-<span id="845">845</span>
-<span id="846">846</span>
-<span id="847">847</span>
-<span id="848">848</span>
-<span id="849">849</span>
-<span id="850">850</span>
-<span id="851">851</span>
-<span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
-<span id="856">856</span>
-<span id="857">857</span>
-<span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
-<span id="862">862</span>
-<span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
-<span id="871">871</span>
-<span id="872">872</span>
-<span id="873">873</span>
-<span id="874">874</span>
-<span id="875">875</span>
-<span id="876">876</span>
-<span id="877">877</span>
-<span id="878">878</span>
-<span id="879">879</span>
-<span id="880">880</span>
-<span id="881">881</span>
-<span id="882">882</span>
-<span id="883">883</span>
-<span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
-<span id="898">898</span>
-<span id="899">899</span>
-<span id="900">900</span>
-<span id="901">901</span>
-<span id="902">902</span>
-<span id="903">903</span>
-<span id="904">904</span>
-<span id="905">905</span>
-<span id="906">906</span>
-<span id="907">907</span>
-<span id="908">908</span>
-<span id="909">909</span>
-<span id="910">910</span>
-<span id="911">911</span>
-<span id="912">912</span>
-<span id="913">913</span>
-<span id="914">914</span>
-<span id="915">915</span>
-<span id="916">916</span>
-<span id="917">917</span>
-<span id="918">918</span>
-<span id="919">919</span>
-<span id="920">920</span>
-<span id="921">921</span>
-<span id="922">922</span>
-<span id="923">923</span>
-<span id="924">924</span>
-<span id="925">925</span>
-<span id="926">926</span>
-<span id="927">927</span>
 </pre><pre class="rust ">
 <span class="comment">/*
  * Copyright (C) 2015 Benjamin Fry &lt;benjaminfry@me.com&gt;
@@ -944,17 +826,17 @@
 
 <span class="doccomment">//! record data enum variants</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">IpAddr</span>, <span class="ident">Ipv4Addr</span>, <span class="ident">Ipv6Addr</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">From</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">IpAddr</span>, <span class="ident">Ipv4Addr</span>, <span class="ident">Ipv6Addr</span>};
 
-<span class="kw">use</span> <span class="ident">error</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">serialize</span>::<span class="ident">binary</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">domain</span>::<span class="ident">Name</span>;
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">record_type</span>::<span class="ident">RecordType</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">rdata</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">rdata</span>::{<span class="ident">CAA</span>, <span class="ident">MX</span>, <span class="ident">NULL</span>, <span class="ident">OPT</span>, <span class="ident">SOA</span>, <span class="ident">SRV</span>, <span class="ident">TLSA</span>, <span class="ident">TXT</span>};
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">record_type</span>::<span class="ident">RecordType</span>;
+<span class="kw">use</span> <span class="ident">error</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">serialize</span>::<span class="ident">binary</span>::<span class="kw-2">*</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dnssec&quot;</span>)]</span>
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">dnssec</span>::<span class="ident">rdata</span>::<span class="ident">DNSSECRData</span>;
@@ -1368,7 +1250,7 @@
             }
             <span class="ident">RecordType</span>::<span class="ident">ZERO</span> <span class="op">=&gt;</span> {
                 <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;reading EMPTY&quot;</span>);
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">RData</span>::<span class="ident">ZERO</span>)
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">RData</span>::<span class="ident">ZERO</span>);
             }
             <span class="ident">RecordType</span>::<span class="ident">MX</span> <span class="op">=&gt;</span> {
                 <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;reading MX&quot;</span>);
@@ -1536,39 +1418,24 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">Ipv6Addr</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">Ipv4Addr</span>;
+    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">Ipv6Addr</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
 
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-    <span class="kw">use</span> <span class="ident">serialize</span>::<span class="ident">binary</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">serialize</span>::<span class="ident">binary</span>::<span class="ident">bin_tests</span>::<span class="ident">test_emit_data_set</span>;
     <span class="kw">use</span> <span class="ident">rr</span>::<span class="ident">domain</span>::<span class="ident">Name</span>;
     <span class="kw">use</span> <span class="ident">rr</span>::<span class="ident">rdata</span>::{<span class="ident">MX</span>, <span class="ident">SOA</span>, <span class="ident">SRV</span>, <span class="ident">TXT</span>};
+    <span class="kw">use</span> <span class="ident">serialize</span>::<span class="ident">binary</span>::<span class="ident">bin_tests</span>::<span class="ident">test_emit_data_set</span>;
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
+    <span class="kw">use</span> <span class="ident">serialize</span>::<span class="ident">binary</span>::<span class="kw-2">*</span>;
 
     <span class="kw">fn</span> <span class="ident">get_data</span>() <span class="op">-&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">RData</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
         <span class="macro">vec</span><span class="macro">!</span>[
             (
                 <span class="ident">RData</span>::<span class="ident">CNAME</span>(<span class="ident">Name</span>::<span class="ident">from_str</span>(<span class="string">&quot;www.example.com&quot;</span>).<span class="ident">unwrap</span>()),
                 <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="number">7</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="string">b&#39;x&#39;</span>,
-                    <span class="string">b&#39;a&#39;</span>,
-                    <span class="string">b&#39;m&#39;</span>,
-                    <span class="string">b&#39;p&#39;</span>,
-                    <span class="string">b&#39;l&#39;</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;c&#39;</span>,
-                    <span class="string">b&#39;o&#39;</span>,
-                    <span class="string">b&#39;m&#39;</span>,
-                    <span class="number">0</span>,
+                    <span class="number">3</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="number">7</span>, <span class="string">b&#39;e&#39;</span>, <span class="string">b&#39;x&#39;</span>, <span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;m&#39;</span>, <span class="string">b&#39;p&#39;</span>, <span class="string">b&#39;l&#39;</span>, <span class="string">b&#39;e&#39;</span>, <span class="number">3</span>, <span class="string">b&#39;c&#39;</span>,
+                    <span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;m&#39;</span>, <span class="number">0</span>,
                 ],
             ),
             (
@@ -1578,45 +1445,15 @@
             (
                 <span class="ident">RData</span>::<span class="ident">NS</span>(<span class="ident">Name</span>::<span class="ident">from_str</span>(<span class="string">&quot;www.example.com&quot;</span>).<span class="ident">unwrap</span>()),
                 <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="number">7</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="string">b&#39;x&#39;</span>,
-                    <span class="string">b&#39;a&#39;</span>,
-                    <span class="string">b&#39;m&#39;</span>,
-                    <span class="string">b&#39;p&#39;</span>,
-                    <span class="string">b&#39;l&#39;</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;c&#39;</span>,
-                    <span class="string">b&#39;o&#39;</span>,
-                    <span class="string">b&#39;m&#39;</span>,
-                    <span class="number">0</span>,
+                    <span class="number">3</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="number">7</span>, <span class="string">b&#39;e&#39;</span>, <span class="string">b&#39;x&#39;</span>, <span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;m&#39;</span>, <span class="string">b&#39;p&#39;</span>, <span class="string">b&#39;l&#39;</span>, <span class="string">b&#39;e&#39;</span>, <span class="number">3</span>, <span class="string">b&#39;c&#39;</span>,
+                    <span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;m&#39;</span>, <span class="number">0</span>,
                 ],
             ),
             (
                 <span class="ident">RData</span>::<span class="ident">PTR</span>(<span class="ident">Name</span>::<span class="ident">from_str</span>(<span class="string">&quot;www.example.com&quot;</span>).<span class="ident">unwrap</span>()),
                 <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="number">7</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="string">b&#39;x&#39;</span>,
-                    <span class="string">b&#39;a&#39;</span>,
-                    <span class="string">b&#39;m&#39;</span>,
-                    <span class="string">b&#39;p&#39;</span>,
-                    <span class="string">b&#39;l&#39;</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;c&#39;</span>,
-                    <span class="string">b&#39;o&#39;</span>,
-                    <span class="string">b&#39;m&#39;</span>,
-                    <span class="number">0</span>,
+                    <span class="number">3</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="number">7</span>, <span class="string">b&#39;e&#39;</span>, <span class="string">b&#39;x&#39;</span>, <span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;m&#39;</span>, <span class="string">b&#39;p&#39;</span>, <span class="string">b&#39;l&#39;</span>, <span class="string">b&#39;e&#39;</span>, <span class="number">3</span>, <span class="string">b&#39;c&#39;</span>,
+                    <span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;m&#39;</span>, <span class="number">0</span>,
                 ],
             ),
             (
@@ -1630,49 +1467,10 @@
                     <span class="ident">u32</span>::<span class="ident">max_value</span>(),
                 )),
                 <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="number">7</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="string">b&#39;x&#39;</span>,
-                    <span class="string">b&#39;a&#39;</span>,
-                    <span class="string">b&#39;m&#39;</span>,
-                    <span class="string">b&#39;p&#39;</span>,
-                    <span class="string">b&#39;l&#39;</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;c&#39;</span>,
-                    <span class="string">b&#39;o&#39;</span>,
-                    <span class="string">b&#39;m&#39;</span>,
-                    <span class="number">0</span>,
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;x&#39;</span>,
-                    <span class="string">b&#39;x&#39;</span>,
-                    <span class="string">b&#39;x&#39;</span>,
-                    <span class="number">0xC0</span>,
-                    <span class="number">0x04</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
-                    <span class="number">0xFF</span>,
+                    <span class="number">3</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="number">7</span>, <span class="string">b&#39;e&#39;</span>, <span class="string">b&#39;x&#39;</span>, <span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;m&#39;</span>, <span class="string">b&#39;p&#39;</span>, <span class="string">b&#39;l&#39;</span>, <span class="string">b&#39;e&#39;</span>, <span class="number">3</span>, <span class="string">b&#39;c&#39;</span>,
+                    <span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;m&#39;</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="string">b&#39;x&#39;</span>, <span class="string">b&#39;x&#39;</span>, <span class="string">b&#39;x&#39;</span>, <span class="number">0xC0</span>, <span class="number">0x04</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,
+                    <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>, <span class="number">0xFF</span>,
+                    <span class="number">0xFF</span>, <span class="number">0xFF</span>,
                 ],
             ),
             (
@@ -1683,20 +1481,7 @@
                     <span class="string">&quot;j&quot;</span>.<span class="ident">to_string</span>(),
                 ])),
                 <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="number">6</span>,
-                    <span class="string">b&#39;a&#39;</span>,
-                    <span class="string">b&#39;b&#39;</span>,
-                    <span class="string">b&#39;c&#39;</span>,
-                    <span class="string">b&#39;d&#39;</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="string">b&#39;f&#39;</span>,
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;g&#39;</span>,
-                    <span class="string">b&#39;h&#39;</span>,
-                    <span class="string">b&#39;i&#39;</span>,
-                    <span class="number">0</span>,
-                    <span class="number">1</span>,
-                    <span class="string">b&#39;j&#39;</span>,
+                    <span class="number">6</span>, <span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;b&#39;</span>, <span class="string">b&#39;c&#39;</span>, <span class="string">b&#39;d&#39;</span>, <span class="string">b&#39;e&#39;</span>, <span class="string">b&#39;f&#39;</span>, <span class="number">3</span>, <span class="string">b&#39;g&#39;</span>, <span class="string">b&#39;h&#39;</span>, <span class="string">b&#39;i&#39;</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="string">b&#39;j&#39;</span>
                 ],
             ),
             (
@@ -1715,29 +1500,8 @@
                     <span class="ident">Name</span>::<span class="ident">from_str</span>(<span class="string">&quot;www.example.com&quot;</span>).<span class="ident">unwrap</span>(),
                 )),
                 <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="number">0x00</span>,
-                    <span class="number">0x01</span>,
-                    <span class="number">0x00</span>,
-                    <span class="number">0x02</span>,
-                    <span class="number">0x00</span>,
-                    <span class="number">0x03</span>,
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="string">b&#39;w&#39;</span>,
-                    <span class="number">7</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="string">b&#39;x&#39;</span>,
-                    <span class="string">b&#39;a&#39;</span>,
-                    <span class="string">b&#39;m&#39;</span>,
-                    <span class="string">b&#39;p&#39;</span>,
-                    <span class="string">b&#39;l&#39;</span>,
-                    <span class="string">b&#39;e&#39;</span>,
-                    <span class="number">3</span>,
-                    <span class="string">b&#39;c&#39;</span>,
-                    <span class="string">b&#39;o&#39;</span>,
-                    <span class="string">b&#39;m&#39;</span>,
-                    <span class="number">0</span>,
+                    <span class="number">0x00</span>, <span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x02</span>, <span class="number">0x00</span>, <span class="number">0x03</span>, <span class="number">3</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="string">b&#39;w&#39;</span>, <span class="number">7</span>, <span class="string">b&#39;e&#39;</span>, <span class="string">b&#39;x&#39;</span>, <span class="string">b&#39;a&#39;</span>,
+                    <span class="string">b&#39;m&#39;</span>, <span class="string">b&#39;p&#39;</span>, <span class="string">b&#39;l&#39;</span>, <span class="string">b&#39;e&#39;</span>, <span class="number">3</span>, <span class="string">b&#39;c&#39;</span>, <span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;m&#39;</span>, <span class="number">0</span>,
                 ],
             ),
         ]
@@ -1844,7 +1608,7 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;dnssec&quot;</span>)]</span>
             <span class="ident">RData</span>::<span class="ident">DNSSEC</span>(<span class="kw-2">ref</span> <span class="ident">rdata</span>) <span class="op">=&gt;</span> <span class="ident">RecordType</span>::<span class="ident">DNSSEC</span>(<span class="ident">rdata</span>.<span class="ident">to_record_type</span>()),
             <span class="ident">RData</span>::<span class="ident">Unknown</span> { <span class="ident">code</span>, .. } <span class="op">=&gt;</span> <span class="ident">RecordType</span>::<span class="ident">Unknown</span>(<span class="ident">code</span>),
-            <span class="ident">RData</span>::<span class="ident">ZERO</span> <span class="op">=&gt;</span> <span class="ident">RecordType</span>::<span class="ident">ZERO</span>,        
+            <span class="ident">RData</span>::<span class="ident">ZERO</span> <span class="op">=&gt;</span> <span class="ident">RecordType</span>::<span class="ident">ZERO</span>,
         }
     }
 

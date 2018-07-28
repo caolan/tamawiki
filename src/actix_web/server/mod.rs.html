@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/server/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/server/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -266,58 +266,104 @@
 <span id="266">266</span>
 <span id="267">267</span>
 <span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Http server</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">Shutdown</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io</span>, <span class="ident">time</span>};
 
-<span class="kw">use</span> <span class="ident">actix</span>;
-<span class="kw">use</span> <span class="ident">bytes</span>::<span class="ident">BytesMut</span>;
+<span class="kw">use</span> <span class="ident">bytes</span>::{<span class="ident">BufMut</span>, <span class="ident">BytesMut</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Async</span>, <span class="ident">Poll</span>};
-<span class="kw">use</span> <span class="ident">tokio_core</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span>;
 <span class="kw">use</span> <span class="ident">tokio_io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
+<span class="kw">use</span> <span class="ident">tokio_tcp</span>::<span class="ident">TcpStream</span>;
 
 <span class="kw">mod</span> <span class="ident">channel</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">encoding</span>;
+<span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">h1</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">h1decoder</span>;
 <span class="kw">mod</span> <span class="ident">h1writer</span>;
 <span class="kw">mod</span> <span class="ident">h2</span>;
 <span class="kw">mod</span> <span class="ident">h2writer</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">helpers</span>;
-<span class="kw">mod</span> <span class="ident">settings</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">shared</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">input</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">message</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">output</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">settings</span>;
 <span class="kw">mod</span> <span class="ident">srv</span>;
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">utils</span>;
 <span class="kw">mod</span> <span class="ident">worker</span>;
 
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">message</span>::<span class="ident">Request</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">settings</span>::<span class="ident">ServerSettings</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">srv</span>::<span class="ident">HttpServer</span>;
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">helpers</span>::<span class="ident">write_content_length</span>;
 
+<span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">Message</span>;
 <span class="kw">use</span> <span class="ident">body</span>::<span class="ident">Binary</span>;
 <span class="kw">use</span> <span class="ident">error</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="ident">header</span>::<span class="ident">ContentEncoding</span>;
-<span class="kw">use</span> <span class="ident">httprequest</span>::{<span class="ident">HttpInnerMessage</span>, <span class="ident">HttpRequest</span>};
 <span class="kw">use</span> <span class="ident">httpresponse</span>::<span class="ident">HttpResponse</span>;
 
 <span class="doccomment">/// max buffer size 64k</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">MAX_WRITE_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">65_536</span>;
+
+<span class="kw">const</span> <span class="ident">LW_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4096</span>;
+<span class="kw">const</span> <span class="ident">HW_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">32_768</span>;
 
 <span class="doccomment">/// Create new http server with application factory.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This is shortcut for `server::HttpServer::new()` method.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// # extern crate actix;</span>
 <span class="doccomment">/// # extern crate actix_web;</span>
-<span class="doccomment">/// use actix::*;</span>
-<span class="doccomment">/// use actix_web::{server, App, HttpResponse};</span>
+<span class="doccomment">/// use actix_web::{actix, server, App, HttpResponse};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// fn main() {</span>
-<span class="doccomment">///     let sys = actix::System::new(&quot;guide&quot;);</span>
+<span class="doccomment">///     let sys = actix::System::new(&quot;example&quot;);  // &lt;- create Actix system</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     server::new(</span>
 <span class="doccomment">///         || App::new()</span>
@@ -325,8 +371,8 @@
 <span class="doccomment">///         .bind(&quot;127.0.0.1:59090&quot;).unwrap()</span>
 <span class="doccomment">///         .start();</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     #     actix::Arbiter::system().do_send(actix::msgs::SystemExit(0));</span>
-<span class="doccomment">///     let _ = sys.run();</span>
+<span class="doccomment">/// #       actix::System::current().stop();</span>
+<span class="doccomment">///     sys.run();</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span>, <span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">factory</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">HttpServer</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>
@@ -382,30 +428,36 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If server starts with `spawn()` method, then spawned thread get terminated.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StopServer</span> {
+    <span class="doccomment">/// Whether to try and shut down gracefully</span>
     <span class="kw">pub</span> <span class="ident">graceful</span>: <span class="ident">bool</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">actix</span>::<span class="ident">Message</span> <span class="kw">for</span> <span class="ident">StopServer</span> {
+<span class="kw">impl</span> <span class="ident">Message</span> <span class="kw">for</span> <span class="ident">StopServer</span> {
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// Low level http request handler</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_variables</span>)]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">HttpHandler</span>: <span class="lifetime">&#39;static</span> {
+    <span class="doccomment">/// Request handling task</span>
+    <span class="kw">type</span> <span class="ident">Task</span>: <span class="ident">HttpHandlerTask</span>;
+
     <span class="doccomment">/// Handle request</span>
-    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">HttpRequest</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandlerTask</span><span class="op">&gt;</span>, <span class="ident">HttpRequest</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="ident">Request</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Task</span>, <span class="ident">Request</span><span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span> <span class="ident">HttpHandler</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandler</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">HttpRequest</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandlerTask</span><span class="op">&gt;</span>, <span class="ident">HttpRequest</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">handle</span>(<span class="ident">req</span>)
+<span class="kw">impl</span> <span class="ident">HttpHandler</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandler</span><span class="op">&lt;</span><span class="ident">Task</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandlerTask</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Task</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandlerTask</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="ident">Request</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandlerTask</span><span class="op">&gt;</span>, <span class="ident">Request</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_ref</span>().<span class="ident">handle</span>(<span class="ident">req</span>)
     }
 }
 
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="doccomment">/// Low level http request handler</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">HttpHandlerTask</span> {
     <span class="doccomment">/// Poll task, this method is used before or after *io* object is available</span>
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_completed</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(()))
     }
 
@@ -416,19 +468,25 @@
     <span class="kw">fn</span> <span class="ident">disconnected</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {}
 }
 
+<span class="kw">impl</span> <span class="ident">HttpHandlerTask</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">HttpHandlerTask</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">poll_io</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">io</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Writer</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">poll_io</span>(<span class="ident">io</span>)
+    }
+}
+
 <span class="doccomment">/// Conversion helper trait</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IntoHttpHandler</span> {
     <span class="doccomment">/// The associated type which is result of conversion.</span>
     <span class="kw">type</span> <span class="ident">Handler</span>: <span class="ident">HttpHandler</span>;
 
     <span class="doccomment">/// Convert into `HttpHandler` object.</span>
-    <span class="kw">fn</span> <span class="ident">into_handler</span>(<span class="self">self</span>, <span class="ident">settings</span>: <span class="ident">ServerSettings</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Handler</span>;
+    <span class="kw">fn</span> <span class="ident">into_handler</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Handler</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">HttpHandler</span><span class="op">&gt;</span> <span class="ident">IntoHttpHandler</span> <span class="kw">for</span> <span class="ident">T</span> {
     <span class="kw">type</span> <span class="ident">Handler</span> <span class="op">=</span> <span class="ident">T</span>;
 
-    <span class="kw">fn</span> <span class="ident">into_handler</span>(<span class="self">self</span>, <span class="kw">_</span>: <span class="ident">ServerSettings</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Handler</span> {
+    <span class="kw">fn</span> <span class="ident">into_handler</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Handler</span> {
         <span class="self">self</span>
     }
 }
@@ -447,18 +505,16 @@
     <span class="kw">fn</span> <span class="ident">written</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">u64</span>;
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">set_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">st</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BytesMut</span>);
+    <span class="kw">fn</span> <span class="ident">set_date</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>);
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">mut_from_ref</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BytesMut</span>;
+    <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BytesMut</span>;
 
     <span class="kw">fn</span> <span class="ident">start</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpInnerMessage</span>, <span class="ident">resp</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpResponse</span>,
-        <span class="ident">encoding</span>: <span class="ident">ContentEncoding</span>,
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">Request</span>, <span class="ident">resp</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpResponse</span>, <span class="ident">encoding</span>: <span class="ident">ContentEncoding</span>,
     ) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WriterState</span><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">payload</span>: <span class="ident">Binary</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WriterState</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">payload</span>: <span class="kw-2">&amp;</span><span class="ident">Binary</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WriterState</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">write_eof</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">WriterState</span><span class="op">&gt;</span>;
 
@@ -473,6 +529,38 @@
     <span class="kw">fn</span> <span class="ident">set_nodelay</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">nodelay</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">set_linger</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">dur</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">time</span>::<span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">read_available</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BytesMut</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_some</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">loop</span> {
+            <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">remaining_mut</span>() <span class="op">&lt;</span> <span class="ident">LW_BUFFER_SIZE</span> {
+                <span class="ident">buf</span>.<span class="ident">reserve</span>(<span class="ident">HW_BUFFER_SIZE</span>);
+            }
+            <span class="kw">unsafe</span> {
+                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">read</span>(<span class="ident">buf</span>.<span class="ident">bytes_mut</span>()) {
+                    <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> {
+                        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
+                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="op">!</span><span class="ident">read_some</span>));
+                        } <span class="kw">else</span> {
+                            <span class="ident">read_some</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            <span class="ident">buf</span>.<span class="ident">advance_mut</span>(<span class="ident">n</span>);
+                        }
+                    }
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> {
+                        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> {
+                            <span class="kw">if</span> <span class="ident">read_some</span> {
+                                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="bool-val">false</span>))
+                            } <span class="kw">else</span> {
+                                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>)
+                            }
+                        } <span class="kw">else</span> {
+                            <span class="prelude-val">Err</span>(<span class="ident">e</span>)
+                        };
+                    }
+                }
+            }
+        }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">IoStream</span> <span class="kw">for</span> <span class="ident">TcpStream</span> {

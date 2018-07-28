@@ -1,13 +1,11 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `client` mod in crate `actix_web`."><meta name="keywords" content="rust, rustlang, rust-lang, client"><title>actix_web::client - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module client</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'><a href='../index.html'>actix_web</a></p><script>window.sidebarCurrent = {name: 'client', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>actix_web</a>::<wbr><a class="mod" href=''>client</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/actix_web/client/mod.rs.html#1-121' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>Http client api</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `client` mod in crate `actix_web`."><meta name="keywords" content="rust, rustlang, rust-lang, client"><title>actix_web::client - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module client</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'><a href='../index.html'>actix_web</a></p><script>window.sidebarCurrent = {name: 'client', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>actix_web</a>::<wbr><a class="mod" href=''>client</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/actix_web/client/mod.rs.html#1-118' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>Http client api</p>
 
 <pre class="rust rust-example-rendered">
-<span class="kw">use</span> <span class="ident">actix_web</span>::<span class="ident">client</span>;
+<span class="kw">use</span> <span class="ident">actix_web</span>::{<span class="ident">actix</span>, <span class="ident">client</span>};
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
-    <span class="kw">let</span> <span class="ident">sys</span> <span class="op">=</span> <span class="ident">actix</span>::<span class="ident">System</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>);
-
-    <span class="ident">actix</span>::<span class="ident">Arbiter</span>::<span class="ident">handle</span>().<span class="ident">spawn</span>({
-        <span class="ident">client</span>::<span class="ident">get</span>(<span class="string">&quot;http://www.rust-lang.org&quot;</span>)   <span class="comment">// &lt;- Create request builder</span>
+    <span class="ident">actix</span>::<span class="ident">run</span>(
+        <span class="op">||</span> <span class="ident">client</span>::<span class="ident">get</span>(<span class="string">&quot;http://www.rust-lang.org&quot;</span>)   <span class="comment">// &lt;- Create request builder</span>
             .<span class="ident">header</span>(<span class="string">&quot;User-Agent&quot;</span>, <span class="string">&quot;Actix-web&quot;</span>)
             .<span class="ident">finish</span>().<span class="ident">unwrap</span>()
             .<span class="ident">send</span>()                               <span class="comment">// &lt;- Send http request</span>
@@ -16,9 +14,7 @@
                 <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Response: {:?}&quot;</span>, <span class="ident">response</span>);
                 <span class="prelude-val">Ok</span>(())
             })
-    });
-
-    <span class="ident">sys</span>.<span class="ident">run</span>();
+    );
 }</pre>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
@@ -76,7 +72,8 @@ client connection.</p>
                            <td><a class="struct" href="struct.Connection.html"
                                   title='struct actix_web::client::Connection'>Connection</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>HTTP client connection</p>
+
                            </td>
                        </tr>
                        <tr class=' module-item'>

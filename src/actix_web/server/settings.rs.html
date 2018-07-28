@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/server/settings.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>settings.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/server/settings.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>settings.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -279,35 +279,94 @@
 <span id="279">279</span>
 <span id="280">280</span>
 <span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
 </pre><pre class="rust ">
-<span class="kw">use</span> <span class="ident">bytes</span>::<span class="ident">BytesMut</span>;
-<span class="kw">use</span> <span class="ident">futures_cpupool</span>::{<span class="ident">Builder</span>, <span class="ident">CpuPool</span>};
-<span class="kw">use</span> <span class="ident">http</span>::<span class="ident">StatusCode</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>, <span class="ident">RefMut</span>, <span class="ident">UnsafeCell</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">VecDeque</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Write</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">mem</span>, <span class="ident">net</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">env</span>, <span class="ident">fmt</span>, <span class="ident">net</span>};
+
+<span class="kw">use</span> <span class="ident">bytes</span>::<span class="ident">BytesMut</span>;
+<span class="kw">use</span> <span class="ident">futures_cpupool</span>::<span class="ident">CpuPool</span>;
+<span class="kw">use</span> <span class="ident">http</span>::<span class="ident">StatusCode</span>;
+<span class="kw">use</span> <span class="ident">lazycell</span>::<span class="ident">LazyCell</span>;
+<span class="kw">use</span> <span class="ident">parking_lot</span>::<span class="ident">Mutex</span>;
 <span class="kw">use</span> <span class="ident">time</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">channel</span>::<span class="ident">Node</span>;
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">helpers</span>;
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">shared</span>::{<span class="ident">SharedBytes</span>, <span class="ident">SharedBytesPool</span>};
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">message</span>::{<span class="ident">Request</span>, <span class="ident">RequestPool</span>};
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">KeepAlive</span>;
 <span class="kw">use</span> <span class="ident">body</span>::<span class="ident">Body</span>;
 <span class="kw">use</span> <span class="ident">httpresponse</span>::{<span class="ident">HttpResponse</span>, <span class="ident">HttpResponseBuilder</span>, <span class="ident">HttpResponsePool</span>};
+
+<span class="doccomment">/// Env variable for default cpu pool size</span>
+<span class="kw">const</span> <span class="ident">ENV_CPU_POOL_VAR</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;ACTIX_CPU_POOL&quot;</span>;
+
+<span class="macro">lazy_static</span><span class="macro">!</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">DEFAULT_CPUPOOL</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">CpuPool</span><span class="op">&gt;</span> <span class="op">=</span> {
+        <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">env</span>::<span class="ident">var</span>(<span class="ident">ENV_CPU_POOL_VAR</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=&gt;</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">val</span>.<span class="ident">parse</span>() {
+                    <span class="ident">val</span>
+                } <span class="kw">else</span> {
+                    <span class="macro">error</span><span class="macro">!</span>(<span class="string">&quot;Can not parse ACTIX_CPU_POOL value&quot;</span>);
+                    <span class="number">20</span>
+                }
+            }
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="number">20</span>,
+        };
+        <span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">CpuPool</span>::<span class="ident">new</span>(<span class="ident">default</span>))
+    };
+}
 
 <span class="doccomment">/// Various server settings</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ServerSettings</span> {
     <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">net</span>::<span class="ident">SocketAddr</span><span class="op">&gt;</span>,
     <span class="ident">secure</span>: <span class="ident">bool</span>,
     <span class="ident">host</span>: <span class="ident">String</span>,
-    <span class="ident">cpu_pool</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">InnerCpuPool</span><span class="op">&gt;</span>,
-    <span class="ident">responses</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">HttpResponsePool</span><span class="op">&gt;&gt;</span>,
+    <span class="ident">cpu_pool</span>: <span class="ident">LazyCell</span><span class="op">&lt;</span><span class="ident">CpuPool</span><span class="op">&gt;</span>,
+    <span class="ident">responses</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">HttpResponsePool</span>,
 }
-
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">ServerSettings</span> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">ServerSettings</span> {}
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ServerSettings</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
@@ -315,40 +374,11 @@
             <span class="ident">addr</span>: <span class="self">self</span>.<span class="ident">addr</span>,
             <span class="ident">secure</span>: <span class="self">self</span>.<span class="ident">secure</span>,
             <span class="ident">host</span>: <span class="self">self</span>.<span class="ident">host</span>.<span class="ident">clone</span>(),
-            <span class="ident">cpu_pool</span>: <span class="self">self</span>.<span class="ident">cpu_pool</span>.<span class="ident">clone</span>(),
-            <span class="ident">responses</span>: <span class="ident">HttpResponsePool</span>::<span class="ident">pool</span>(),
+            <span class="ident">cpu_pool</span>: <span class="ident">LazyCell</span>::<span class="ident">new</span>(),
+            <span class="ident">responses</span>: <span class="ident">HttpResponsePool</span>::<span class="ident">get_pool</span>(),
         }
     }
 }
-
-<span class="kw">struct</span> <span class="ident">InnerCpuPool</span> {
-    <span class="ident">cpu_pool</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CpuPool</span><span class="op">&gt;&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">InnerCpuPool</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;CpuPool&quot;</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">InnerCpuPool</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="ident">InnerCpuPool</span> {
-            <span class="ident">cpu_pool</span>: <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>),
-        }
-    }
-    <span class="kw">fn</span> <span class="ident">cpu_pool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CpuPool</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">cpu_pool</span>.<span class="ident">get</span>();
-            <span class="kw">if</span> <span class="ident">val</span>.<span class="ident">is_none</span>() {
-                <span class="kw-2">*</span><span class="ident">val</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Builder</span>::<span class="ident">new</span>().<span class="ident">create</span>());
-            }
-            <span class="ident">val</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>()
-        }
-    }
-}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">InnerCpuPool</span> {}
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ServerSettings</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
@@ -356,8 +386,8 @@
             <span class="ident">addr</span>: <span class="prelude-val">None</span>,
             <span class="ident">secure</span>: <span class="bool-val">false</span>,
             <span class="ident">host</span>: <span class="string">&quot;localhost:8080&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident">responses</span>: <span class="ident">HttpResponsePool</span>::<span class="ident">pool</span>(),
-            <span class="ident">cpu_pool</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">InnerCpuPool</span>::<span class="ident">new</span>()),
+            <span class="ident">responses</span>: <span class="ident">HttpResponsePool</span>::<span class="ident">get_pool</span>(),
+            <span class="ident">cpu_pool</span>: <span class="ident">LazyCell</span>::<span class="ident">new</span>(),
         }
     }
 }
@@ -374,14 +404,29 @@
         } <span class="kw">else</span> {
             <span class="string">&quot;localhost&quot;</span>.<span class="ident">to_owned</span>()
         };
-        <span class="kw">let</span> <span class="ident">cpu_pool</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">InnerCpuPool</span>::<span class="ident">new</span>());
-        <span class="kw">let</span> <span class="ident">responses</span> <span class="op">=</span> <span class="ident">HttpResponsePool</span>::<span class="ident">pool</span>();
+        <span class="kw">let</span> <span class="ident">cpu_pool</span> <span class="op">=</span> <span class="ident">LazyCell</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">responses</span> <span class="op">=</span> <span class="ident">HttpResponsePool</span>::<span class="ident">get_pool</span>();
         <span class="ident">ServerSettings</span> {
             <span class="ident">addr</span>,
             <span class="ident">secure</span>,
             <span class="ident">host</span>,
             <span class="ident">cpu_pool</span>,
             <span class="ident">responses</span>,
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parts</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">net</span>::<span class="ident">SocketAddr</span><span class="op">&gt;</span>, <span class="ident">String</span>, <span class="ident">bool</span>) {
+        (<span class="self">self</span>.<span class="ident">addr</span>, <span class="self">self</span>.<span class="ident">host</span>.<span class="ident">clone</span>(), <span class="self">self</span>.<span class="ident">secure</span>)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_parts</span>(<span class="ident">parts</span>: (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">net</span>::<span class="ident">SocketAddr</span><span class="op">&gt;</span>, <span class="ident">String</span>, <span class="ident">bool</span>)) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> (<span class="ident">addr</span>, <span class="ident">host</span>, <span class="ident">secure</span>) <span class="op">=</span> <span class="ident">parts</span>;
+        <span class="ident">ServerSettings</span> {
+            <span class="ident">addr</span>,
+            <span class="ident">host</span>,
+            <span class="ident">secure</span>,
+            <span class="ident">cpu_pool</span>: <span class="ident">LazyCell</span>::<span class="ident">new</span>(),
+            <span class="ident">responses</span>: <span class="ident">HttpResponsePool</span>::<span class="ident">get_pool</span>(),
         }
     }
 
@@ -402,7 +447,7 @@
 
     <span class="doccomment">/// Returns default `CpuPool` for server</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cpu_pool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">CpuPool</span> {
-        <span class="self">self</span>.<span class="ident">cpu_pool</span>.<span class="ident">cpu_pool</span>()
+        <span class="self">self</span>.<span class="ident">cpu_pool</span>.<span class="ident">borrow_with</span>(<span class="op">||</span> <span class="ident">DEFAULT_CPUPOOL</span>.<span class="ident">lock</span>().<span class="ident">clone</span>())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -426,14 +471,16 @@
     <span class="ident">keep_alive</span>: <span class="ident">u64</span>,
     <span class="ident">ka_enabled</span>: <span class="ident">bool</span>,
     <span class="ident">bytes</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">SharedBytesPool</span><span class="op">&gt;</span>,
-    <span class="ident">messages</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">helpers</span>::<span class="ident">SharedMessagePool</span><span class="op">&gt;</span>,
+    <span class="ident">messages</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">RequestPool</span>,
     <span class="ident">channels</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    <span class="ident">node</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span>,
+    <span class="ident">node</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span>,
     <span class="ident">date</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> <span class="ident">WorkerSettings</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">h</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>, <span class="ident">keep_alive</span>: <span class="ident">KeepAlive</span>) <span class="op">-&gt;</span> <span class="ident">WorkerSettings</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">h</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>, <span class="ident">keep_alive</span>: <span class="ident">KeepAlive</span>, <span class="ident">settings</span>: <span class="ident">ServerSettings</span>,
+    ) <span class="op">-&gt;</span> <span class="ident">WorkerSettings</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">keep_alive</span>, <span class="ident">ka_enabled</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">keep_alive</span> {
             <span class="ident">KeepAlive</span>::<span class="ident">Timeout</span>(<span class="ident">val</span>) <span class="op">=&gt;</span> (<span class="ident">val</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="bool-val">true</span>),
             <span class="ident">KeepAlive</span>::<span class="ident">Os</span> <span class="op">|</span> <span class="ident">KeepAlive</span>::<span class="ident">Tcp</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> (<span class="number">0</span>, <span class="bool-val">true</span>),
@@ -441,14 +488,14 @@
         };
 
         <span class="ident">WorkerSettings</span> {
-            <span class="ident">keep_alive</span>,
-            <span class="ident">ka_enabled</span>,
             <span class="ident">h</span>: <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">h</span>),
             <span class="ident">bytes</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">SharedBytesPool</span>::<span class="ident">new</span>()),
-            <span class="ident">messages</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">helpers</span>::<span class="ident">SharedMessagePool</span>::<span class="ident">new</span>()),
+            <span class="ident">messages</span>: <span class="ident">RequestPool</span>::<span class="ident">pool</span>(<span class="ident">settings</span>),
             <span class="ident">channels</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="number">0</span>),
-            <span class="ident">node</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Node</span>::<span class="ident">head</span>()),
+            <span class="ident">node</span>: <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">Node</span>::<span class="ident">head</span>()),
             <span class="ident">date</span>: <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">Date</span>::<span class="ident">new</span>()),
+            <span class="ident">keep_alive</span>,
+            <span class="ident">ka_enabled</span>,
         }
     }
 
@@ -456,8 +503,8 @@
         <span class="self">self</span>.<span class="ident">channels</span>.<span class="ident">get</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Node</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">node</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&lt;</span>()<span class="op">&gt;&gt;</span> {
+        <span class="self">self</span>.<span class="ident">node</span>.<span class="ident">borrow_mut</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">handlers</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">RefMut</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;&gt;</span> {
@@ -472,15 +519,16 @@
         <span class="self">self</span>.<span class="ident">ka_enabled</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_shared_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">SharedBytes</span> {
-        <span class="ident">SharedBytes</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">get_bytes</span>(), <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bytes</span>))
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">BytesMut</span> {
+        <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">get_bytes</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_http_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">helpers</span>::<span class="ident">SharedHttpInnerMessage</span> {
-        <span class="ident">helpers</span>::<span class="ident">SharedHttpInnerMessage</span>::<span class="ident">new</span>(
-            <span class="self">self</span>.<span class="ident">messages</span>.<span class="ident">get</span>(),
-            <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">messages</span>),
-        )
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">release_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <span class="ident">BytesMut</span>) {
+        <span class="self">self</span>.<span class="ident">bytes</span>.<span class="ident">release_bytes</span>(<span class="ident">bytes</span>)
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_request</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Request</span> {
+        <span class="ident">RequestPool</span>::<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">messages</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_channel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
@@ -497,19 +545,22 @@
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// Unsafe: WorkerSetting is !Sync and !Send</span>
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">date</span>.<span class="ident">get</span>() }.<span class="ident">update</span>();
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BytesMut</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span>: [<span class="ident">u8</span>; <span class="number">39</span>] <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">uninitialized</span>() };
-        <span class="ident">buf</span>[..<span class="number">6</span>].<span class="ident">copy_from_slice</span>(<span class="string">b&quot;date: &quot;</span>);
-        <span class="ident">buf</span>[<span class="number">6</span>..<span class="number">35</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">date</span>.<span class="ident">get</span>() }.<span class="ident">bytes</span>));
-        <span class="ident">buf</span>[<span class="number">35</span>..].<span class="ident">copy_from_slice</span>(<span class="string">b&quot;\r\n\r\n&quot;</span>);
-        <span class="ident">dst</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>);
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_date_simple</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BytesMut</span>) {
-        <span class="ident">dst</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">date</span>.<span class="ident">get</span>() }.<span class="ident">bytes</span>));
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">BytesMut</span>, <span class="ident">full</span>: <span class="ident">bool</span>) {
+        <span class="comment">// Unsafe: WorkerSetting is !Sync and !Send</span>
+        <span class="kw">let</span> <span class="ident">date_bytes</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">date</span>.<span class="ident">get</span>()).<span class="ident">bytes</span> };
+        <span class="kw">if</span> <span class="ident">full</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span>: [<span class="ident">u8</span>; <span class="number">39</span>] <span class="op">=</span> [<span class="number">0</span>; <span class="number">39</span>];
+            <span class="ident">buf</span>[..<span class="number">6</span>].<span class="ident">copy_from_slice</span>(<span class="string">b&quot;date: &quot;</span>);
+            <span class="ident">buf</span>[<span class="number">6</span>..<span class="number">35</span>].<span class="ident">copy_from_slice</span>(<span class="ident">date_bytes</span>);
+            <span class="ident">buf</span>[<span class="number">35</span>..].<span class="ident">copy_from_slice</span>(<span class="string">b&quot;\r\n\r\n&quot;</span>);
+            <span class="ident">dst</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>);
+        } <span class="kw">else</span> {
+            <span class="ident">dst</span>.<span class="ident">extend_from_slice</span>(<span class="ident">date_bytes</span>);
+        }
     }
 }
 
@@ -542,6 +593,31 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SharedBytesPool</span>(<span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">BytesMut</span><span class="op">&gt;&gt;</span>);
+
+<span class="kw">impl</span> <span class="ident">SharedBytesPool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">SharedBytesPool</span> {
+        <span class="ident">SharedBytesPool</span>(<span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">VecDeque</span>::<span class="ident">with_capacity</span>(<span class="number">128</span>)))
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">BytesMut</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bytes</span>) <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrow_mut</span>().<span class="ident">pop_front</span>() {
+            <span class="ident">bytes</span>
+        } <span class="kw">else</span> {
+            <span class="ident">BytesMut</span>::<span class="ident">new</span>()
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">release_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">bytes</span>: <span class="ident">BytesMut</span>) {
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">borrow_mut</span>();
+        <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">128</span> {
+            <span class="ident">bytes</span>.<span class="ident">clear</span>();
+            <span class="ident">v</span>.<span class="ident">push_front</span>(<span class="ident">bytes</span>);
+        }
+    }
+}
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
@@ -553,11 +629,15 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_date</span>() {
-        <span class="kw">let</span> <span class="ident">settings</span> <span class="op">=</span> <span class="ident">WorkerSettings</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>::<span class="ident">new</span>(<span class="ident">Vec</span>::<span class="ident">new</span>(), <span class="ident">KeepAlive</span>::<span class="ident">Os</span>);
+        <span class="kw">let</span> <span class="ident">settings</span> <span class="op">=</span> <span class="ident">WorkerSettings</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>::<span class="ident">new</span>(
+            <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">KeepAlive</span>::<span class="ident">Os</span>,
+            <span class="ident">ServerSettings</span>::<span class="ident">default</span>(),
+        );
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf1</span> <span class="op">=</span> <span class="ident">BytesMut</span>::<span class="ident">with_capacity</span>(<span class="ident">DATE_VALUE_LENGTH</span> <span class="op">+</span> <span class="number">10</span>);
-        <span class="ident">settings</span>.<span class="ident">set_date</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf1</span>);
+        <span class="ident">settings</span>.<span class="ident">set_date</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf1</span>, <span class="bool-val">true</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf2</span> <span class="op">=</span> <span class="ident">BytesMut</span>::<span class="ident">with_capacity</span>(<span class="ident">DATE_VALUE_LENGTH</span> <span class="op">+</span> <span class="number">10</span>);
-        <span class="ident">settings</span>.<span class="ident">set_date</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf2</span>);
+        <span class="ident">settings</span>.<span class="ident">set_date</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf2</span>, <span class="bool-val">true</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">buf1</span>, <span class="ident">buf2</span>);
     }
 }

@@ -124,6 +124,11 @@
 <span id="124">124</span>
 <span id="125">125</span>
 <span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! A store persists document updates using paths as keys. Every store</span>
 <span class="doccomment">//! implementation must define an Actor capable of handling the</span>
@@ -150,6 +155,10 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Store</span>: <span class="ident">Actor</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">=</span><span class="ident">Context</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">Push</span><span class="op">&gt;</span> <span class="op">+</span>
     <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">Seq</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">Since</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">ContentAt</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">Content</span><span class="op">&gt;</span> {}
 
+<span class="doccomment">/// A stream of Updates which can be sent between threads. The store</span>
+<span class="doccomment">/// backend will need a stream implementing this trait in order to</span>
+<span class="doccomment">/// respond to the Since message.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StoreStream</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Update</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> {}
 
 <span class="doccomment">/// Adds a new Update to the document at &#39;path&#39; and increments the</span>
 <span class="doccomment">/// sequence number. If the document does not exist, the act of</span>
@@ -181,7 +190,8 @@
     <span class="kw">pub</span> <span class="ident">seq</span>: <span class="ident">usize</span>,
 }
 <span class="kw">impl</span> <span class="ident">Message</span> <span class="kw">for</span> <span class="ident">Since</span> {
-    <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Update</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;&gt;</span>, <span class="ident">StoreError</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">StoreStream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Update</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;&gt;</span>,
+                         <span class="ident">StoreError</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// Requests the current sequence number and content for the document</span>

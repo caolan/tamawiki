@@ -591,6 +591,34 @@
 <span id="591">591</span>
 <span id="592">592</span>
 <span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! An in-memory store, useful for testing.</span>
 
@@ -606,6 +634,7 @@
 
 
 <span class="kw">impl</span> <span class="ident">Store</span> <span class="kw">for</span> <span class="ident">MemoryStore</span> {}
+<span class="kw">impl</span> <span class="ident">StoreStream</span> <span class="kw">for</span> <span class="ident">MemoryStoreStream</span> {}
 
 <span class="doccomment">/// An asynchronous stream of Update objects</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MemoryStoreStream</span> {
@@ -739,11 +768,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Handler</span><span class="op">&lt;</span><span class="ident">Since</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MemoryStore</span> {
-    <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Update</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;&gt;</span>, <span class="ident">StoreError</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">StoreStream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Update</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;&gt;</span>, <span class="ident">StoreError</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">Since</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="prelude-ty">Result</span> {
         <span class="self">self</span>.<span class="ident">since</span>(<span class="ident">msg</span>.<span class="ident">path</span>.<span class="ident">as_path</span>(), <span class="ident">msg</span>.<span class="ident">seq</span>).<span class="ident">map</span>(
-            <span class="op">|</span><span class="ident">stream</span><span class="op">|</span> <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Update</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;&gt;</span> {
+            <span class="op">|</span><span class="ident">stream</span><span class="op">|</span> <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">StoreStream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Update</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;&gt;</span> {
                 <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">stream</span>)
             }
         )
@@ -778,410 +807,437 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">memory_store_push</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sys</span> <span class="op">=</span> <span class="ident">System</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>);
-        <span class="kw">let</span> <span class="ident">store</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
+        <span class="ident">System</span>::<span class="ident">run</span>(<span class="op">||</span> {
+            <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
 
-        <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">Update</span> {
-                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                        <span class="ident">pos</span>: <span class="number">0</span>,
-                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+            <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                            <span class="ident">pos</span>: <span class="number">0</span>,
+                            <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+                        })
+                    ]
+                },
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>.<span class="ident">unwrap</span>(), <span class="number">1</span>);
+            });
+
+            <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                            <span class="ident">pos</span>: <span class="number">0</span>,
+                            <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+                        })
+                    ]
+                },
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>.<span class="ident">unwrap</span>(), <span class="number">1</span>);
+            });
+
+            <span class="kw">let</span> <span class="ident">push3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                            <span class="ident">pos</span>: <span class="number">5</span>,
+                            <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;, world&quot;</span>)
+                        })
+                    ]
+                },
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>.<span class="ident">unwrap</span>(), <span class="number">2</span>);
+            });
+
+            <span class="ident">Arbiter</span>::<span class="ident">spawn</span>(
+                <span class="ident">push1</span>
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push2</span>)
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push3</span>)
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
                     })
-                ]
-            },
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>.<span class="ident">unwrap</span>(), <span class="number">1</span>);
-        });
-
-        <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">Update</span> {
-                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                        <span class="ident">pos</span>: <span class="number">0</span>,
-                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <span class="ident">System</span>::<span class="ident">current</span>().<span class="ident">stop</span>();
                     })
-                ]
-            },
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>.<span class="ident">unwrap</span>(), <span class="number">1</span>);
-        });
+            );
 
-        <span class="kw">let</span> <span class="ident">push3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">Update</span> {
-                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                        <span class="ident">pos</span>: <span class="number">5</span>,
-                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;, world&quot;</span>)
-                    })
-                ]
-            },
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>.<span class="ident">unwrap</span>(), <span class="number">2</span>);
         });
-
-        <span class="ident">sys</span>.<span class="ident">run_until_complete</span>(
-            <span class="ident">push1</span>
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push2</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push3</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
-                })
-        ).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">memory_store_since</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sys</span> <span class="op">=</span> <span class="ident">System</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>);
-        <span class="kw">let</span> <span class="ident">store</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
+        <span class="ident">System</span>::<span class="ident">run</span>(<span class="op">||</span> {
+            <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
 
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Update</span> {
-            <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                    <span class="ident">pos</span>: <span class="number">0</span>,
-                    <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
-                })
-            ]
-        };
+            <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Update</span> {
+                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                        <span class="ident">pos</span>: <span class="number">0</span>,
+                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+                    })
+                ]
+            };
 
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Update</span> {
-            <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                    <span class="ident">pos</span>: <span class="number">5</span>,
-                    <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;, world&quot;</span>)
-                })
-            ]
-        };
+            <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Update</span> {
+                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                        <span class="ident">pos</span>: <span class="number">5</span>,
+                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;, world&quot;</span>)
+                    })
+                ]
+            };
 
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Update</span> {
-            <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                    <span class="ident">pos</span>: <span class="number">12</span>,
-                    <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;!&quot;</span>)
-                })
-            ]
-        };
-        
-        <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">a</span>.<span class="ident">clone</span>(),
-        });
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Update</span> {
+                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                        <span class="ident">pos</span>: <span class="number">12</span>,
+                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;!&quot;</span>)
+                    })
+                ]
+            };
+            
+            <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">a</span>.<span class="ident">clone</span>(),
+            });
 
-        <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">b</span>.<span class="ident">clone</span>(),
-        });
+            <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">b</span>.<span class="ident">clone</span>(),
+            });
 
-        <span class="kw">let</span> <span class="ident">push3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">c</span>.<span class="ident">clone</span>(),
-        });
+            <span class="kw">let</span> <span class="ident">push3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">c</span>.<span class="ident">clone</span>(),
+            });
 
-        <span class="kw">let</span> <span class="ident">since0</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Since</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
-            <span class="ident">seq</span>: <span class="number">0</span>
-        }).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="ident">result</span>.<span class="ident">unwrap</span>().<span class="ident">collect</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
-            })
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">updates</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">updates</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">a</span>.<span class="ident">clone</span>(), <span class="ident">b</span>.<span class="ident">clone</span>(), <span class="ident">c</span>.<span class="ident">clone</span>()]);
-        });
-
-        <span class="kw">let</span> <span class="ident">since1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Since</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
-            <span class="ident">seq</span>: <span class="number">1</span>
-        }).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="ident">result</span>.<span class="ident">unwrap</span>().<span class="ident">collect</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
-            })
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">updates</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">updates</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">b</span>.<span class="ident">clone</span>(), <span class="ident">c</span>.<span class="ident">clone</span>()]);
-        });
-
-        <span class="kw">let</span> <span class="ident">since2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Since</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
-            <span class="ident">seq</span>: <span class="number">2</span>
-        }).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="ident">result</span>.<span class="ident">unwrap</span>().<span class="ident">collect</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
-            })
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">updates</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">updates</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">c</span>.<span class="ident">clone</span>()]);
-        });
-
-        <span class="kw">let</span> <span class="ident">since3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Since</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
-            <span class="ident">seq</span>: <span class="number">3</span>
-        }).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="ident">result</span>.<span class="ident">unwrap</span>().<span class="ident">collect</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
-            })
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">updates</span><span class="op">|</span> {
-            <span class="comment">// requesting the last sequence number is valid, but would</span>
-            <span class="comment">// return an empty result</span>
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">updates</span>, <span class="macro">vec</span><span class="macro">!</span>[]);
-        });
-
-        <span class="kw">let</span> <span class="ident">since4</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Since</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
-            <span class="ident">seq</span>: <span class="number">4</span>
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="comment">// requesting updates since a sequence number not in the store</span>
-            <span class="comment">// is invalid, however</span>
-            <span class="kw">match</span> <span class="ident">result</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">InvalidSequenceNumber</span>) <span class="op">=&gt;</span> (),
-                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">assert</span><span class="macro">!</span>(<span class="bool-val">false</span>),
-            }
-        });
-
-        <span class="ident">sys</span>.<span class="ident">run_until_complete</span>(
-            <span class="ident">push1</span>
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push2</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push3</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="ident">since0</span>
-                        .<span class="ident">join</span>(<span class="ident">since1</span>)
-                        .<span class="ident">join</span>(<span class="ident">since2</span>)
-                        .<span class="ident">join</span>(<span class="ident">since3</span>)
-                        .<span class="ident">join</span>(<span class="ident">since4</span>)
-                })
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">a0</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">b0</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">c0</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">since0</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Since</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
+                <span class="ident">seq</span>: <span class="number">0</span>
+            }).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="ident">result</span>.<span class="ident">unwrap</span>().<span class="ident">collect</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
                     <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
                 })
-        ).<span class="ident">unwrap</span>();
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">updates</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">updates</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">a0</span>, <span class="ident">b0</span>, <span class="ident">c0</span>]);
+            });
+
+            <span class="kw">let</span> <span class="ident">b1</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">c1</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">since1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Since</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
+                <span class="ident">seq</span>: <span class="number">1</span>
+            }).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="ident">result</span>.<span class="ident">unwrap</span>().<span class="ident">collect</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
+                })
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">updates</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">updates</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">b1</span>, <span class="ident">c1</span>]);
+            });
+            
+            <span class="kw">let</span> <span class="ident">c2</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">clone</span>();
+            <span class="kw">let</span> <span class="ident">since2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Since</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
+                <span class="ident">seq</span>: <span class="number">2</span>
+            }).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="ident">result</span>.<span class="ident">unwrap</span>().<span class="ident">collect</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
+                })
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">updates</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">updates</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">c2</span>]);
+            });
+
+            <span class="kw">let</span> <span class="ident">since3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Since</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
+                <span class="ident">seq</span>: <span class="number">3</span>
+            }).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="ident">result</span>.<span class="ident">unwrap</span>().<span class="ident">collect</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
+                })
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">updates</span><span class="op">|</span> {
+                <span class="comment">// requesting the last sequence number is valid, but would</span>
+                <span class="comment">// return an empty result</span>
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">updates</span>, <span class="macro">vec</span><span class="macro">!</span>[]);
+            });
+
+            <span class="kw">let</span> <span class="ident">since4</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Since</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
+                <span class="ident">seq</span>: <span class="number">4</span>
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="comment">// requesting updates since a sequence number not in the store</span>
+                <span class="comment">// is invalid, however</span>
+                <span class="kw">match</span> <span class="ident">result</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">InvalidSequenceNumber</span>) <span class="op">=&gt;</span> (),
+                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">assert</span><span class="macro">!</span>(<span class="bool-val">false</span>),
+                }
+            });
+
+            <span class="ident">Arbiter</span>::<span class="ident">spawn</span>(
+                <span class="ident">push1</span>
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push2</span>)
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push3</span>)
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <span class="ident">since0</span>
+                            .<span class="ident">join</span>(<span class="ident">since1</span>)
+                            .<span class="ident">join</span>(<span class="ident">since2</span>)
+                            .<span class="ident">join</span>(<span class="ident">since3</span>)
+                            .<span class="ident">join</span>(<span class="ident">since4</span>)
+                    })
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
+                    })
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <span class="ident">System</span>::<span class="ident">current</span>().<span class="ident">stop</span>();
+                    })
+            );
+        });
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">memory_store_seq</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sys</span> <span class="op">=</span> <span class="ident">System</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>);
-        <span class="kw">let</span> <span class="ident">store</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
+        <span class="ident">System</span>::<span class="ident">run</span>(<span class="op">||</span> {
+            <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
 
-        <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">Update</span> {
-                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                        <span class="ident">pos</span>: <span class="number">0</span>,
-                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+            <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                            <span class="ident">pos</span>: <span class="number">0</span>,
+                            <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+                        })
+                    ]
+                },
+            });
+
+            <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                            <span class="ident">pos</span>: <span class="number">0</span>,
+                            <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+                        })
+                    ]
+                },
+            });
+
+            <span class="kw">let</span> <span class="ident">push3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                            <span class="ident">pos</span>: <span class="number">5</span>,
+                            <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;, world&quot;</span>)
+                        })
+                    ]
+                },
+            });
+
+            <span class="kw">let</span> <span class="ident">seq1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Seq</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>)
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(<span class="number">1</span>));
+            });
+
+            <span class="kw">let</span> <span class="ident">seq2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Seq</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>)
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(<span class="number">2</span>));
+            });
+
+            <span class="kw">let</span> <span class="ident">seq3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Seq</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/not_found&quot;</span>)
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="comment">// requesting a non-existing path is an error</span>
+                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">NotFound</span>));
+            });
+            
+            <span class="ident">Arbiter</span>::<span class="ident">spawn</span>(
+                <span class="ident">push1</span>
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push2</span>)
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push3</span>)
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <span class="ident">seq1</span>.<span class="ident">join</span>(<span class="ident">seq2</span>)
+                            .<span class="ident">join</span>(<span class="ident">seq3</span>)
                     })
-                ]
-            },
-        });
-
-        <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">Update</span> {
-                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                        <span class="ident">pos</span>: <span class="number">0</span>,
-                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
                     })
-                ]
-            },
-        });
-
-        <span class="kw">let</span> <span class="ident">push3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">Update</span> {
-                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                        <span class="ident">pos</span>: <span class="number">5</span>,
-                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;, world&quot;</span>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <span class="ident">System</span>::<span class="ident">current</span>().<span class="ident">stop</span>();
                     })
-                ]
-            },
+            );
         });
-
-        <span class="kw">let</span> <span class="ident">seq1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Seq</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>)
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(<span class="number">1</span>));
-        });
-
-        <span class="kw">let</span> <span class="ident">seq2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Seq</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>)
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(<span class="number">2</span>));
-        });
-
-        <span class="kw">let</span> <span class="ident">seq3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Seq</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/not_found&quot;</span>)
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="comment">// requesting a non-existing path is an error</span>
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">NotFound</span>));
-        });
-        
-        <span class="ident">sys</span>.<span class="ident">run_until_complete</span>(
-            <span class="ident">push1</span>
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push2</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push3</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="ident">seq1</span>.<span class="ident">join</span>(<span class="ident">seq2</span>)
-                        .<span class="ident">join</span>(<span class="ident">seq3</span>)
-                })
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
-                })
-        ).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">memory_store_content</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sys</span> <span class="op">=</span> <span class="ident">System</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>);
-        <span class="kw">let</span> <span class="ident">store</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
+        <span class="ident">System</span>::<span class="ident">run</span>(<span class="op">||</span> {
+            <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
 
-        <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">Update</span> {
-                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                        <span class="ident">pos</span>: <span class="number">0</span>,
-                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+            <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                            <span class="ident">pos</span>: <span class="number">0</span>,
+                            <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+                        })
+                    ]
+                },
+            });
+
+            <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                            <span class="ident">pos</span>: <span class="number">5</span>,
+                            <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;, world&quot;</span>)
+                        })
+                    ]
+                },
+            });
+
+            <span class="kw">let</span> <span class="ident">content1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Content</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>)
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(
+                    <span class="ident">result</span>,
+                    <span class="prelude-val">Ok</span>((<span class="number">2</span>, <span class="ident">Document</span>::<span class="ident">from</span>(<span class="string">&quot;Hello, world&quot;</span>)))
+                );
+            });
+
+            <span class="kw">let</span> <span class="ident">content2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Content</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/missing&quot;</span>)
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(
+                    <span class="ident">result</span>,
+                    <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">NotFound</span>)
+                );
+            });
+
+            <span class="ident">Arbiter</span>::<span class="ident">spawn</span>(
+                <span class="ident">push1</span>
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push2</span>)
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">content1</span>.<span class="ident">join</span>(<span class="ident">content2</span>))
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
                     })
-                ]
-            },
-        });
-
-        <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">Update</span> {
-                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                        <span class="ident">pos</span>: <span class="number">5</span>,
-                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;, world&quot;</span>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <span class="ident">System</span>::<span class="ident">current</span>().<span class="ident">stop</span>();
                     })
-                ]
-            },
-        });
-
-        <span class="kw">let</span> <span class="ident">content1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Content</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>)
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(
-                <span class="ident">result</span>,
-                <span class="prelude-val">Ok</span>((<span class="number">2</span>, <span class="ident">Document</span>::<span class="ident">from</span>(<span class="string">&quot;Hello, world&quot;</span>)))
             );
         });
-
-        <span class="kw">let</span> <span class="ident">content2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Content</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/missing&quot;</span>)
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(
-                <span class="ident">result</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">NotFound</span>)
-            );
-        });
-
-        <span class="ident">sys</span>.<span class="ident">run_until_complete</span>(
-            <span class="ident">push1</span>
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push2</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">content1</span>.<span class="ident">join</span>(<span class="ident">content2</span>))
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
-                })
-        ).<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">memory_store_content_at</span>() {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sys</span> <span class="op">=</span> <span class="ident">System</span>::<span class="ident">new</span>(<span class="string">&quot;test&quot;</span>);
-        <span class="kw">let</span> <span class="ident">store</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Unsync</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
+        <span class="ident">System</span>::<span class="ident">run</span>(<span class="op">||</span> {
+            <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
 
-        <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">Update</span> {
-                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                        <span class="ident">pos</span>: <span class="number">0</span>,
-                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+            <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                            <span class="ident">pos</span>: <span class="number">0</span>,
+                            <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>)
+                        })
+                    ]
+                },
+            });
+
+            <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                        <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
+                            <span class="ident">pos</span>: <span class="number">5</span>,
+                            <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;, world&quot;</span>)
+                        })
+                    ]
+                },
+            });
+
+            <span class="kw">let</span> <span class="ident">content0</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">ContentAt</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">seq</span>: <span class="number">0</span>
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(
+                    <span class="ident">result</span>,
+                    <span class="prelude-val">Ok</span>(<span class="ident">Document</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>))
+                );
+            });
+
+            <span class="kw">let</span> <span class="ident">content1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">ContentAt</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">seq</span>: <span class="number">1</span>
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(
+                    <span class="ident">result</span>,
+                    <span class="prelude-val">Ok</span>(<span class="ident">Document</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>))
+                );
+            });
+
+            <span class="kw">let</span> <span class="ident">content2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">ContentAt</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">seq</span>: <span class="number">2</span>
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="macro">assert_eq</span><span class="macro">!</span>(
+                    <span class="ident">result</span>,
+                    <span class="prelude-val">Ok</span>(<span class="ident">Document</span>::<span class="ident">from</span>(<span class="string">&quot;Hello, world&quot;</span>))
+                );
+            });
+            
+            <span class="kw">let</span> <span class="ident">content3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">ContentAt</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
+                <span class="ident">seq</span>: <span class="number">3</span>
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="comment">// requesting a sequence number higher than the number of</span>
+                <span class="comment">// updates return error</span>
+                <span class="macro">assert_eq</span><span class="macro">!</span>(
+                    <span class="ident">result</span>,
+                    <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">InvalidSequenceNumber</span>)
+                );
+            });
+
+            <span class="kw">let</span> <span class="ident">content4</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">ContentAt</span> {
+                <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/missing&quot;</span>),
+                <span class="ident">seq</span>: <span class="number">0</span>
+            }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
+                <span class="comment">// requesting a missing document is an error</span>
+                <span class="macro">assert_eq</span><span class="macro">!</span>(
+                    <span class="ident">result</span>,
+                    <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">NotFound</span>)
+                );
+            });
+
+            <span class="ident">Arbiter</span>::<span class="ident">spawn</span>(
+                <span class="ident">push1</span>
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push2</span>)
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <span class="ident">content0</span>
+                            .<span class="ident">join</span>(<span class="ident">content1</span>)
+                            .<span class="ident">join</span>(<span class="ident">content2</span>)
+                            .<span class="ident">join</span>(<span class="ident">content3</span>)
+                            .<span class="ident">join</span>(<span class="ident">content4</span>)
                     })
-                ]
-            },
-        });
-
-        <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">update</span>: <span class="ident">Update</span> {
-                <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
-                        <span class="ident">pos</span>: <span class="number">5</span>,
-                        <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;, world&quot;</span>)
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
                     })
-                ]
-            },
-        });
-
-        <span class="kw">let</span> <span class="ident">content0</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">ContentAt</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">seq</span>: <span class="number">0</span>
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(
-                <span class="ident">result</span>,
-                <span class="prelude-val">Ok</span>(<span class="ident">Document</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>))
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                        <span class="ident">System</span>::<span class="ident">current</span>().<span class="ident">stop</span>();
+                    })
             );
         });
-
-        <span class="kw">let</span> <span class="ident">content1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">ContentAt</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">seq</span>: <span class="number">1</span>
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(
-                <span class="ident">result</span>,
-                <span class="prelude-val">Ok</span>(<span class="ident">Document</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>))
-            );
-        });
-
-        <span class="kw">let</span> <span class="ident">content2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">ContentAt</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">seq</span>: <span class="number">2</span>
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(
-                <span class="ident">result</span>,
-                <span class="prelude-val">Ok</span>(<span class="ident">Document</span>::<span class="ident">from</span>(<span class="string">&quot;Hello, world&quot;</span>))
-            );
-        });
-        
-        <span class="kw">let</span> <span class="ident">content3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">ContentAt</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
-            <span class="ident">seq</span>: <span class="number">3</span>
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="comment">// requesting a sequence number higher than the number of</span>
-            <span class="comment">// updates return error</span>
-            <span class="macro">assert_eq</span><span class="macro">!</span>(
-                <span class="ident">result</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">InvalidSequenceNumber</span>)
-            );
-        });
-
-        <span class="kw">let</span> <span class="ident">content4</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">ContentAt</span> {
-            <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/missing&quot;</span>),
-            <span class="ident">seq</span>: <span class="number">0</span>
-        }).<span class="ident">map</span>(<span class="op">|</span><span class="ident">result</span><span class="op">|</span> {
-            <span class="comment">// requesting a missing document is an error</span>
-            <span class="macro">assert_eq</span><span class="macro">!</span>(
-                <span class="ident">result</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">NotFound</span>)
-            );
-        });
-
-        <span class="ident">sys</span>.<span class="ident">run_until_complete</span>(
-            <span class="ident">push1</span>
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">push2</span>)
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="ident">content0</span>
-                        .<span class="ident">join</span>(<span class="ident">content1</span>)
-                        .<span class="ident">join</span>(<span class="ident">content2</span>)
-                        .<span class="ident">join</span>(<span class="ident">content3</span>)
-                        .<span class="ident">join</span>(<span class="ident">content4</span>)
-                })
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>);
-                })
-        ).<span class="ident">unwrap</span>();
     }
 
 }

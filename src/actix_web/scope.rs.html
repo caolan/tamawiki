@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.6.15/src/scope.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scope.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/actix-web-0.7.2/src/scope.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scope.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1141,32 +1141,7 @@
 <span id="1141">1141</span>
 <span id="1142">1142</span>
 <span id="1143">1143</span>
-<span id="1144">1144</span>
-<span id="1145">1145</span>
-<span id="1146">1146</span>
-<span id="1147">1147</span>
-<span id="1148">1148</span>
-<span id="1149">1149</span>
-<span id="1150">1150</span>
-<span id="1151">1151</span>
-<span id="1152">1152</span>
-<span id="1153">1153</span>
-<span id="1154">1154</span>
-<span id="1155">1155</span>
-<span id="1156">1156</span>
-<span id="1157">1157</span>
-<span id="1158">1158</span>
-<span id="1159">1159</span>
-<span id="1160">1160</span>
-<span id="1161">1161</span>
-<span id="1162">1162</span>
-<span id="1163">1163</span>
-<span id="1164">1164</span>
-<span id="1165">1165</span>
-<span id="1166">1166</span>
-<span id="1167">1167</span>
 </pre><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">UnsafeCell</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
@@ -1183,12 +1158,9 @@
     <span class="ident">Started</span> <span class="kw">as</span> <span class="ident">MiddlewareStarted</span>,
 };
 <span class="kw">use</span> <span class="ident">pred</span>::<span class="ident">Predicate</span>;
-<span class="kw">use</span> <span class="ident">resource</span>::<span class="ident">ResourceHandler</span>;
-<span class="kw">use</span> <span class="ident">router</span>::<span class="ident">Resource</span>;
-
-<span class="kw">type</span> <span class="ident">Route</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">RouteHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>;
-<span class="kw">type</span> <span class="ident">ScopeResources</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Resource</span>, <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>)<span class="op">&gt;&gt;</span>;
-<span class="kw">type</span> <span class="ident">NestedInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="ident">Resource</span>, <span class="ident">Route</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Predicate</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>);
+<span class="kw">use</span> <span class="ident">resource</span>::{<span class="ident">DefaultResource</span>, <span class="ident">Resource</span>};
+<span class="kw">use</span> <span class="ident">router</span>::{<span class="ident">ResourceDef</span>, <span class="ident">Router</span>};
+<span class="kw">use</span> <span class="ident">server</span>::<span class="ident">Request</span>;
 
 <span class="doccomment">/// Resources scope</span>
 <span class="doccomment">///</span>
@@ -1220,25 +1192,33 @@
 <span class="doccomment">///  * /{project_id}/path2 - `GET` requests</span>
 <span class="doccomment">///  * /{project_id}/path3 - `HEAD` requests</span>
 <span class="doccomment">///</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="ident">rdef</span>: <span class="ident">ResourceDef</span>,
+    <span class="ident">router</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Router</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>,
     <span class="ident">filters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Predicate</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">nested</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NestedInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>,
     <span class="ident">middlewares</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">default</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">resources</span>: <span class="ident">ScopeResources</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cargo-clippy&quot;</span>, <span class="ident">allow</span>(<span class="ident">new_without_default_derive</span>))]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Create a new scope</span>
+    <span class="comment">// TODO: Why is this not exactly the default impl?</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="ident">Scope</span> {
+            <span class="ident">rdef</span>: <span class="ident">ResourceDef</span>::<span class="ident">prefix</span>(<span class="ident">path</span>),
+            <span class="ident">router</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">Router</span>::<span class="ident">new</span>()),
             <span class="ident">filters</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-            <span class="ident">nested</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-            <span class="ident">resources</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">Vec</span>::<span class="ident">new</span>()),
             <span class="ident">middlewares</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">Vec</span>::<span class="ident">new</span>()),
-            <span class="ident">default</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">ResourceHandler</span>::<span class="ident">default_not_found</span>())),
         }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">rdef</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">ResourceDef</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">rdef</span>
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">router</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Router</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">router</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1280,7 +1260,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// struct AppState;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// fn index(req: HttpRequest&lt;AppState&gt;) -&gt; &amp;&#39;static str {</span>
+    <span class="doccomment">/// fn index(req: &amp;HttpRequest&lt;AppState&gt;) -&gt; &amp;&#39;static str {</span>
     <span class="doccomment">///     &quot;Welcome!&quot;</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">///</span>
@@ -1297,11 +1277,10 @@
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">scope</span> <span class="op">=</span> <span class="ident">Scope</span> {
+            <span class="ident">rdef</span>: <span class="ident">ResourceDef</span>::<span class="ident">prefix</span>(<span class="ident">path</span>),
             <span class="ident">filters</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-            <span class="ident">nested</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-            <span class="ident">resources</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">Vec</span>::<span class="ident">new</span>()),
+            <span class="ident">router</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">Router</span>::<span class="ident">new</span>()),
             <span class="ident">middlewares</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">Vec</span>::<span class="ident">new</span>()),
-            <span class="ident">default</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">ResourceHandler</span>::<span class="ident">default_not_found</span>())),
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scope</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">scope</span>);
 
@@ -1310,9 +1289,13 @@
             <span class="ident">state</span>: <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>),
             <span class="ident">filters</span>: <span class="ident">scope</span>.<span class="ident">take_filters</span>(),
         })];
-        <span class="kw">let</span> <span class="ident">handler</span> <span class="op">=</span> <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Wrapper</span> { <span class="ident">scope</span>, <span class="ident">state</span> }));
-        <span class="self">self</span>.<span class="ident">nested</span>
-            .<span class="ident">push</span>((<span class="ident">Resource</span>::<span class="ident">prefix</span>(<span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">path</span>), <span class="ident">handler</span>, <span class="ident">filters</span>));
+        <span class="kw">let</span> <span class="ident">handler</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Wrapper</span> { <span class="ident">scope</span>, <span class="ident">state</span> });
+
+        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">router</span>).<span class="ident">unwrap</span>().<span class="ident">register_handler</span>(
+            <span class="ident">path</span>,
+            <span class="ident">handler</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">filters</span>),
+        );
 
         <span class="self">self</span>
     }
@@ -1325,7 +1308,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// struct AppState;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// fn index(req: HttpRequest&lt;AppState&gt;) -&gt; &amp;&#39;static str {</span>
+    <span class="doccomment">/// fn index(req: &amp;HttpRequest&lt;AppState&gt;) -&gt; &amp;&#39;static str {</span>
     <span class="doccomment">///     &quot;Welcome!&quot;</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">///</span>
@@ -1340,20 +1323,14 @@
         <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">scope</span> <span class="op">=</span> <span class="ident">Scope</span> {
+            <span class="ident">rdef</span>: <span class="ident">ResourceDef</span>::<span class="ident">prefix</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>),
             <span class="ident">filters</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-            <span class="ident">nested</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
-            <span class="ident">resources</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">Vec</span>::<span class="ident">new</span>()),
+            <span class="ident">router</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">Router</span>::<span class="ident">new</span>()),
             <span class="ident">middlewares</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">Vec</span>::<span class="ident">new</span>()),
-            <span class="ident">default</span>: <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">ResourceHandler</span>::<span class="ident">default_not_found</span>())),
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">scope</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">scope</span>);
-
-        <span class="kw">let</span> <span class="ident">filters</span> <span class="op">=</span> <span class="ident">scope</span>.<span class="ident">take_filters</span>();
-        <span class="self">self</span>.<span class="ident">nested</span>.<span class="ident">push</span>((
-            <span class="ident">Resource</span>::<span class="ident">prefix</span>(<span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">path</span>),
-            <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">scope</span>)),
-            <span class="ident">filters</span>,
-        ));
+        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">router</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">register_scope</span>(<span class="ident">f</span>(<span class="ident">scope</span>));
 
         <span class="self">self</span>
     }
@@ -1391,28 +1368,9 @@
         <span class="ident">R</span>: <span class="ident">Responder</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
         <span class="ident">T</span>: <span class="ident">FromRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
-        <span class="comment">// get resource handler</span>
-        <span class="kw">let</span> <span class="ident">slf</span>: <span class="kw-2">&amp;</span><span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="self">self</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) };
-        <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">pattern</span>, <span class="kw-2">ref</span> <span class="ident">resource</span>) <span class="kw">in</span> <span class="ident">slf</span>.<span class="ident">resources</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">pattern</span>() <span class="op">==</span> <span class="ident">path</span> {
-                <span class="kw">let</span> <span class="ident">resource</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">resource</span>.<span class="ident">get</span>() };
-                <span class="ident">resource</span>.<span class="ident">method</span>(<span class="ident">method</span>).<span class="ident">with</span>(<span class="ident">f</span>);
-                <span class="kw">return</span> <span class="self">self</span>;
-            }
-        }
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handler</span> <span class="op">=</span> <span class="ident">ResourceHandler</span>::<span class="ident">default</span>();
-        <span class="ident">handler</span>.<span class="ident">method</span>(<span class="ident">method</span>).<span class="ident">with</span>(<span class="ident">f</span>);
-        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">Resource</span>::<span class="ident">with_prefix</span>(
-            <span class="ident">handler</span>.<span class="ident">get_name</span>(),
-            <span class="ident">path</span>,
-            <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">is_empty</span>() { <span class="string">&quot;&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;/&quot;</span> },
-            <span class="bool-val">false</span>,
-        );
-        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">resources</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;Can not use after configuration&quot;</span>)
-            .<span class="ident">push</span>((<span class="ident">pattern</span>, <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">handler</span>))));
-
+        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">router</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">register_route</span>(<span class="ident">path</span>, <span class="ident">method</span>, <span class="ident">f</span>);
         <span class="self">self</span>
     }
 
@@ -1441,32 +1399,36 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resource</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Resource</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
-        <span class="comment">// add resource handler</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handler</span> <span class="op">=</span> <span class="ident">ResourceHandler</span>::<span class="ident">default</span>();
-        <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">handler</span>);
-
-        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">Resource</span>::<span class="ident">with_prefix</span>(
-            <span class="ident">handler</span>.<span class="ident">get_name</span>(),
+        <span class="comment">// add resource</span>
+        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">ResourceDef</span>::<span class="ident">with_prefix</span>(
             <span class="ident">path</span>,
             <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">is_empty</span>() { <span class="string">&quot;&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;/&quot;</span> },
             <span class="bool-val">false</span>,
         );
-        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">resources</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;Can not use after configuration&quot;</span>)
-            .<span class="ident">push</span>((<span class="ident">pattern</span>, <span class="ident">Rc</span>::<span class="ident">new</span>(<span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">handler</span>))));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resource</span> <span class="op">=</span> <span class="ident">Resource</span>::<span class="ident">new</span>(<span class="ident">pattern</span>);
+        <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">resource</span>);
 
+        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">router</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">register_resource</span>(<span class="ident">resource</span>);
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Default resource to be used if no matching route could be found.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_resource</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_resource</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Resource</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">R</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
-        <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">default</span>.<span class="ident">as_ref</span>().<span class="ident">get</span>() };
-        <span class="ident">f</span>(<span class="ident">default</span>);
+        <span class="comment">// create and configure default resource</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resource</span> <span class="op">=</span> <span class="ident">Resource</span>::<span class="ident">new</span>(<span class="ident">ResourceDef</span>::<span class="ident">new</span>(<span class="string">&quot;&quot;</span>));
+        <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">resource</span>);
+
+        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">router</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;Multiple copies of scope router&quot;</span>)
+            .<span class="ident">register_default_resource</span>(<span class="ident">resource</span>.<span class="ident">into</span>());
+
         <span class="self">self</span>
     }
 
@@ -1486,67 +1448,37 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">RouteHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Scope</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>.<span class="ident">match_info</span>()[<span class="string">&quot;tail&quot;</span>] <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) };
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">match_info</span>().<span class="ident">tail</span> <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="comment">// recognize resources</span>
-        <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">pattern</span>, <span class="kw-2">ref</span> <span class="ident">resource</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">resources</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">match_with_params</span>(<span class="ident">path</span>, <span class="ident">req</span>.<span class="ident">match_info_mut</span>()) {
-                <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">default</span>.<span class="ident">as_ref</span>().<span class="ident">get</span>() };
-
-                <span class="ident">req</span>.<span class="ident">match_info_mut</span>().<span class="ident">remove</span>(<span class="string">&quot;tail&quot;</span>);
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">middlewares</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">let</span> <span class="ident">resource</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">resource</span>.<span class="ident">get</span>() };
-                    <span class="kw">return</span> <span class="ident">resource</span>.<span class="ident">handle</span>(<span class="ident">req</span>, <span class="prelude-val">Some</span>(<span class="ident">default</span>));
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="ident">AsyncResult</span>::<span class="ident">async</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Compose</span>::<span class="ident">new</span>(
-                        <span class="ident">req</span>,
-                        <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">middlewares</span>),
-                        <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">resource</span>),
-                        <span class="prelude-val">Some</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">default</span>)),
-                    )));
-                }
-            }
-        }
-
-        <span class="comment">// nested scopes</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">prefix_len</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-        <span class="kw">let</span> <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>.<span class="ident">path</span>()[<span class="ident">len</span>..] <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) };
-
-        <span class="lifetime">&#39;outer</span>: <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">prefix</span>, <span class="kw-2">ref</span> <span class="ident">handler</span>, <span class="kw-2">ref</span> <span class="ident">filters</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nested</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prefix_len</span>) <span class="op">=</span>
-                <span class="ident">prefix</span>.<span class="ident">match_prefix_with_params</span>(<span class="ident">path</span>, <span class="ident">req</span>.<span class="ident">match_info_mut</span>())
-            {
-                <span class="kw">for</span> <span class="ident">filter</span> <span class="kw">in</span> <span class="ident">filters</span> {
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">filter</span>.<span class="ident">check</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>) {
-                        <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
-                    }
-                }
-                <span class="kw">let</span> <span class="ident">prefix_len</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">prefix_len</span>;
-                <span class="kw">let</span> <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span>
-                    <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>.<span class="ident">path</span>()[<span class="ident">prefix_len</span>..] <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>) };
-
-                <span class="ident">req</span>.<span class="ident">set_prefix_len</span>(<span class="ident">prefix_len</span> <span class="kw">as</span> <span class="ident">u16</span>);
-                <span class="ident">req</span>.<span class="ident">match_info_mut</span>().<span class="ident">set</span>(<span class="string">&quot;tail&quot;</span>, <span class="ident">path</span>);
-
-                <span class="kw">let</span> <span class="ident">hnd</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">RouteHandler</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span>
-                    <span class="kw">unsafe</span> { (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">handler</span>.<span class="ident">get</span>())).<span class="ident">as_mut</span>() };
-                <span class="kw">return</span> <span class="ident">hnd</span>.<span class="ident">handle</span>(<span class="ident">req</span>);
-            }
-        }
-
-        <span class="comment">// default handler</span>
-        <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">default</span>.<span class="ident">as_ref</span>().<span class="ident">get</span>() };
+        <span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">router</span>.<span class="ident">recognize</span>(<span class="ident">req</span>, <span class="ident">req</span>.<span class="ident">state</span>(), <span class="ident">tail</span>);
+        <span class="kw">let</span> <span class="ident">req2</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">with_route_info</span>(<span class="ident">info</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">middlewares</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">default</span>.<span class="ident">handle</span>(<span class="ident">req</span>, <span class="prelude-val">None</span>)
+            <span class="self">self</span>.<span class="ident">router</span>.<span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="ident">req2</span>)
         } <span class="kw">else</span> {
             <span class="ident">AsyncResult</span>::<span class="ident">async</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Compose</span>::<span class="ident">new</span>(
-                <span class="ident">req</span>,
+                <span class="ident">req2</span>,
+                <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">router</span>),
                 <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">middlewares</span>),
-                <span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">default</span>),
-                <span class="prelude-val">None</span>,
             )))
         }
+    }
+
+    <span class="kw">fn</span> <span class="ident">has_default_resource</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">router</span>.<span class="ident">has_default_resource</span>()
+    }
+
+    <span class="kw">fn</span> <span class="ident">default_resource</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">default</span>: <span class="ident">DefaultResource</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) {
+        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">router</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;Can not use after configuration&quot;</span>)
+            .<span class="ident">register_default_resource</span>(<span class="ident">default</span>);
+    }
+
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="ident">Rc</span>::<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">router</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;Can not use after configuration&quot;</span>)
+            .<span class="ident">finish</span>();
     }
 }
 
@@ -1556,8 +1488,9 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span>, <span class="ident">S2</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">RouteHandler</span><span class="op">&lt;</span><span class="ident">S2</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Wrapper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S2</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">scope</span>.<span class="ident">handle</span>(<span class="ident">req</span>.<span class="ident">change_state</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>)))
+    <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S2</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">AsyncResult</span><span class="op">&lt;</span><span class="ident">HttpResponse</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">with_state</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>));
+        <span class="self">self</span>.<span class="ident">scope</span>.<span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>)
     }
 }
 
@@ -1567,10 +1500,9 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span>, <span class="ident">S2</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Predicate</span><span class="op">&lt;</span><span class="ident">S2</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FiltersWrapper</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">check</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S2</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">change_state</span>(<span class="ident">Rc</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>));
+    <span class="kw">fn</span> <span class="ident">check</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">Request</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">S2</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">for</span> <span class="ident">filter</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">filters</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">filter</span>.<span class="ident">check</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">req</span>) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">filter</span>.<span class="ident">check</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>) {
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
         }
@@ -1587,9 +1519,8 @@
 <span class="kw">struct</span> <span class="ident">ComposeInfo</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="ident">count</span>: <span class="ident">usize</span>,
     <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
+    <span class="ident">router</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Router</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>,
     <span class="ident">mws</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">default</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">resource</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">enum</span> <span class="ident">ComposeState</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
@@ -1614,16 +1545,13 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Compose</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(
-        <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">mws</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
-        <span class="ident">resource</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">default</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">ResourceHandler</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
+        <span class="ident">req</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>, <span class="ident">router</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Router</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span>, <span class="ident">mws</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Middleware</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span><span class="op">&gt;&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">ComposeInfo</span> {
-            <span class="ident">count</span>: <span class="number">0</span>,
-            <span class="ident">req</span>,
             <span class="ident">mws</span>,
-            <span class="ident">resource</span>,
-            <span class="ident">default</span>,
+            <span class="ident">req</span>,
+            <span class="ident">router</span>,
+            <span class="ident">count</span>: <span class="number">0</span>,
         };
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">StartMiddlewares</span>::<span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>);
 
@@ -1661,29 +1589,27 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">StartMiddlewares</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ComposeInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">ComposeState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>.<span class="ident">len</span>();
+
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">==</span> <span class="ident">len</span> {
-                <span class="kw">let</span> <span class="ident">resource</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">info</span>.<span class="ident">resource</span>.<span class="ident">get</span>() };
-                <span class="kw">let</span> <span class="ident">reply</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">default</span>) <span class="op">=</span> <span class="ident">info</span>.<span class="ident">default</span> {
-                    <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">default</span>.<span class="ident">as_ref</span>().<span class="ident">get</span>() };
-                    <span class="ident">resource</span>.<span class="ident">handle</span>(<span class="ident">info</span>.<span class="ident">req</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="ident">d</span>))
-                } <span class="kw">else</span> {
-                    <span class="ident">resource</span>.<span class="ident">handle</span>(<span class="ident">info</span>.<span class="ident">req</span>.<span class="ident">clone</span>(), <span class="prelude-val">None</span>)
-                };
+                <span class="kw">let</span> <span class="ident">reply</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">router</span>.<span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>);
                 <span class="kw">return</span> <span class="ident">WaitingResponse</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">reply</span>);
             } <span class="kw">else</span> {
-                <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span>].<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>.<span class="ident">req</span>) {
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span>].<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>);
+                <span class="kw">match</span> <span class="ident">result</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">MiddlewareStarted</span>::<span class="ident">Done</span>) <span class="op">=&gt;</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>,
                     <span class="prelude-val">Ok</span>(<span class="ident">MiddlewareStarted</span>::<span class="ident">Response</span>(<span class="ident">resp</span>)) <span class="op">=&gt;</span> {
-                        <span class="kw">return</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">resp</span>)
+                        <span class="kw">return</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">resp</span>);
                     }
                     <span class="prelude-val">Ok</span>(<span class="ident">MiddlewareStarted</span>::<span class="ident">Future</span>(<span class="ident">fut</span>)) <span class="op">=&gt;</span> {
                         <span class="kw">return</span> <span class="ident">ComposeState</span>::<span class="ident">Starting</span>(<span class="ident">StartMiddlewares</span> {
                             <span class="ident">fut</span>: <span class="prelude-val">Some</span>(<span class="ident">fut</span>),
                             <span class="ident">_s</span>: <span class="ident">PhantomData</span>,
-                        })
+                        });
                     }
-                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>()),
+                    <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                        <span class="kw">return</span> <span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>());
+                    }
                 }
             }
         }
@@ -1691,26 +1617,25 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ComposeInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ComposeState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span> {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>.<span class="ident">len</span>();
+
         <span class="lifetime">&#39;outer</span>: <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">poll</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
+                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> {
+                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+                }
                 <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">resp</span>)) <span class="op">=&gt;</span> {
                     <span class="ident">info</span>.<span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>;
+
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">resp</span>) <span class="op">=</span> <span class="ident">resp</span> {
                         <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">resp</span>));
                     }
                     <span class="kw">loop</span> {
                         <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">==</span> <span class="ident">len</span> {
-                            <span class="kw">let</span> <span class="ident">resource</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">info</span>.<span class="ident">resource</span>.<span class="ident">get</span>() };
-                            <span class="kw">let</span> <span class="ident">reply</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">default</span>) <span class="op">=</span> <span class="ident">info</span>.<span class="ident">default</span> {
-                                <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">default</span>.<span class="ident">as_ref</span>().<span class="ident">get</span>() };
-                                <span class="ident">resource</span>.<span class="ident">handle</span>(<span class="ident">info</span>.<span class="ident">req</span>.<span class="ident">clone</span>(), <span class="prelude-val">Some</span>(<span class="ident">d</span>))
-                            } <span class="kw">else</span> {
-                                <span class="ident">resource</span>.<span class="ident">handle</span>(<span class="ident">info</span>.<span class="ident">req</span>.<span class="ident">clone</span>(), <span class="prelude-val">None</span>)
-                            };
+                            <span class="kw">let</span> <span class="ident">reply</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">router</span>.<span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>);
                             <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">WaitingResponse</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">reply</span>));
                         } <span class="kw">else</span> {
-                            <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span>].<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>.<span class="ident">req</span>) {
+                            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span>].<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>);
+                            <span class="kw">match</span> <span class="ident">result</span> {
                                 <span class="prelude-val">Ok</span>(<span class="ident">MiddlewareStarted</span>::<span class="ident">Done</span>) <span class="op">=&gt;</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">+=</span> <span class="number">1</span>,
                                 <span class="prelude-val">Ok</span>(<span class="ident">MiddlewareStarted</span>::<span class="ident">Response</span>(<span class="ident">resp</span>)) <span class="op">=&gt;</span> {
                                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">resp</span>));
@@ -1720,13 +1645,15 @@
                                     <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
                                 }
                                 <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
-                                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>()))
+                                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>()));
                                 }
                             }
                         }
                     }
                 }
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>())),
+                <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>()));
+                }
             }
         }
     }
@@ -1756,7 +1683,7 @@
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">info</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ComposeInfo</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ComposeState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fut</span>.<span class="ident">poll</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> <span class="prelude-val">None</span>,
-            <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">response</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">response</span>)),
+            <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">resp</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">resp</span>)),
             <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">RunMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>())),
         }
     }
@@ -1775,7 +1702,8 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>.<span class="ident">len</span>();
 
         <span class="kw">loop</span> {
-            <span class="ident">resp</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">curr</span>].<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>.<span class="ident">req</span>, <span class="ident">resp</span>) {
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">curr</span>].<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>, <span class="ident">resp</span>);
+            <span class="ident">resp</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">state</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
                     <span class="ident">info</span>.<span class="ident">count</span> <span class="op">=</span> <span class="ident">curr</span> <span class="op">+</span> <span class="number">1</span>;
                     <span class="kw">return</span> <span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>());
@@ -1793,7 +1721,7 @@
                         <span class="ident">curr</span>,
                         <span class="ident">fut</span>: <span class="prelude-val">Some</span>(<span class="ident">fut</span>),
                         <span class="ident">_s</span>: <span class="ident">PhantomData</span>,
-                    })
+                    });
                 }
             };
         }
@@ -1817,7 +1745,8 @@
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">curr</span> <span class="op">==</span> <span class="ident">len</span> {
                     <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">resp</span>));
                 } <span class="kw">else</span> {
-                    <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="self">self</span>.<span class="ident">curr</span>].<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>.<span class="ident">req</span>, <span class="ident">resp</span>) {
+                    <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="self">self</span>.<span class="ident">curr</span>].<span class="ident">response</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>, <span class="ident">resp</span>);
+                    <span class="kw">match</span> <span class="ident">state</span> {
                         <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
                             <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">FinishingMiddlewares</span>::<span class="ident">init</span>(<span class="ident">info</span>, <span class="ident">err</span>.<span class="ident">into</span>()))
                         }
@@ -1885,9 +1814,9 @@
             }
 
             <span class="ident">info</span>.<span class="ident">count</span> <span class="op">-=</span> <span class="number">1</span>;
-            <span class="kw">match</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>]
-                .<span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">info</span>.<span class="ident">req</span>, <span class="self">self</span>.<span class="ident">resp</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>())
-            {
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">mws</span>[<span class="ident">info</span>.<span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>]
+                .<span class="ident">finish</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">req</span>, <span class="self">self</span>.<span class="ident">resp</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>());
+            <span class="kw">match</span> <span class="ident">state</span> {
                 <span class="ident">MiddlewareFinished</span>::<span class="ident">Done</span> <span class="op">=&gt;</span> {
                     <span class="kw">if</span> <span class="ident">info</span>.<span class="ident">count</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">Response</span>::<span class="ident">init</span>(<span class="self">self</span>.<span class="ident">resp</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()));
@@ -1929,20 +1858,20 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scope</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">resource</span>(<span class="string">&quot;/path1&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()))
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/path1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/path1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scope_root</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>
                     .<span class="ident">resource</span>(<span class="string">&quot;&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()))
@@ -1950,52 +1879,52 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">CREATED</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scope_root2</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app/&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">resource</span>(<span class="string">&quot;&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()))
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scope_root3</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app/&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">resource</span>(<span class="string">&quot;/&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()))
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scope_route</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>
                     .<span class="ident">route</span>(<span class="string">&quot;/path1&quot;</span>, <span class="ident">Method</span>::<span class="ident">GET</span>, <span class="op">|</span><span class="kw">_</span>: <span class="ident">HttpRequest</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">|</span> {
@@ -2007,26 +1936,26 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/path1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/path1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
 
         <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/path1&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">DELETE</span>)
-            .<span class="ident">finish</span>();
+            .<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
 
         <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/path1&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">POST</span>)
-            .<span class="ident">finish</span>();
+            .<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scope_filter</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>
                     .<span class="ident">filter</span>(<span class="ident">pred</span>::<span class="ident">Get</span>())
@@ -2036,20 +1965,20 @@
 
         <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/path1&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">POST</span>)
-            .<span class="ident">finish</span>();
+            .<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
 
         <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/path1&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">GET</span>)
-            .<span class="ident">finish</span>();
+            .<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_scope_variable_segment</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/ab-{project}&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">resource</span>(<span class="string">&quot;/path1&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
                     <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
@@ -2060,7 +1989,7 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/ab-project1/path1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/ab-project1/path1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
 
@@ -2072,7 +2001,7 @@
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(),
         }
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/aa-project1/path1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/aa-project1/path1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
     }
@@ -2081,7 +2010,7 @@
     <span class="kw">fn</span> <span class="ident">test_scope_with_state</span>() {
         <span class="kw">struct</span> <span class="ident">State</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">with_state</span>(<span class="string">&quot;/t1&quot;</span>, <span class="ident">State</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                     <span class="ident">scope</span>.<span class="ident">resource</span>(<span class="string">&quot;/path1&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="ident">Created</span>()))
@@ -2089,7 +2018,7 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/path1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/path1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">CREATED</span>);
     }
@@ -2098,7 +2027,7 @@
     <span class="kw">fn</span> <span class="ident">test_scope_with_state_root</span>() {
         <span class="kw">struct</span> <span class="ident">State</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">with_state</span>(<span class="string">&quot;/t1&quot;</span>, <span class="ident">State</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                     <span class="ident">scope</span>
@@ -2108,11 +2037,11 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">CREATED</span>);
     }
@@ -2121,7 +2050,7 @@
     <span class="kw">fn</span> <span class="ident">test_scope_with_state_root2</span>() {
         <span class="kw">struct</span> <span class="ident">State</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">with_state</span>(<span class="string">&quot;/t1/&quot;</span>, <span class="ident">State</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                     <span class="ident">scope</span>.<span class="ident">resource</span>(<span class="string">&quot;&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()))
@@ -2129,11 +2058,11 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
     }
@@ -2142,7 +2071,7 @@
     <span class="kw">fn</span> <span class="ident">test_scope_with_state_root3</span>() {
         <span class="kw">struct</span> <span class="ident">State</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">with_state</span>(<span class="string">&quot;/t1/&quot;</span>, <span class="ident">State</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                     <span class="ident">scope</span>.<span class="ident">resource</span>(<span class="string">&quot;/&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()))
@@ -2150,11 +2079,11 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
     }
@@ -2163,7 +2092,7 @@
     <span class="kw">fn</span> <span class="ident">test_scope_with_state_filter</span>() {
         <span class="kw">struct</span> <span class="ident">State</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">with_state</span>(<span class="string">&quot;/t1&quot;</span>, <span class="ident">State</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                     <span class="ident">scope</span>
@@ -2175,20 +2104,20 @@
 
         <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/path1&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">POST</span>)
-            .<span class="ident">finish</span>();
+            .<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
 
         <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/path1&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">GET</span>)
-            .<span class="ident">finish</span>();
+            .<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_nested_scope</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">nested</span>(<span class="string">&quot;/t1&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                     <span class="ident">scope</span>.<span class="ident">resource</span>(<span class="string">&quot;/path1&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="ident">Created</span>()))
@@ -2196,14 +2125,14 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/path1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/path1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">CREATED</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_nested_scope_root</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">nested</span>(<span class="string">&quot;/t1&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                     <span class="ident">scope</span>
@@ -2213,18 +2142,18 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">CREATED</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_nested_scope_filter</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">nested</span>(<span class="string">&quot;/t1&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                     <span class="ident">scope</span>
@@ -2236,20 +2165,20 @@
 
         <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/path1&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">POST</span>)
-            .<span class="ident">finish</span>();
+            .<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
 
         <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/t1/path1&quot;</span>)
             .<span class="ident">method</span>(<span class="ident">Method</span>::<span class="ident">GET</span>)
-            .<span class="ident">finish</span>();
+            .<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">OK</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_nested_scope_with_variable_segment</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">nested</span>(<span class="string">&quot;/{project_id}&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                     <span class="ident">scope</span>.<span class="ident">resource</span>(<span class="string">&quot;/path1&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> {
@@ -2264,7 +2193,7 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/project_1/path1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/project_1/path1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">CREATED</span>);
 
@@ -2279,7 +2208,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_nested2_scope_with_variable_segment</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>.<span class="ident">nested</span>(<span class="string">&quot;/{project}&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                     <span class="ident">scope</span>.<span class="ident">nested</span>(<span class="string">&quot;/{id}&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
@@ -2297,7 +2226,7 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/test/1/path1&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/test/1/path1&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">CREATED</span>);
 
@@ -2309,14 +2238,14 @@
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(),
         }
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/test/1/path2&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/test/1/path2&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_default_resource</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
             .<span class="ident">scope</span>(<span class="string">&quot;/app&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
                 <span class="ident">scope</span>
                     .<span class="ident">resource</span>(<span class="string">&quot;/path1&quot;</span>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="prelude-val">Ok</span>()))
@@ -2324,13 +2253,36 @@
             })
             .<span class="ident">finish</span>();
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/path2&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app/path2&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">BAD_REQUEST</span>);
 
-        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/path2&quot;</span>).<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/path2&quot;</span>).<span class="ident">request</span>();
         <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">NOT_FOUND</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_default_resource_propagation</span>() {
+        <span class="kw">let</span> <span class="ident">app</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>()
+            .<span class="ident">scope</span>(<span class="string">&quot;/app1&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> {
+                <span class="ident">scope</span>.<span class="ident">default_resource</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="ident">BadRequest</span>()))
+            })
+            .<span class="ident">scope</span>(<span class="string">&quot;/app2&quot;</span>, <span class="op">|</span><span class="ident">scope</span><span class="op">|</span> <span class="ident">scope</span>)
+            .<span class="ident">default_resource</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">r</span>.<span class="ident">f</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">HttpResponse</span>::<span class="ident">MethodNotAllowed</span>()))
+            .<span class="ident">finish</span>();
+
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/non-exist&quot;</span>).<span class="ident">request</span>();
+        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">METHOD_NOT_ALLOWED</span>);
+
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app1/non-exist&quot;</span>).<span class="ident">request</span>();
+        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">BAD_REQUEST</span>);
+
+        <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">TestRequest</span>::<span class="ident">with_uri</span>(<span class="string">&quot;/app2/non-exist&quot;</span>).<span class="ident">request</span>();
+        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">app</span>.<span class="ident">run</span>(<span class="ident">req</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">resp</span>.<span class="ident">as_msg</span>().<span class="ident">status</span>(), <span class="ident">StatusCode</span>::<span class="ident">METHOD_NOT_ALLOWED</span>);
     }
 }
 </pre>

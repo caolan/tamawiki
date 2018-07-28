@@ -86,7 +86,7 @@
     .<span class="ident">secure</span>(<span class="bool-val">true</span>)
     .<span class="ident">finish</span>();
 
-<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">secure</span>(), <span class="bool-val">true</span>);</pre>
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">secure</span>(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>));</pre>
 </div><h4 id='method.http_only' class="method"><span id='http_only.v' class='invisible'><table class='table-display'><tbody><tr><td><code>pub fn <a href='#method.http_only' class='fnname'>http_only</a>(self, value: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="struct" href="../../actix_web/http/struct.CookieBuilder.html" title="struct actix_web::http::CookieBuilder">CookieBuilder</a></code></span></td><td><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/cookie/builder.rs.html#179-182' title='goto source code'>[src]</a></td></tr></tbody></table></span></h4><div class='docblock'><p>Sets the <code>http_only</code> field in the cookie being built.</p>
 <h1 id="example-7" class="section-header"><a href="#example-7">Example</a></h1>
 <pre class="rust rust-example-rendered">
@@ -96,7 +96,7 @@
     .<span class="ident">http_only</span>(<span class="bool-val">true</span>)
     .<span class="ident">finish</span>();
 
-<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">http_only</span>(), <span class="bool-val">true</span>);</pre>
+<span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">http_only</span>(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>));</pre>
 </div><h4 id='method.same_site' class="method"><span id='same_site.v' class='invisible'><table class='table-display'><tbody><tr><td><code>pub fn <a href='#method.same_site' class='fnname'>same_site</a>(self, value: <a class="enum" href="../../cookie/draft/enum.SameSite.html" title="enum cookie::draft::SameSite">SameSite</a>) -&gt; <a class="struct" href="../../actix_web/http/struct.CookieBuilder.html" title="struct actix_web::http::CookieBuilder">CookieBuilder</a></code></span></td><td><span class='out-of-band'><div class='ghost'></div><a class='srclink' href='../../src/cookie/builder.rs.html#198-201' title='goto source code'>[src]</a></td></tr></tbody></table></span></h4><div class='docblock'><p>Sets the <code>same_site</code> field in the cookie being built.</p>
 <h1 id="example-8" class="section-header"><a href="#example-8">Example</a></h1>
 <pre class="rust rust-example-rendered">
