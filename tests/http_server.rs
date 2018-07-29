@@ -148,3 +148,49 @@ fn request_static_file() {
         )
     });
 }
+
+#[test]
+fn request_missing_page_with_edit_param() {
+    // should return a page including an editor element
+    System::run(|| {
+        let store = MemoryStore::default().start();
+        let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
+            store: store.clone(),
+        }));
+        
+        // bind to port 0 to get random port assigned from OS
+        let srv = srv.bind("127.0.0.1:0").unwrap();
+        
+        let base_url = {
+            let (addr, scheme) = srv.addrs_with_scheme()[0];
+            format!("{}://{}", scheme, addr)
+        };
+
+        let req = client::get(format!("{}/example.html?edit=true", base_url))
+            .header("User-Agent", "Actix-web")
+            .finish().unwrap()
+            .send()
+            .and_then(|response| {
+                response.body().map_err(|err| panic!("{}", err))
+            })
+            .map(|body| {
+                // TODO: this isn't a great test, it should probably
+                // be more robust
+                println!("{}", String::from_utf8(body.to_vec()).unwrap());
+                assert!(
+                    String::from_utf8(body.to_vec()).unwrap()
+                        .contains("id=\"editor\"")
+                );
+            });
+
+        srv.start();
+        
+        Arbiter::spawn(
+            req.map_err(|err| {
+                panic!("{}", err)
+            }).map(|_| {
+                System::current().stop()
+            })
+        )
+    });
+}

@@ -18,7 +18,7 @@ extern crate futures;
 
 use std::path::PathBuf;
 use futures::future::Future;
-use actix_web::{Path, State, App, HttpRequest, HttpResponse, http, server, fs};
+use actix_web::{Query, Path, State, App, HttpResponse, http, server, fs};
 use actix_web::error::Error;
 use actix::prelude::*;
 
@@ -48,19 +48,36 @@ pub fn app<T: Store>(state: TamaWikiState<T>) -> App<TamaWikiState<T>> {
         })
 }
 
-#[derive(Deserialize)]
-struct PathInfo {
+#[derive(Debug, Deserialize)]
+struct DocPath {
     tail: PathBuf
 }
 
-fn get_document<T: Store>(data: (State<TamaWikiState<T>>, Path<PathInfo>)) ->
+#[derive(Debug, Deserialize)]
+struct DocQuery {
+    #[serde(default)]
+    edit: bool
+}
+
+fn get_document<T: Store>(data: (State<TamaWikiState<T>>, Path<DocPath>, Query<DocQuery>)) ->
     Box<Future<Item=HttpResponse, Error=Error>>
 {
-    let (state, path) = data;
-    let msg = Content { path: path.into_inner().tail };
-    let res = state.store.send(msg)
+    let (state, path, query) = data;
+    let path = path.into_inner().tail;
+    
+    match query.into_inner() {
+        DocQuery { edit: true } => edit_document(state, path),
+        _ => display_document(state, path),
+    }
+}
+
+
+fn display_document<T: Store>(state: State<TamaWikiState<T>>, path: PathBuf) ->
+    Box<Future<Item=HttpResponse, Error=Error>>
+{
+    let res = state.store.send(Content { path })
         .from_err()
-        .map(|result| {
+        .map(move |result| {
             match result {
                 Ok((seq, doc)) => {
                     let mut res = HttpResponse::Ok();
@@ -85,6 +102,51 @@ fn get_document<T: Store>(data: (State<TamaWikiState<T>>, Path<PathInfo>)) ->
                         "404.html",
                         &json!({
                             "title": "Not found"
+                        })
+                    )
+                },
+                Err(_) => {
+                    HttpResponse::InternalServerError()
+                        .header(http::header::CONTENT_TYPE, "text/html")
+                        .body("Error")
+                },
+            }
+        });
+    Box::new(res)
+}
+
+fn edit_document<T: Store>(state: State<TamaWikiState<T>>, path: PathBuf) ->
+    Box<Future<Item=HttpResponse, Error=Error>>
+{
+    let res = state.store.send(Content { path })
+        .from_err()
+        .map(move |result| {
+            match result {
+                Ok((seq, doc)) => {
+                    let mut res = HttpResponse::Ok();
+                    res.header(http::header::CONTENT_TYPE, "text/html");
+                    
+                    templates::render_response(
+                        res,
+                        "editor.html",
+                        &json!({
+                            "title": "Document",
+                            "seq": seq,
+                            "content": doc.content
+                        })
+                    )
+                },
+                Err(StoreError::NotFound) => {
+                    let mut res = HttpResponse::NotFound();
+                    res.header(http::header::CONTENT_TYPE, "text/html");
+
+                    templates::render_response(
+                        res,
+                        "editor.html",
+                        &json!({
+                            "title": "Document",
+                            "seq": 0,
+                            "content": ""
                         })
                     )
                 },
