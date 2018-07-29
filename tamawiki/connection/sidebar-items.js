@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ConnectionMessage",""]],"struct":[["Connected",""],["Connection","Represents a client connection to an edit session"]],"type":[["ConnectionId","Connection identifier, which must be unique for the current edit session"]]});
