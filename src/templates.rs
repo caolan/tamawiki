@@ -1,3 +1,4 @@
+//! Loading and rendering of Tera templates
 use actix_web::dev::HttpResponseBuilder;
 use actix_web::HttpResponse;
 use serde::ser::Serialize;
@@ -7,14 +8,13 @@ use http;
 
 lazy_static! {
     static ref TERA: Tera = {
-        let tera = compile_templates!("templates/**/*");
-        // and we can add more things to our instance if we want to
-        // tera.autoescape_on(vec!["html", ".sql"]);
-        // tera.register_filter("do_nothing", do_nothing_filter);
-        tera
+        compile_templates!("templates/**/*")
     };
 }
 
+/// Attempts to render the body of the provided response using the
+/// given template name and data. If the rendering fails, the response
+/// will be replaced with an internal server error response.
 pub fn render_response<T: Serialize>(mut res: HttpResponseBuilder,
                                      template_name: &str,
                                      data: &T) -> HttpResponse

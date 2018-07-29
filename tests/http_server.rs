@@ -2,15 +2,18 @@ extern crate tamawiki;
 extern crate futures;
 extern crate actix;
 extern crate actix_web;
+extern crate serde_json;
 
-use actix_web::{client, server, HttpMessage};
+use actix_web::{ws, client, server, HttpMessage};
 use std::path::PathBuf;
 use futures::future::Future;
+use futures::stream::Stream;
 use actix::prelude::*;
 
 use tamawiki::store::{Push};
 use tamawiki::store::memory::MemoryStore;
 use tamawiki::document::{Update, Operation, Insert};
+use tamawiki::connection::{ConnectionMessage, Connected};
 use tamawiki::{app, TamaWikiState};
 
 
@@ -191,6 +194,54 @@ fn request_missing_page_with_edit_param() {
             }).map(|_| {
                 System::current().stop()
             })
+        )
+    });
+}
+
+#[test]
+fn connect_using_websocket() {
+    System::run(|| {
+        let store = MemoryStore::default().start();
+        let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
+            store: store.clone(),
+        }));
+        
+        // bind to port 0 to get random port assigned from OS
+        let srv = srv.bind("127.0.0.1:0").unwrap();
+        
+        let base_url = {
+            let (addr, scheme) = srv.addrs_with_scheme()[0];
+            format!("{}://{}", scheme, addr)
+        };
+
+        let client = ws::Client::new(format!("{}/example.html", base_url))
+            .connect()
+            .and_then(|(reader, _writer)| {
+                reader.into_future()
+                    .map_err(|err| panic!("{:?}", err))
+                    .map(|data| {
+                        if let (Some(ws::Message::Text(text)), _reader) = data {
+                            let msg = serde_json::from_str::<ConnectionMessage>(&text).unwrap();
+                            assert_eq!(
+                                msg,
+                                ConnectionMessage::Connected(Connected {
+                                    id: 1
+                                })
+                            );
+                        } else {
+                            assert!(false);
+                        }
+                    })
+            });
+        
+        srv.start();
+        
+        Arbiter::spawn(
+            client
+                .map_err(|err| panic!("{:?}", err))
+                .map(|_| {
+                    System::current().stop()
+                })
         )
     });
 }

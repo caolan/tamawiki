@@ -18,14 +18,16 @@ extern crate futures;
 
 use std::path::PathBuf;
 use futures::future::Future;
-use actix_web::{Query, Path, State, App, HttpResponse, http, server, fs};
+use actix_web::{Query, Path, State, App, Responder, HttpResponse, HttpRequest, http, server, fs, ws, pred};
 use actix_web::error::Error;
 use actix::prelude::*;
 
 pub mod document;
 pub mod store;
 pub mod templates;
+pub mod connection;
 
+use connection::Connection;
 use store::memory::MemoryStore;
 use store::*;
 
@@ -44,6 +46,7 @@ pub fn app<T: Store>(state: TamaWikiState<T>) -> App<TamaWikiState<T>> {
             fs::StaticFiles::new("static").unwrap()
         )
         .resource("/{tail:.*}", |r| {
+            r.route().filter(pred::Header("upgrade", "websocket")).with(start_websocket);
             r.get().with_async(get_document)
         })
 }
@@ -57,6 +60,12 @@ struct DocPath {
 struct DocQuery {
     #[serde(default)]
     edit: bool
+}
+
+fn start_websocket<T: Store>(data: (HttpRequest<TamaWikiState<T>>, Path<DocPath>)) -> impl Responder {
+    let (req, path) = data;
+    let path = path.into_inner().tail;
+    ws::start(&req, Connection::new(path, 0))
 }
 
 fn get_document<T: Store>(data: (State<TamaWikiState<T>>, Path<DocPath>, Query<DocQuery>)) ->
