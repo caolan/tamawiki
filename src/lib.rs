@@ -40,7 +40,7 @@ pub struct TamaWikiState<T: Store> {
 pub fn app<T: Store>(state: TamaWikiState<T>) -> App<TamaWikiState<T>> {
     App::with_state(state)
         .handler(
-            "/static",
+            "/_static",
             fs::StaticFiles::new("static").unwrap()
         )
         .resource("/{tail:.*}", |r| {

@@ -129,7 +129,7 @@ fn request_static_file() {
             format!("{}://{}", scheme, addr)
         };
 
-        let req = client::get(format!("{}/static/css/style.css", base_url))
+        let req = client::get(format!("{}/_static/css/style.css", base_url))
             .header("User-Agent", "Actix-web")
             .finish().unwrap()
             .send()
