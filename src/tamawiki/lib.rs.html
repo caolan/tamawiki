@@ -186,6 +186,14 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! A wiki implemented in Rust</span>
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
@@ -215,9 +223,11 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">store</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">templates</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">connection</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">session</span>;
 
 <span class="kw">use</span> <span class="ident">connection</span>::<span class="ident">Connection</span>;
 <span class="kw">use</span> <span class="ident">store</span>::<span class="ident">memory</span>::<span class="ident">MemoryStore</span>;
+<span class="kw">use</span> <span class="ident">session</span>::<span class="ident">EditSessionManager</span>;
 <span class="kw">use</span> <span class="ident">store</span>::<span class="kw-2">*</span>;
 
 
@@ -225,6 +235,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TamaWikiState</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The actix address of the Store used to store document Updates</span>
     <span class="kw">pub</span> <span class="ident">store</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">session_manager</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">EditSessionManager</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
 }
 
 <span class="doccomment">/// Creates a new TamaWiki actix_web App</span>
@@ -369,8 +380,13 @@
         <span class="ident">ctx</span>.<span class="ident">set_mailbox_capacity</span>(<span class="number">0</span>);
         <span class="ident">MemoryStore</span>::<span class="ident">default</span>()
     });
+    <span class="kw">let</span> <span class="ident">session_manager</span> <span class="op">=</span> <span class="ident">Arbiter</span>::<span class="ident">start</span>(<span class="op">|</span><span class="ident">ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">|</span> {
+        <span class="ident">ctx</span>.<span class="ident">set_mailbox_capacity</span>(<span class="number">0</span>);
+        <span class="ident">EditSessionManager</span>::<span class="ident">default</span>()
+    });
     <span class="kw">let</span> <span class="ident">srv</span> <span class="op">=</span> <span class="ident">server</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">||</span> <span class="ident">app</span>::<span class="op">&lt;</span><span class="ident">MemoryStore</span><span class="op">&gt;</span>(<span class="ident">TamaWikiState</span> {
         <span class="ident">store</span>: <span class="ident">store</span>.<span class="ident">clone</span>(),
+        <span class="ident">session_manager</span>: <span class="ident">session_manager</span>.<span class="ident">clone</span>(),
     }));
     <span class="ident">srv</span>.<span class="ident">bind</span>(<span class="ident">addr</span>).<span class="ident">unwrap</span>()
 }
