@@ -104,6 +104,7 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
+<span id="107">107</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Handles websocket connections to collaborative edit sessions</span>
 <span class="kw">use</span> <span class="ident">actix_web</span>::<span class="ident">ws</span>;
@@ -121,8 +122,7 @@
 
 <span class="doccomment">/// Represents a client connection to an edit session</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span><span class="op">&gt;</span> {
-    <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConnectionId</span><span class="op">&gt;</span>,
-    <span class="ident">session</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">EditSession</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">session</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">ConnectionId</span>, <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">EditSession</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>)<span class="op">&gt;</span>,
     <span class="ident">path</span>: <span class="ident">PathBuf</span>,
     <span class="ident">seq</span>: <span class="ident">usize</span>,
 }
@@ -130,7 +130,6 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span><span class="op">&gt;</span> <span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">path</span>: <span class="ident">PathBuf</span>, <span class="ident">seq</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">id</span>: <span class="prelude-val">None</span>,
             <span class="ident">session</span>: <span class="prelude-val">None</span>,
             <span class="ident">path</span>,
             <span class="ident">seq</span>,
@@ -154,6 +153,9 @@
 
     <span class="kw">fn</span> <span class="ident">stopped</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Context</span>) {
         <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Connection stopped&quot;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="kw-2">ref</span> <span class="ident">session</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">session</span> {
+            <span class="ident">session</span>.<span class="ident">do_send</span>(<span class="ident">session</span>::<span class="ident">Disconnect</span> { <span class="ident">id</span> });
+        }
     }
 }
 
@@ -204,8 +206,8 @@
         <span class="self">Self</span>::<span class="prelude-ty">Result</span>
     {
         <span class="kw">let</span> <span class="ident">session</span>::<span class="ident">Connected</span> {<span class="ident">id</span>, <span class="ident">session</span>} <span class="op">=</span> <span class="ident">msg</span>;
-        <span class="self">self</span>.<span class="ident">id</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>);
-        <span class="self">self</span>.<span class="ident">session</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">session</span>.<span class="ident">clone</span>());
+        <span class="self">self</span>.<span class="ident">session</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">session</span>.<span class="ident">clone</span>()));
+        
         <span class="ident">ctx</span>.<span class="ident">address</span>().<span class="ident">do_send</span>(<span class="ident">ConnectionMessage</span>::<span class="ident">Connected</span>(
             <span class="ident">Connected</span> {<span class="ident">id</span>}
         ));
