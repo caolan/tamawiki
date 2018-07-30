@@ -37,6 +37,17 @@ pub struct Connected<T: Store> {
     pub session: Addr<EditSession<T>>,
 }
 
+#[derive(Message)]
+pub struct Disconnect {
+    pub id: ConnectionId
+}
+
+#[derive(Message)]
+pub struct EndSession<T: Store> {
+    pub path: PathBuf,
+    pub from: Addr<EditSession<T>>,
+}
+
 impl<T: Store> Handler<Connect<T>> for EditSessionManager<T> {
     type Result = ();
     
@@ -60,6 +71,24 @@ impl<T: Store> Handler<Connect<T>> for EditSessionManager<T> {
         // we can be confident it exists now, so just unwrap the Option
         let session = self.sessions.get(&msg.path).unwrap();
         session.do_send(msg);
+    }
+}
+
+impl<T: Store> Handler<EndSession<T>> for EditSessionManager<T> {
+    type Result = ();
+    
+    fn handle(&mut self,
+              msg: EndSession<T>,
+              _ctx: &mut Context<Self>) -> Self::Result {
+
+        let exists = match self.sessions.get(&msg.path) {
+            // check if session exists and actor is still alive
+            Some(addr) => *addr == msg.from,
+            None => false,
+        };
+        if exists {
+            self.sessions.remove(&msg.path);
+        }
     }
 }
 
@@ -90,8 +119,14 @@ impl<T: Store> Actor for EditSession<T> {
         println!("EditSession started: {}", self.path.to_str().unwrap());
     }
 
-    fn stopped(&mut self, _ctx: &mut Self::Context) {
+    fn stopped(&mut self, ctx: &mut Self::Context) {
         println!("EditSession stopped: {}", self.path.to_str().unwrap());
+        self.manager.do_send(
+            EndSession {
+                path: self.path.clone(),
+                from: ctx.address(),
+            }
+        );
     }
 }
 
@@ -120,5 +155,19 @@ impl<T: Store> Handler<Connect<T>> for EditSession<T> {
             id: self.next_id,
             session: addr,
         });
+    }
+}
+
+impl<T: Store> Handler<Disconnect> for EditSession<T> {
+    type Result = ();
+    
+    fn handle(&mut self, msg: Disconnect, ctx: &mut Context<Self>) ->
+        Self::Result
+    {
+        println!("removing connection {}", msg.id);
+        self.connected.remove(&msg.id);
+        if self.connected.is_empty() {
+            ctx.stop();
+        }
     }
 }

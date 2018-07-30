@@ -14,8 +14,7 @@ pub type ConnectionId = usize;
 
 /// Represents a client connection to an edit session
 pub struct Connection<T: Store> {
-    id: Option<ConnectionId>,
-    session: Option<Addr<EditSession<T>>>,
+    session: Option<(ConnectionId, Addr<EditSession<T>>)>,
     path: PathBuf,
     seq: usize,
 }
@@ -23,7 +22,6 @@ pub struct Connection<T: Store> {
 impl<T: Store> Connection<T> {
     pub fn new(path: PathBuf, seq: usize) -> Self {
         Self {
-            id: None,
             session: None,
             path,
             seq,
@@ -47,6 +45,9 @@ impl<T: Store> Actor for Connection<T> {
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
         println!("Connection stopped");
+        if let Some((id, ref session)) = self.session {
+            session.do_send(session::Disconnect { id });
+        }
     }
 }
 
@@ -97,8 +98,8 @@ impl<T: Store> Handler<session::Connected<T>> for Connection<T> {
         Self::Result
     {
         let session::Connected {id, session} = msg;
-        self.id = Some(id);
-        self.session = Some(session.clone());
+        self.session = Some((id, session.clone()));
+        
         ctx.address().do_send(ConnectionMessage::Connected(
             Connected {id}
         ));
