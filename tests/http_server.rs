@@ -272,7 +272,7 @@ fn websocket_connections_get_different_ids() {
         
         Arbiter::spawn(
             client1
-                .join(client2)
+                .and_then(|_| client2)
                 .map_err(|err| panic!("{:?}", err))
                 .map(|_| {
                     System::current().stop()
