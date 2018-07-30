@@ -26,9 +26,11 @@ pub mod document;
 pub mod store;
 pub mod templates;
 pub mod connection;
+pub mod session;
 
 use connection::Connection;
 use store::memory::MemoryStore;
+use session::EditSessionManager;
 use store::*;
 
 
@@ -36,6 +38,7 @@ use store::*;
 pub struct TamaWikiState<T: Store> {
     /// The actix address of the Store used to store document Updates
     pub store: Addr<T>,
+    pub session_manager: Addr<EditSessionManager<T>>,
 }
 
 /// Creates a new TamaWiki actix_web App
@@ -180,8 +183,13 @@ pub fn server(addr: &str) -> server::HttpServer<impl server::HttpHandler>  {
         ctx.set_mailbox_capacity(0);
         MemoryStore::default()
     });
+    let session_manager = Arbiter::start(|ctx: &mut Context<_>| {
+        ctx.set_mailbox_capacity(0);
+        EditSessionManager::default()
+    });
     let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
         store: store.clone(),
+        session_manager: session_manager.clone(),
     }));
     srv.bind(addr).unwrap()
 }

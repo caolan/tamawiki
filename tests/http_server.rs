@@ -12,6 +12,7 @@ use actix::prelude::*;
 
 use tamawiki::store::{Push};
 use tamawiki::store::memory::MemoryStore;
+use tamawiki::session::EditSessionManager;
 use tamawiki::document::{Update, Operation, Insert};
 use tamawiki::connection::{ConnectionMessage, Connected};
 use tamawiki::{app, TamaWikiState};
@@ -21,9 +22,11 @@ use tamawiki::{app, TamaWikiState};
 fn get_missing_page() {
     System::run(|| {
         let store = MemoryStore::default().start();
+        let session_manager = EditSessionManager::default().start();
         
         let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
             store: store.clone(),
+            session_manager: session_manager.clone(),
         }));
         
         // bind to port 0 to get random port assigned from OS
@@ -58,6 +61,7 @@ fn get_missing_page() {
 fn get_page_content_from_store() {
     System::run(|| {
         let store = MemoryStore::default().start();
+        let session_manager = EditSessionManager::default().start();
         
         let push1 = store.send(Push {
             path: PathBuf::from("test.html"),
@@ -81,6 +85,7 @@ fn get_page_content_from_store() {
 
         let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
             store: store.clone(),
+            session_manager: session_manager.clone(),
         }));
         
         // bind to port 0 to get random port assigned from OS
@@ -120,8 +125,11 @@ fn get_page_content_from_store() {
 fn request_static_file() {
     System::run(|| {
         let store = MemoryStore::default().start();
+        let session_manager = EditSessionManager::default().start();
+        
         let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
             store: store.clone(),
+            session_manager: session_manager.clone(),
         }));
         
         // bind to port 0 to get random port assigned from OS
@@ -157,8 +165,11 @@ fn request_missing_page_with_edit_param() {
     // should return a page including an editor element
     System::run(|| {
         let store = MemoryStore::default().start();
+        let session_manager = EditSessionManager::default().start();
+        
         let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
             store: store.clone(),
+            session_manager: session_manager.clone(),
         }));
         
         // bind to port 0 to get random port assigned from OS
@@ -199,11 +210,86 @@ fn request_missing_page_with_edit_param() {
 }
 
 #[test]
+fn websocket_connections_get_different_ids() {
+    System::run(|| {
+        let store = MemoryStore::default().start();
+        let session_manager = EditSessionManager::default().start();
+        
+        let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
+            store: store.clone(),
+            session_manager: session_manager.clone(),
+        }));
+        
+        // bind to port 0 to get random port assigned from OS
+        let srv = srv.bind("127.0.0.1:0").unwrap();
+        
+        let base_url = {
+            let (addr, scheme) = srv.addrs_with_scheme()[0];
+            format!("{}://{}", scheme, addr)
+        };
+
+        let client1 = ws::Client::new(format!("{}/example.html", base_url))
+            .connect()
+            .and_then(|(reader, _writer)| {
+                reader.into_future()
+                    .map_err(|err| panic!("{:?}", err))
+                    .map(|data| {
+                        if let (Some(ws::Message::Text(text)), _reader) = data {
+                            let msg = serde_json::from_str::<ConnectionMessage>(&text).unwrap();
+                            assert_eq!(
+                                msg,
+                                ConnectionMessage::Connected(Connected {
+                                    id: 1
+                                })
+                            );
+                        } else {
+                            assert!(false);
+                        }
+                    })
+            });
+        
+        let client2 = ws::Client::new(format!("{}/example.html", base_url))
+            .connect()
+            .and_then(|(reader, _writer)| {
+                reader.into_future()
+                    .map_err(|err| panic!("{:?}", err))
+                    .map(|data| {
+                        if let (Some(ws::Message::Text(text)), _reader) = data {
+                            let msg = serde_json::from_str::<ConnectionMessage>(&text).unwrap();
+                            assert_eq!(
+                                msg,
+                                ConnectionMessage::Connected(Connected {
+                                    id: 2
+                                })
+                            );
+                        } else {
+                            assert!(false);
+                        }
+                    })
+            });
+        
+        srv.start();
+        
+        Arbiter::spawn(
+            client1
+                .join(client2)
+                .map_err(|err| panic!("{:?}", err))
+                .map(|_| {
+                    System::current().stop()
+                })
+        )
+    });
+}
+
+#[test]
 fn connect_using_websocket() {
     System::run(|| {
         let store = MemoryStore::default().start();
+        let session_manager = EditSessionManager::default().start();
+        
         let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
             store: store.clone(),
+            session_manager: session_manager.clone(),
         }));
         
         // bind to port 0 to get random port assigned from OS
