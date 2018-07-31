@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/siphasher-0.2.2/src/sip128.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sip128.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/siphasher-0.2.3/src/sip128.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sip128.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -476,6 +476,10 @@
 <span id="476">476</span>
 <span id="477">477</span>
 <span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2012-2015 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -533,9 +537,9 @@
     <span class="ident">k0</span>: <span class="ident">u64</span>,
     <span class="ident">k1</span>: <span class="ident">u64</span>,
     <span class="ident">length</span>: <span class="ident">usize</span>, <span class="comment">// how many bytes we&#39;ve processed</span>
-    <span class="ident">state</span>: <span class="ident">State</span>, <span class="comment">// hash State</span>
-    <span class="ident">tail</span>: <span class="ident">u64</span>, <span class="comment">// unprocessed bytes le</span>
-    <span class="ident">ntail</span>: <span class="ident">usize</span>, <span class="comment">// how many bytes in tail are valid</span>
+    <span class="ident">state</span>: <span class="ident">State</span>,  <span class="comment">// hash State</span>
+    <span class="ident">tail</span>: <span class="ident">u64</span>,     <span class="comment">// unprocessed bytes le</span>
+    <span class="ident">ntail</span>: <span class="ident">usize</span>,  <span class="comment">// how many bytes in tail are valid</span>
     <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
 }
 
@@ -649,7 +653,9 @@
     <span class="doccomment">/// Creates a `SipHasher13` that is keyed off the provided keys.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_keys</span>(<span class="ident">key0</span>: <span class="ident">u64</span>, <span class="ident">key1</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">SipHasher13</span> {
-        <span class="ident">SipHasher13</span> { <span class="ident">hasher</span>: <span class="ident">Hasher</span>::<span class="ident">new_with_keys</span>(<span class="ident">key0</span>, <span class="ident">key1</span>) }
+        <span class="ident">SipHasher13</span> {
+            <span class="ident">hasher</span>: <span class="ident">Hasher</span>::<span class="ident">new_with_keys</span>(<span class="ident">key0</span>, <span class="ident">key1</span>),
+        }
     }
 
     <span class="doccomment">/// Get the keys used by this hasher</span>
@@ -676,7 +682,9 @@
     <span class="doccomment">/// Creates a `SipHasher24` that is keyed off the provided keys.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_keys</span>(<span class="ident">key0</span>: <span class="ident">u64</span>, <span class="ident">key1</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">SipHasher24</span> {
-        <span class="ident">SipHasher24</span> { <span class="ident">hasher</span>: <span class="ident">Hasher</span>::<span class="ident">new_with_keys</span>(<span class="ident">key0</span>, <span class="ident">key1</span>) }
+        <span class="ident">SipHasher24</span> {
+            <span class="ident">hasher</span>: <span class="ident">Hasher</span>::<span class="ident">new_with_keys</span>(<span class="ident">key0</span>, <span class="ident">key1</span>),
+        }
     }
 
     <span class="doccomment">/// Get the keys used by this hasher</span>
@@ -902,8 +910,8 @@
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">trait</span> <span class="ident">Sip</span> {
-    <span class="kw">fn</span> <span class="ident">c_rounds</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span>);
-    <span class="kw">fn</span> <span class="ident">d_rounds</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span>);
+    <span class="kw">fn</span> <span class="ident">c_rounds</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span>);
+    <span class="kw">fn</span> <span class="ident">d_rounds</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">State</span>);
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Default</span>)]</span>

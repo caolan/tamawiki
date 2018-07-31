@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-0.14.4/src/item.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>item.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-0.14.5/src/item.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>item.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2035,6 +2035,21 @@
 <span id="2035">2035</span>
 <span id="2036">2036</span>
 <span id="2037">2037</span>
+<span id="2038">2038</span>
+<span id="2039">2039</span>
+<span id="2040">2040</span>
+<span id="2041">2041</span>
+<span id="2042">2042</span>
+<span id="2043">2043</span>
+<span id="2044">2044</span>
+<span id="2045">2045</span>
+<span id="2046">2046</span>
+<span id="2047">2047</span>
+<span id="2048">2048</span>
+<span id="2049">2049</span>
+<span id="2050">2050</span>
+<span id="2051">2051</span>
+<span id="2052">2052</span>
 </pre><pre class="rust ">
 <span class="comment">// Copyright 2018 Syn Developers</span>
 <span class="comment">//</span>
@@ -2870,6 +2885,8 @@
         <span class="macro">keyword</span><span class="macro">!</span>(<span class="kw">super</span>) <span class="op">=&gt;</span> { <span class="ident">Into</span>::<span class="ident">into</span> }
         <span class="op">|</span>
         <span class="macro">keyword</span><span class="macro">!</span>(<span class="kw">crate</span>) <span class="op">=&gt;</span> { <span class="ident">Into</span>::<span class="ident">into</span> }
+        <span class="op">|</span>
+        <span class="macro">keyword</span><span class="macro">!</span>(<span class="kw">extern</span>) <span class="op">=&gt;</span> { <span class="ident">Into</span>::<span class="ident">into</span> }
     ));
 
     <span class="macro">impl_synom</span><span class="macro">!</span>(<span class="ident">UseTree</span> <span class="string">&quot;use tree&quot;</span> <span class="macro">alt</span><span class="macro">!</span>(
@@ -2990,7 +3007,7 @@
         <span class="ident">where_clause</span>: <span class="macro">option</span><span class="macro">!</span>(<span class="macro">syn</span><span class="macro">!</span>(<span class="ident">WhereClause</span>)) <span class="op">&gt;&gt;</span>
         <span class="ident">inner_attrs_stmts</span>: <span class="macro">braces</span><span class="macro">!</span>(<span class="macro">tuple</span><span class="macro">!</span>(
             <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">Attribute</span>::<span class="ident">parse_inner</span>),
-            <span class="macro">call</span><span class="macro">!</span>(<span class="ident">Block</span>::<span class="ident">parse_within</span>)
+            <span class="macro">call</span><span class="macro">!</span>(<span class="ident">Block</span>::<span class="ident">parse_within</span>),
         )) <span class="op">&gt;&gt;</span>
         (<span class="ident">ItemFn</span> {
             <span class="ident">attrs</span>: {
@@ -3010,7 +3027,7 @@
                 <span class="ident">variadic</span>: <span class="prelude-val">None</span>,
                 <span class="ident">generics</span>: <span class="ident">Generics</span> {
                     <span class="ident">where_clause</span>: <span class="ident">where_clause</span>,
-                    .. <span class="ident">generics</span>
+                    ..<span class="ident">generics</span>
                 },
             }),
             <span class="ident">ident</span>: <span class="ident">ident</span>,
@@ -3081,7 +3098,7 @@
             <span class="macro">braces</span><span class="macro">!</span>(
                 <span class="macro">tuple</span><span class="macro">!</span>(
                     <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">Attribute</span>::<span class="ident">parse_inner</span>),
-                    <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">Item</span>::<span class="ident">parse</span>)
+                    <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">Item</span>::<span class="ident">parse</span>),
                 )
             ) <span class="op">=&gt;</span> {<span class="op">|</span>(<span class="ident">brace</span>, (<span class="ident">inner_attrs</span>, <span class="ident">items</span>))<span class="op">|</span> (
                 <span class="ident">inner_attrs</span>,
@@ -3104,14 +3121,21 @@
     ));
 
     <span class="macro">impl_synom</span><span class="macro">!</span>(<span class="ident">ItemForeignMod</span> <span class="string">&quot;foreign mod item&quot;</span> <span class="macro">do_parse</span><span class="macro">!</span>(
-        <span class="ident">attrs</span>: <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>) <span class="op">&gt;&gt;</span>
+        <span class="ident">outer_attrs</span>: <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>) <span class="op">&gt;&gt;</span>
         <span class="ident">abi</span>: <span class="macro">syn</span><span class="macro">!</span>(<span class="ident">Abi</span>) <span class="op">&gt;&gt;</span>
-        <span class="ident">items</span>: <span class="macro">braces</span><span class="macro">!</span>(<span class="macro">many0</span><span class="macro">!</span>(<span class="ident">ForeignItem</span>::<span class="ident">parse</span>)) <span class="op">&gt;&gt;</span>
+        <span class="ident">braced_content</span>: <span class="macro">braces</span><span class="macro">!</span>(<span class="macro">tuple</span><span class="macro">!</span>(
+            <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">Attribute</span>::<span class="ident">parse_inner</span>),
+            <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">ForeignItem</span>::<span class="ident">parse</span>),
+        )) <span class="op">&gt;&gt;</span>
         (<span class="ident">ItemForeignMod</span> {
-            <span class="ident">attrs</span>: <span class="ident">attrs</span>,
+            <span class="ident">attrs</span>: {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">outer_attrs</span>;
+                <span class="ident">attrs</span>.<span class="ident">extend</span>((<span class="ident">braced_content</span>.<span class="number">1</span>).<span class="number">0</span>);
+                <span class="ident">attrs</span>
+            },
             <span class="ident">abi</span>: <span class="ident">abi</span>,
-            <span class="ident">brace_token</span>: <span class="ident">items</span>.<span class="number">0</span>,
-            <span class="ident">items</span>: <span class="ident">items</span>.<span class="number">1</span>,
+            <span class="ident">brace_token</span>: <span class="ident">braced_content</span>.<span class="number">0</span>,
+            <span class="ident">items</span>: (<span class="ident">braced_content</span>.<span class="number">1</span>).<span class="number">1</span>,
         })
     ));
 
@@ -3151,7 +3175,7 @@
                     <span class="ident">output</span>: <span class="ident">ret</span>,
                     <span class="ident">generics</span>: <span class="ident">Generics</span> {
                         <span class="ident">where_clause</span>: <span class="ident">where_clause</span>,
-                        .. <span class="ident">generics</span>
+                        ..<span class="ident">generics</span>
                     },
                 }),
                 <span class="ident">vis</span>: <span class="ident">vis</span>,
@@ -3249,7 +3273,7 @@
             <span class="ident">ident</span>: <span class="ident">ident</span>,
             <span class="ident">generics</span>: <span class="ident">Generics</span> {
                 <span class="ident">where_clause</span>: <span class="ident">where_clause</span>,
-                .. <span class="ident">generics</span>
+                ..<span class="ident">generics</span>
             },
             <span class="ident">fields</span>: <span class="ident">fields</span>,
         })
@@ -3276,7 +3300,7 @@
             <span class="ident">ident</span>: <span class="ident">ident</span>,
             <span class="ident">generics</span>: <span class="ident">Generics</span> {
                 <span class="ident">where_clause</span>: <span class="ident">where_clause</span>,
-                .. <span class="ident">generics</span>
+                ..<span class="ident">generics</span>
             },
             <span class="ident">colon_token</span>: <span class="ident">colon</span>,
             <span class="ident">supertraits</span>: <span class="ident">bounds</span>.<span class="ident">unwrap_or_default</span>(),
@@ -3354,7 +3378,7 @@
                         <span class="ident">variadic</span>: <span class="prelude-val">None</span>,
                         <span class="ident">generics</span>: <span class="ident">Generics</span> {
                             <span class="ident">where_clause</span>: <span class="ident">where_clause</span>,
-                            .. <span class="ident">generics</span>
+                            ..<span class="ident">generics</span>
                         },
                     },
                 },
@@ -3385,7 +3409,7 @@
             <span class="ident">ident</span>: <span class="ident">ident</span>,
             <span class="ident">generics</span>: <span class="ident">Generics</span> {
                 <span class="ident">where_clause</span>: <span class="ident">where_clause</span>,
-                .. <span class="ident">generics</span>
+                ..<span class="ident">generics</span>
             },
             <span class="ident">colon_token</span>: <span class="ident">colon</span>,
             <span class="ident">bounds</span>: <span class="ident">bounds</span>.<span class="ident">unwrap_or_default</span>(),
@@ -3425,7 +3449,7 @@
         <span class="ident">where_clause</span>: <span class="macro">option</span><span class="macro">!</span>(<span class="macro">syn</span><span class="macro">!</span>(<span class="ident">WhereClause</span>)) <span class="op">&gt;&gt;</span>
         <span class="ident">inner</span>: <span class="macro">braces</span><span class="macro">!</span>(<span class="macro">tuple</span><span class="macro">!</span>(
             <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">Attribute</span>::<span class="ident">parse_inner</span>),
-            <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">ImplItem</span>::<span class="ident">parse</span>)
+            <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">ImplItem</span>::<span class="ident">parse</span>),
         )) <span class="op">&gt;&gt;</span>
         (<span class="ident">ItemImpl</span> {
             <span class="ident">attrs</span>: {
@@ -3438,7 +3462,7 @@
             <span class="ident">impl_token</span>: <span class="ident">impl_</span>,
             <span class="ident">generics</span>: <span class="ident">Generics</span> {
                 <span class="ident">where_clause</span>: <span class="ident">where_clause</span>,
-                .. <span class="ident">generics</span>
+                ..<span class="ident">generics</span>
             },
             <span class="ident">trait_</span>: <span class="ident">polarity_path</span>,
             <span class="ident">self_ty</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">self_ty</span>),
@@ -3497,7 +3521,7 @@
         <span class="ident">where_clause</span>: <span class="macro">option</span><span class="macro">!</span>(<span class="macro">syn</span><span class="macro">!</span>(<span class="ident">WhereClause</span>)) <span class="op">&gt;&gt;</span>
         <span class="ident">inner_attrs_stmts</span>: <span class="macro">braces</span><span class="macro">!</span>(<span class="macro">tuple</span><span class="macro">!</span>(
             <span class="macro">many0</span><span class="macro">!</span>(<span class="ident">Attribute</span>::<span class="ident">parse_inner</span>),
-            <span class="macro">call</span><span class="macro">!</span>(<span class="ident">Block</span>::<span class="ident">parse_within</span>)
+            <span class="macro">call</span><span class="macro">!</span>(<span class="ident">Block</span>::<span class="ident">parse_within</span>),
         )) <span class="op">&gt;&gt;</span>
         (<span class="ident">ImplItemMethod</span> {
             <span class="ident">attrs</span>: {
@@ -3519,7 +3543,7 @@
                     <span class="ident">output</span>: <span class="ident">ret</span>,
                     <span class="ident">generics</span>: <span class="ident">Generics</span> {
                         <span class="ident">where_clause</span>: <span class="ident">where_clause</span>,
-                        .. <span class="ident">generics</span>
+                        ..<span class="ident">generics</span>
                     },
                     <span class="ident">variadic</span>: <span class="prelude-val">None</span>,
                 },
@@ -3538,6 +3562,7 @@
         <span class="ident">type_</span>: <span class="macro">keyword</span><span class="macro">!</span>(<span class="kw">type</span>) <span class="op">&gt;&gt;</span>
         <span class="ident">ident</span>: <span class="macro">syn</span><span class="macro">!</span>(<span class="ident">Ident</span>) <span class="op">&gt;&gt;</span>
         <span class="ident">generics</span>: <span class="macro">syn</span><span class="macro">!</span>(<span class="ident">Generics</span>) <span class="op">&gt;&gt;</span>
+        <span class="ident">where_clause</span>: <span class="macro">option</span><span class="macro">!</span>(<span class="macro">syn</span><span class="macro">!</span>(<span class="ident">WhereClause</span>)) <span class="op">&gt;&gt;</span>
         <span class="ident">eq</span>: <span class="macro">punct</span><span class="macro">!</span>(<span class="op">=</span>) <span class="op">&gt;&gt;</span>
         <span class="ident">ty</span>: <span class="macro">syn</span><span class="macro">!</span>(<span class="ident">Type</span>) <span class="op">&gt;&gt;</span>
         <span class="ident">semi</span>: <span class="macro">punct</span><span class="macro">!</span>(;) <span class="op">&gt;&gt;</span>
@@ -3547,7 +3572,10 @@
             <span class="ident">defaultness</span>: <span class="ident">defaultness</span>,
             <span class="ident">type_token</span>: <span class="ident">type_</span>,
             <span class="ident">ident</span>: <span class="ident">ident</span>,
-            <span class="ident">generics</span>: <span class="ident">generics</span>,
+            <span class="ident">generics</span>: <span class="ident">Generics</span> {
+                <span class="ident">where_clause</span>: <span class="ident">where_clause</span>,
+                ..<span class="ident">generics</span>
+            },
             <span class="ident">eq_token</span>: <span class="ident">eq</span>,
             <span class="ident">ty</span>: <span class="ident">ty</span>,
             <span class="ident">semi_token</span>: <span class="ident">semi</span>,
@@ -3672,6 +3700,7 @@
             <span class="ident">tokens</span>.<span class="ident">append_all</span>(<span class="self">self</span>.<span class="ident">attrs</span>.<span class="ident">outer</span>());
             <span class="self">self</span>.<span class="ident">abi</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">brace_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
+                <span class="ident">tokens</span>.<span class="ident">append_all</span>(<span class="self">self</span>.<span class="ident">attrs</span>.<span class="ident">inner</span>());
                 <span class="ident">tokens</span>.<span class="ident">append_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">items</span>);
             });
         }
@@ -3963,6 +3992,7 @@
             <span class="self">self</span>.<span class="ident">type_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+            <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">where_clause</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">eq_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">ty</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">semi_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
