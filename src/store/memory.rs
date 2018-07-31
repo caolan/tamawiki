@@ -191,6 +191,7 @@ mod tests {
             let push1 = store.send(Push {
                 path: PathBuf::from("/foo/bar"),
                 update: Update {
+                    from: 1,
                     operations: vec![
                         Operation::Insert(Insert {
                             pos: 0,
@@ -205,6 +206,7 @@ mod tests {
             let push2 = store.send(Push {
                 path: PathBuf::from("/asdf"),
                 update: Update {
+                    from: 1,
                     operations: vec![
                         Operation::Insert(Insert {
                             pos: 0,
@@ -219,6 +221,7 @@ mod tests {
             let push3 = store.send(Push {
                 path: PathBuf::from("/asdf"),
                 update: Update {
+                    from: 1,
                     operations: vec![
                         Operation::Insert(Insert {
                             pos: 5,
@@ -251,6 +254,7 @@ mod tests {
             let store = MemoryStore::default().start();
 
             let a = Update {
+                from: 1,
                 operations: vec![
                     Operation::Insert(Insert {
                         pos: 0,
@@ -260,6 +264,7 @@ mod tests {
             };
 
             let b = Update {
+                from: 1,
                 operations: vec![
                     Operation::Insert(Insert {
                         pos: 5,
@@ -269,6 +274,7 @@ mod tests {
             };
 
             let c = Update {
+                from: 1,
                 operations: vec![
                     Operation::Insert(Insert {
                         pos: 12,
@@ -385,6 +391,7 @@ mod tests {
             let push1 = store.send(Push {
                 path: PathBuf::from("/foo/bar"),
                 update: Update {
+                    from: 1,
                     operations: vec![
                         Operation::Insert(Insert {
                             pos: 0,
@@ -397,6 +404,7 @@ mod tests {
             let push2 = store.send(Push {
                 path: PathBuf::from("/asdf"),
                 update: Update {
+                    from: 1,
                     operations: vec![
                         Operation::Insert(Insert {
                             pos: 0,
@@ -409,6 +417,7 @@ mod tests {
             let push3 = store.send(Push {
                 path: PathBuf::from("/asdf"),
                 update: Update {
+                    from: 1,
                     operations: vec![
                         Operation::Insert(Insert {
                             pos: 5,
@@ -463,6 +472,7 @@ mod tests {
             let push1 = store.send(Push {
                 path: PathBuf::from("/asdf"),
                 update: Update {
+                    from: 1,
                     operations: vec![
                         Operation::Insert(Insert {
                             pos: 0,
@@ -475,6 +485,7 @@ mod tests {
             let push2 = store.send(Push {
                 path: PathBuf::from("/asdf"),
                 update: Update {
+                    from: 1,
                     operations: vec![
                         Operation::Insert(Insert {
                             pos: 5,
@@ -524,6 +535,7 @@ mod tests {
             let push1 = store.send(Push {
                 path: PathBuf::from("/asdf"),
                 update: Update {
+                    from: 1,
                     operations: vec![
                         Operation::Insert(Insert {
                             pos: 0,
@@ -536,6 +548,7 @@ mod tests {
             let push2 = store.send(Push {
                 path: PathBuf::from("/asdf"),
                 update: Update {
+                    from: 1,
                     operations: vec![
                         Operation::Insert(Insert {
                             pos: 5,

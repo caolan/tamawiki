@@ -1,4 +1,9 @@
 //! A wiki implemented in Rust
+
+// for property testing in session module
+#[cfg(test)]
+#[macro_use] extern crate proptest;
+
 #[macro_use]
 extern crate tera;
 

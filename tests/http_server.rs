@@ -66,6 +66,7 @@ fn get_page_content_from_store() {
         let push1 = store.send(Push {
             path: PathBuf::from("test.html"),
             update: Update {
+                from: 1,
                 operations: vec![Operation::Insert(Insert {
                     pos: 0,
                     content: String::from("Testing"),
@@ -76,6 +77,7 @@ fn get_page_content_from_store() {
         let push2 = store.send(Push {
             path: PathBuf::from("test.html"),
             update: Update {
+                from: 1,
                 operations: vec![Operation::Insert(Insert {
                     pos: 7,
                     content: String::from(" 123"),

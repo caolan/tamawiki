@@ -1,9 +1,12 @@
 //! Documents and Operations on their content.
 use std::error;
 use std::fmt;
+use std::cmp;
+use connection::ConnectionId;
+
 
 /// Represents some String content at a point in time
-#[derive(Debug, PartialEq, Default)]
+#[derive(Debug, PartialEq, Default, Clone)]
 pub struct Document {
     pub content: String
 }
@@ -199,19 +202,105 @@ impl error::Error for UpdateError {
 /// all).
 #[derive(Debug, PartialEq, Clone)]
 pub struct Update {
+    pub from: ConnectionId,
     pub operations: Vec<Operation>,
+}
+
+impl Update {
+    // Does the Update from ConnectionId 'a' take precedence over the
+    // Update from ConnectionId 'b' if operations conflict?
+    fn has_priority(a: ConnectionId, b: ConnectionId) -> bool {
+        a > b
+    }
+    
+    /// Modifies the `operations` inside the Update struct to
+    /// accommodate a concurrent Update entry whose operations have
+    /// already been applied locally.
+    pub fn transform(&mut self, concurrent: &Update) {
+        use self::Operation as Op;
+        let mut new_operations = vec![];
+
+        for op in concurrent.operations.iter() {
+            for operation in self.operations.iter_mut() {
+                match (operation, op) {
+                    (Op::Insert(ref mut this), &Op::Insert(ref other)) => {
+                        if other.pos < this.pos ||
+                            (other.pos == this.pos &&
+                             Update::has_priority(concurrent.from, self.from)) {
+                                this.pos += other.content.chars().count();
+                            }
+                    },
+                    (Op::Insert(ref mut this), &Op::Delete(ref other)) => {
+                        if other.start < this.pos {
+                            let end = cmp::min(this.pos, other.end);
+                            this.pos -= end - other.start;
+                        }
+                    },
+                    (Op::Delete(ref mut this), &Op::Insert(ref other)) => {
+                        if other.pos <= this.start {
+                            let len = other.content.chars().count();
+                            this.start += len;
+                            this.end += len;
+                        } else if other.pos < this.end {
+                            // need to split the delete into two parts
+                            // to avoid clobbering the new insert
+                            let len = other.content.chars().count();
+                            let start2 = other.pos + len;
+                            let end2 = this.end + len;
+                            this.end = other.pos;
+                            let first_del_len = other.pos - this.start;
+                            new_operations.push(
+                                Op::Delete(Delete {
+                                    // the start and end will be affected
+                                    // by the first delete range, so we
+                                    // need to adjust the indices
+                                    // accordingly
+                                    start: start2 - first_del_len,
+                                    end: end2 - first_del_len
+                                })
+                            );
+                        }
+                    },
+                    (Op::Delete(ref mut this), &Op::Delete(ref other)) => {
+                        let mut chars_deleted_before = 0;
+                        if other.start < this.start {
+                            let end = cmp::min(this.start, other.end);
+                            chars_deleted_before = end - other.start;
+                        }
+                        let mut chars_deleted_inside = 0;
+                        if other.start < this.start {
+                            if other.end > this.start {
+                                let end = cmp::min(this.end, other.end);
+                                chars_deleted_inside = end - this.start;
+                            }
+                        } else if other.start < this.end {
+                            let end = cmp::min(this.end, other.end);
+                            chars_deleted_inside = end - other.start;
+                        }
+                        this.start -= chars_deleted_before;
+                        this.end -= chars_deleted_before + chars_deleted_inside;
+                    },
+                }
+            }
+            self.operations.append(&mut new_operations);
+            self.operations.retain(|op| op.has_effect());
+        }
+    }
 }
 
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    use std::ops::Range;
+    use proptest::prelude::*;
+    
     fn operation_test(initial: &'static str, op: Operation, expected: &'static str) {
         let mut doc = Document {
             content: String::from(initial),
         };
         doc.apply(&Update {
+            from: 1,
             operations: vec![op]
         }).unwrap();
         
@@ -362,6 +451,7 @@ mod tests {
         };
         assert_eq!(
             doc.apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Delete(Delete {
                         start: 3,
@@ -377,6 +467,7 @@ mod tests {
         });
         assert_eq!(
             doc.apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Delete(Delete {
                         start: 7,
@@ -400,6 +491,7 @@ mod tests {
         };
         assert_eq!(
             doc.apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Insert(Insert {
                         pos: 8,
@@ -421,6 +513,7 @@ mod tests {
             content: String::from("Hello"),
         };
         doc.apply(&Update {
+            from: 1,
             operations: vec![
                 Operation::Insert(Insert {
                     pos: 5,
@@ -449,6 +542,7 @@ mod tests {
         };
         assert_eq!(
             doc.apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Insert(Insert {
                         pos: 0,
@@ -480,6 +574,7 @@ mod tests {
             content: String::from("Hello"),
         };
         doc.apply(&Update {
+            from: 1,
             operations: vec![
                 Operation::Insert(Insert {
                     pos: 5,
@@ -508,6 +603,7 @@ mod tests {
         };
         assert_eq!(
             doc.apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Delete(Delete {
                         start: 0,
@@ -535,6 +631,7 @@ mod tests {
         };
         assert_eq!(
             doc.apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Delete(Delete {
                         start: 2,
@@ -552,6 +649,7 @@ mod tests {
 
         assert_eq!(
             doc.apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Insert(Insert {
                         pos: 0,
@@ -575,6 +673,7 @@ mod tests {
         };
         assert_eq!(
             doc.can_apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Insert (Insert {
                         pos: 0,
@@ -586,6 +685,7 @@ mod tests {
         );
         assert_eq!(
             doc.can_apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Insert (Insert {
                         pos: 100,
@@ -597,6 +697,7 @@ mod tests {
         );
         assert_eq!(
             doc.can_apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Insert (Insert {
                         pos: 100,
@@ -608,6 +709,7 @@ mod tests {
         );
         assert_eq!(
             doc.can_apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Delete (Delete {
                         start: 0,
@@ -619,6 +721,7 @@ mod tests {
         );
         assert_eq!(
             doc.can_apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Delete (Delete {
                         start: 100,
@@ -630,6 +733,7 @@ mod tests {
         );
         assert_eq!(
             doc.can_apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Delete (Delete {
                         start: 0,
@@ -641,6 +745,7 @@ mod tests {
         );
         assert_eq!(
             doc.can_apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Delete (Delete {
                         start: 1,
@@ -652,6 +757,7 @@ mod tests {
         );
         assert_eq!(
             doc.can_apply(&Update {
+                from: 1,
                 operations: vec![
                     Operation::Delete (Delete {
                         start: 2,
@@ -678,6 +784,781 @@ mod tests {
         assert!(Operation::Delete (Delete {start: 0, end: 10}).is_valid());
         assert!(!Operation::Delete (Delete {start: 0, end: 0}).is_valid());
         assert!(!Operation::Delete (Delete {start: 10, end: 0}).is_valid());
+    }
+
+    
+    #[test]
+    fn transform_insert_before_insert() {
+        let mut h = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("Test")
+            })]
+        };
+        h.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 10,
+                content: String::from("foo")
+            })]
+        });
+        assert_eq!(h.operations, vec![Operation::Insert(Insert {
+            pos: 0,
+            content: String::from("Test")
+        })]);
+    }
+    
+    #[test]
+    fn transform_insert_after_insert() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 10,
+                content: String::from("Test")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 2,
+                content: String::from("foo")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 13,
+            content: String::from("Test")
+        })]);
+    }
+    
+    #[test]
+    fn transform_inserts_at_same_point_checks_priority() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 5,
+                content: String::from("Test")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 5,
+                content: String::from("foo")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 8,
+            content: String::from("Test")
+        })]);
+        
+        let mut msg = Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 5,
+                content: String::from("Test")
+            })]
+        };
+        msg.transform(&Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 5,
+                content: String::from("foo")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 5,
+            content: String::from("Test")
+        })]);
+    }
+
+    #[test]
+    fn transform_insert_uses_char_index_not_byte_index() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 5,
+                content: String::from("Test")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                // 2-byte unicode scalar value
+                content: String::from("д")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            // 6 is char index, 7 would be byte index
+            pos: 6,
+            content: String::from("Test")
+        })]);
+    }
+
+    #[test]
+    fn transform_delete_delete_non_overlapping_after() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 5
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 10,
+                end: 15
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 0,
+            end: 5
+        })]);
+    }
+     
+    #[test]
+    fn transform_delete_delete_non_overlapping_before() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 5,
+                end: 10
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 1
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 4,
+            end: 9
+        })]);
+    }
+
+    #[test]
+    fn transform_delete_delete_adjacent_before() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 2,
+                end: 4
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+            start: 0,
+            end: 2
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 0,
+            end: 2
+        })]);
+    }
+    
+    #[test]
+    fn transform_delete_delete_adjacent_after() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 3
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+            start: 3,
+            end: 5
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 0,
+            end: 3
+        })]);
+    }
+    
+    #[test]
+    fn transform_delete_delete_overlapping_start() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 5,
+                end: 15
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 10
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 0,
+            end: 5
+        })]);
+    }
+
+    #[test]
+    fn transform_delete_delete_overlapping_end() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 4
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 2,
+                end: 6
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 0,
+            end: 2
+        })]);
+    }
+ 
+    #[test]
+    fn transform_delete_delete_subset() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 5,
+                end: 10
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 1,
+                end: 20
+            })]
+        });
+        assert_eq!(msg.operations, vec![]);
+    }
+
+    #[test]
+    fn transform_delete_delete_superset() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 17
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 5,
+                end: 10
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 0,
+            end: 12
+        })]);
+    }
+
+    #[test]
+    fn transform_insert_delete_non_overlapping_after() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("12345")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 10,
+                end: 15
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 0,
+            content: String::from("12345")
+        })]);
+    }
+    
+    #[test]
+    fn transform_insert_delete_non_overlapping_before() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 5,
+                content: String::from("foo")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 1
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 4,
+            content: String::from("foo")
+        })]);
+    }
+
+    #[test]
+    fn transform_insert_delete_adjacent_before() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 2,
+                content: String::from("ab")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 2
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 0,
+            content: String::from("ab")
+        })]);
+    }
+    
+    #[test]
+    fn transform_insert_delete_adjacent_after() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("foo")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 3,
+                end: 5
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 0,
+            content: String::from("foo")
+        })]);
+    }
+    
+    #[test]
+    fn transform_insert_delete_overlapping_start() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 5,
+                content: String::from("1234567890")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 10
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 0,
+            content: String::from("1234567890")
+        })]);
+    }
+
+    #[test]
+    fn transform_insert_delete_overlapping_end() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("abcd")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 2,
+                end: 6
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 0,
+            content: String::from("abcd")
+        })]);
+    }
+
+    #[test]
+    fn transform_insert_delete_subset() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 5,
+                content: String::from("12345")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 1,
+                end: 20
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 1,
+            content: String::from("12345")
+        })]);
+    }
+
+    #[test]
+    fn transform_insert_delete_superset() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("12345678901234567")
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Delete(Delete {
+                start: 5,
+                end: 10
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
+            pos: 0,
+            content: String::from("12345678901234567")
+        })]);
+    }
+
+    #[test]
+    fn transform_delete_insert_non_overlapping_after() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 5
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 10,
+                content: String::from("12345")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 0,
+            end: 5
+        })]);
+    }
+    
+    #[test]
+    fn transform_delete_insert_non_overlapping_before() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 5,
+                end: 8
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("a")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 6,
+            end: 9
+        })]);
+    }
+
+    #[test]
+    fn transform_delete_insert_adjacent_before() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 2,
+                end: 4
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("ab")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 4,
+            end: 6
+        })]);
+    }
+    
+    #[test]
+    fn transform_delete_insert_adjacent_after() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 3
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 3,
+                content: String::from("ab")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 0,
+            end: 3
+        })]);
+    }
+    
+    #[test]
+    fn transform_delete_insert_same_start_position() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 2,
+                end: 4
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 2,
+                content: String::from("cd")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 4,
+            end: 6
+        })]);
+    }
+    
+    #[test]
+    fn transform_delete_insert_overlapping_start() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 5,
+                end: 15
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("1234567890")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 15,
+            end: 25
+        })]);
+    }
+
+    #[test]
+    fn transform_delete_insert_overlapping_end() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 4
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 2,
+                content: String::from("abcd")
+            })]
+        });
+        assert_eq!(msg.operations, vec![
+            Operation::Delete(Delete {
+                start: 0,
+                end: 2
+            }),
+            // start and end indices are -2 because the first
+            // operation will affect the second
+            Operation::Delete(Delete {
+                start: 4,
+                end: 6
+            }),
+        ]);
+    }
+
+    #[test]
+    fn transform_delete_insert_subset() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 5,
+                end: 10
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 1,
+                content: String::from("12345678901234567890")
+            })]
+        });
+        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
+            start: 25,
+            end: 30
+        })]);
+    }
+
+    #[test]
+    fn transform_delete_insert_superset() {
+        let mut msg = Update {
+            from: 1,
+            operations: vec![Operation::Delete(Delete {
+                start: 0,
+                end: 17
+            })]
+        };
+        msg.transform(&Update {
+            from: 2,
+            operations: vec![Operation::Insert(Insert {
+                pos: 5,
+                content: String::from("12345")
+            })]
+        });
+        assert_eq!(msg.operations, vec![
+            Operation::Delete(Delete {
+                start: 0,
+                end: 5
+            }),
+            // start and end indices are -5 because the first
+            // operation will affect the second
+            Operation::Delete(Delete {
+                start: 5,
+                end: 17
+            }),
+        ]);
+    }
+
+    trait GenerateStrategy {
+        fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation>;
+    }
+
+    impl GenerateStrategy for Delete {
+        fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation> {
+            (Range { start: 0, end: doc_size + 1 },
+             Range { start: 0, end: doc_size + 1 })
+                .prop_filter(
+                    "Delete operation start index must be smaller than end index".to_owned(),
+                    |v| v.0 < v.1
+                )
+                .prop_map(|v| Operation::Delete(Delete { start: v.0, end: v.1 }))
+                .boxed()
+        }
+    }
+
+    impl GenerateStrategy for Insert {
+        fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation> {
+            (Range { start: 0, end: doc_size }, ".{1,100}")
+                .prop_map(|v| Operation::Insert(Insert { pos: v.0, content: v.1 }))
+                .boxed()
+        }
+    }
+    
+    fn generate_document_data() -> BoxedStrategy<String> {
+        ".{1,100}".prop_filter(
+            "Document must contain at least one unicode scalar value".to_owned(),
+            |v| v.chars().count() > 0
+        ).boxed()
+    }
+
+    fn conflicting_operations<A, B>() -> BoxedStrategy<(String, Operation, Operation)>
+    where A: GenerateStrategy,
+          B: GenerateStrategy
+    {
+        generate_document_data()
+            .prop_flat_map(|initial| {
+                let len = initial.chars().count();
+                (Just(initial),
+                 <A as GenerateStrategy>::generate_strategy(len),
+                 <B as GenerateStrategy>::generate_strategy(len),
+                )
+            })
+            .boxed()
+    }
+
+    // helper function for proptest! block below
+    fn check_order_of_application(initial: &str, op1: &Operation, op2: &Operation) {
+        let doc = Document::from(initial);
+        let mut a1 = Update {
+            from: 1,
+            operations: vec![op1.clone()]
+        };
+        let b1 = Update {
+            from: 2,
+            operations: vec![op2.clone()]
+        };
+        let a2 = a1.clone();
+        let mut b2 = b1.clone();
+        let mut doc1 = doc.clone();
+        let mut doc2 = doc.clone();
+        a1.transform(&b1);
+        b2.transform(&a2);
+        // apply original operations
+        doc1.apply(&b1).unwrap();
+        doc2.apply(&a2).unwrap();
+        // apply transformed operations on top
+        doc1.apply(&a1).unwrap();
+        doc2.apply(&b2).unwrap();
+        // check the results converge
+        assert_eq!(doc1, doc2);
+    }
+
+    proptest! {
+
+        #[test]
+        fn insert_insert_order_of_application
+            ((ref initial, ref op1, ref op2) in conflicting_operations::<Insert, Insert>()) {
+                check_order_of_application(initial, op1, op2);
+            }
+
+        #[test]
+        fn delete_delete_order_of_application
+            ((ref initial, ref op1, ref op2) in conflicting_operations::<Delete, Delete>()) {
+                check_order_of_application(initial, op1, op2);
+            }
+
+        #[test]
+        fn delete_insert_order_of_application
+            ((ref initial, ref op1, ref op2) in conflicting_operations::<Delete, Insert>()) {
+                check_order_of_application(initial, op1, op2);
+            }
+
+        #[test]
+        fn insert_delete_order_of_application
+            ((ref initial, ref op1, ref op2) in conflicting_operations::<Insert, Delete>()) {
+                check_order_of_application(initial, op1, op2);
+            }
+        
     }
 
 }
