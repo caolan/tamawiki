@@ -191,6 +191,7 @@ ALIASES['tamawiki'] = {};
 ALIASES['tamawiki'] = {};
 ALIASES['tamawiki'] = {};
 ALIASES['tamawiki'] = {};
+ALIASES['tamawiki'] = {};
 ALIASES['tera'] = {};
 ALIASES['tera'] = {};
 ALIASES['tera'] = {};
