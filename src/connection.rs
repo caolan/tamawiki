@@ -119,9 +119,12 @@ impl<T: Store> Handler<session::Connected<T>> for Connection<T> {
     {
         let session::Connected {id, session, participants} = msg;
         self.session = Some((id, session.clone()));
-        
-        ctx.address().do_send(ServerMessage::Connected(
-            Connected {id, participants}
-        ));
+        ctx.text(
+            serde_json::to_string(&ServerMessage::Connected(
+                Connected {id, participants}
+            )).expect(
+                "failed to serialize response as JSON"
+            )
+        );
     }
 }
