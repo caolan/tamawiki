@@ -5,7 +5,7 @@
                            <td><a class="mod" href="connection/index.html"
                                   title='mod tamawiki::connection'>connection</a></td>
                            <td class='docblock-short'>
-                                <p>Handles websocket connections to collaborative edit sessions</p>
+                                <p>Client communication with an EditSession via websockets</p>
 
                            </td>
                        </tr>
@@ -13,9 +13,7 @@
                            <td><a class="mod" href="document/index.html"
                                   title='mod tamawiki::document'>document</a></td>
                            <td class='docblock-short'>
-                                <p>This module describes a Document, which represents some String
-content at a point in time, and Operations, which can be applied
-to the Document to update it's content.</p>
+                                <p>Documents and Operations on their content.</p>
 
                            </td>
                        </tr>
@@ -23,16 +21,16 @@ to the Document to update it's content.</p>
                            <td><a class="mod" href="session/index.html"
                                   title='mod tamawiki::session'>session</a></td>
                            <td class='docblock-short'>
-                                
+                                <p>EditSessions write data to the store, and co-ordinate client
+updates and notifications.</p>
+
                            </td>
                        </tr>
                        <tr class=' module-item'>
                            <td><a class="mod" href="store/index.html"
                                   title='mod tamawiki::store'>store</a></td>
                            <td class='docblock-short'>
-                                <p>A store persists document updates using paths as keys. Every store
-implementation must define an Actor capable of handling the
-messages in this module by implementing the Store trait.</p>
+                                <p>A store persists document updates using paths as keys.</p>
 
                            </td>
                        </tr>

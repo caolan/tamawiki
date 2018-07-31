@@ -681,16 +681,12 @@
 <span id="681">681</span>
 <span id="682">682</span>
 <span id="683">683</span>
-<span id="684">684</span>
 </pre><pre class="rust ">
-<span class="doccomment">//! This module describes a Document, which represents some String</span>
-<span class="doccomment">//! content at a point in time, and Operations, which can be applied</span>
-<span class="doccomment">//! to the Document to update it&#39;s content.</span>
-
+<span class="doccomment">//! Documents and Operations on their content.</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 
-<span class="doccomment">/// Represents the current state of a document</span>
+<span class="doccomment">/// Represents some String content at a point in time</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Document</span> {
     <span class="kw">pub</span> <span class="ident">content</span>: <span class="ident">String</span>
@@ -811,7 +807,9 @@
     <span class="kw">pub</span> <span class="ident">end</span>: <span class="ident">usize</span>,
 }
 
-<span class="doccomment">/// Describes incremental changes to a Document&#39;s content</span>
+<span class="doccomment">/// Describes incremental changes to a Document&#39;s content. Through the</span>
+<span class="doccomment">/// accumulated application of Operations to a Document, the</span>
+<span class="doccomment">/// Document&#39;s content at a point in time can be derived.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Operation</span> {
     <span class="ident">Insert</span>(<span class="ident">Insert</span>),

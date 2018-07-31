@@ -171,16 +171,47 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
 </pre><pre class="rust ">
+<span class="doccomment">//! EditSessions write data to the store, and co-ordinate client</span>
+<span class="doccomment">//! updates and notifications.</span>
+
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">actix</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 
 <span class="comment">// use super::TamaWikiState;</span>
-<span class="kw">use</span> <span class="ident">connection</span>::{<span class="ident">Connection</span>, <span class="ident">ConnectionId</span>};
+<span class="kw">use</span> <span class="ident">connection</span>::{<span class="ident">Connection</span>, <span class="ident">ConnectionId</span>, <span class="ident">ServerMessage</span>, <span class="ident">Join</span>, <span class="ident">Leave</span>};
 <span class="kw">use</span> <span class="ident">store</span>::<span class="ident">Store</span>;
 
-
+<span class="doccomment">/// Central registry for current EditSessions in progress. The</span>
+<span class="doccomment">/// EditSessionManager lets clients join an existing EditSession if</span>
+<span class="doccomment">/// one is in progress, or will create a new one when the first client</span>
+<span class="doccomment">/// joins.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EditSessionManager</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span><span class="op">&gt;</span> {
     <span class="ident">sessions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">EditSession</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
@@ -198,6 +229,7 @@
     }
 }
 
+<span class="doccomment">/// Connect to an EditSession (or create one if none are in progress).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Message</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Connect</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">from</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
@@ -205,17 +237,22 @@
     <span class="kw">pub</span> <span class="ident">seq</span>: <span class="ident">usize</span>,
 }
 
+<span class="doccomment">/// Notify a Connection actor that it has joined an EditSession.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Message</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Connected</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ConnectionId</span>,
     <span class="kw">pub</span> <span class="ident">session</span>: <span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">EditSession</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">participants</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ConnectionId</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// Leave an EditSession</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Message</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Disconnect</span> {
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ConnectionId</span>
 }
 
+<span class="doccomment">/// Sent by the EditSession to the EditSessionManager after all</span>
+<span class="doccomment">/// clients leave.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Message</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EndSession</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">path</span>: <span class="ident">PathBuf</span>,
@@ -266,7 +303,8 @@
     }
 }
 
-<span class="doccomment">/// Represents a collaborative editing session for a single document</span>
+<span class="doccomment">/// Represents a collaborative editing session for a single document.</span>
+<span class="doccomment">/// Co-ordinates messages between connected clients.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EditSession</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span><span class="op">&gt;</span> {
     <span class="ident">next_id</span>: <span class="ident">ConnectionId</span>,
     <span class="ident">connected</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">ConnectionId</span>, (<span class="ident">Addr</span><span class="op">&lt;</span><span class="ident">Connection</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>, <span class="ident">usize</span>)<span class="op">&gt;</span>,
@@ -311,23 +349,28 @@
         <span class="self">Self</span>::<span class="prelude-ty">Result</span>
     {
         <span class="self">self</span>.<span class="ident">next_id</span> <span class="op">+=</span> <span class="number">1</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">participants</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
 
-        <span class="comment">// TODO: should we check if the id already exists in the hashmap?</span>
-        <span class="comment">// for (addr, _seq) in self.connected.values() {</span>
-        <span class="comment">//     Arbiter::handle().spawn(</span>
-        <span class="comment">//         addr.send(ServerMessage::Join(</span>
-        <span class="comment">//             ServerJoinMessage {</span>
-        <span class="comment">//                 id: self.next_id</span>
-        <span class="comment">//             }</span>
-        <span class="comment">//         )).map_err(|_| ())</span>
-        <span class="comment">//     );</span>
-        <span class="comment">// }</span>
-        <span class="self">self</span>.<span class="ident">connected</span>.<span class="ident">insert</span>(<span class="self">self</span>.<span class="ident">next_id</span>, (<span class="ident">msg</span>.<span class="ident">from</span>.<span class="ident">clone</span>(), <span class="number">0</span>));
+        <span class="kw">for</span> (<span class="ident">id</span>, (<span class="ident">addr</span>, <span class="ident">_seq</span>)) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">connected</span>.<span class="ident">iter</span>() {
+            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">id</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">next_id</span> {
+                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Duplicate connection ID detected in EditSession&quot;</span>);
+            }
+            <span class="ident">participants</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">id</span>);
+            <span class="ident">addr</span>.<span class="ident">do_send</span>(<span class="ident">ServerMessage</span>::<span class="ident">Join</span>(<span class="ident">Join</span> {
+                <span class="ident">id</span>: <span class="self">self</span>.<span class="ident">next_id</span>
+            }));
+        }
+        
+        <span class="self">self</span>.<span class="ident">connected</span>.<span class="ident">insert</span>(
+            <span class="self">self</span>.<span class="ident">next_id</span>,
+            (<span class="ident">msg</span>.<span class="ident">from</span>.<span class="ident">clone</span>(), <span class="ident">msg</span>.<span class="ident">seq</span>)
+        );
         
         <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">address</span>();
         <span class="ident">msg</span>.<span class="ident">from</span>.<span class="ident">do_send</span>(<span class="ident">Connected</span> {
             <span class="ident">id</span>: <span class="self">self</span>.<span class="ident">next_id</span>,
             <span class="ident">session</span>: <span class="ident">addr</span>,
+            <span class="ident">participants</span>
         });
     }
 }
@@ -340,8 +383,15 @@
     {
         <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;removing connection {}&quot;</span>, <span class="ident">msg</span>.<span class="ident">id</span>);
         <span class="self">self</span>.<span class="ident">connected</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>.<span class="ident">id</span>);
+        
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">connected</span>.<span class="ident">is_empty</span>() {
             <span class="ident">ctx</span>.<span class="ident">stop</span>();
+        } <span class="kw">else</span> {
+            <span class="kw">for</span> (<span class="ident">addr</span>, <span class="ident">_seq</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">connected</span>.<span class="ident">values</span>() {
+                <span class="ident">addr</span>.<span class="ident">do_send</span>(<span class="ident">ServerMessage</span>::<span class="ident">Leave</span>(<span class="ident">Leave</span> {
+                    <span class="ident">id</span>: <span class="ident">msg</span>.<span class="ident">id</span>
+                }));
+            }
         }
     }
 }
