@@ -9,7 +9,10 @@
 {% endblock actions %}
 
 {% block content %}
-<div id="editor">
+<div id="participants">
+</div>
+
+<div id="editor" data-initial-seq="{{ seq }}">
     {{ content }}
 </div>
 {% endblock content %}

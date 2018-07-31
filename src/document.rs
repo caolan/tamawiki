@@ -1,11 +1,8 @@
-//! This module describes a Document, which represents some String
-//! content at a point in time, and Operations, which can be applied
-//! to the Document to update it's content.
-
+//! Documents and Operations on their content.
 use std::error;
 use std::fmt;
 
-/// Represents the current state of a document
+/// Represents some String content at a point in time
 #[derive(Debug, PartialEq, Default)]
 pub struct Document {
     pub content: String
@@ -126,7 +123,9 @@ pub struct Delete {
     pub end: usize,
 }
 
-/// Describes incremental changes to a Document's content
+/// Describes incremental changes to a Document's content. Through the
+/// accumulated application of Operations to a Document, the
+/// Document's content at a point in time can be derived.
 #[derive(Debug, PartialEq, Clone)]
 pub enum Operation {
     Insert(Insert),

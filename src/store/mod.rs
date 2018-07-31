@@ -1,6 +1,8 @@
-//! A store persists document updates using paths as keys. Every store
-//! implementation must define an Actor capable of handling the
-//! messages in this module by implementing the Store trait.
+//! A store persists document updates using paths as keys.
+//!
+//! Every store implementation must define an Actor capable of
+//! handling the messages in this module by implementing the Store
+//! trait.
 //!
 //! A document's content is calculated by the accumulated application
 //! of updates within the store up until a given point in time. A

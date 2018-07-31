@@ -1,4 +1,4 @@
-//! Handles websocket connections to collaborative edit sessions
+//! Client communication with an EditSession via websockets
 use actix_web::ws;
 use std::path::PathBuf;
 use actix::prelude::*;
@@ -63,26 +63,46 @@ impl<T: Store> StreamHandler<ws::Message, ws::ProtocolError> for Connection<T> {
     }
 }
 
+/// An enum of the possible messages the server can send to the
+/// connected client
 #[derive(Debug, PartialEq, Deserialize, Serialize, Message)]
-pub enum ConnectionMessage {
+pub enum ServerMessage {
     Connected (Connected),
+    Join (Join),
+    Leave (Leave),
 }
 
+/// Sent when the client has benn successfully connected to an
+/// EditSession
 #[derive(Debug, PartialEq, Deserialize, Serialize, Message)]
 pub struct Connected {
     pub id: ConnectionId,
+    pub participants: Vec<ConnectionId>,
 }
 
-impl<T: Store> Handler<ConnectionMessage> for Connection<T> {
+/// Sent when a participant joins the EditSession
+#[derive(Debug, PartialEq, Deserialize, Serialize, Message)]
+pub struct Join {
+    pub id: ConnectionId,
+}
+
+
+/// Sent when a participant leaves the EditSession
+#[derive(Debug, PartialEq, Deserialize, Serialize, Message)]
+pub struct Leave {
+    pub id: ConnectionId,
+}
+
+impl<T: Store> Handler<ServerMessage> for Connection<T> {
     type Result = ();
     
     fn handle(&mut self,
-              msg: ConnectionMessage,
+              msg: ServerMessage,
               ctx: &mut ws::WebsocketContext<Connection<T>, TamaWikiState<T>>) ->
         Self::Result
     {
         ctx.text(
-            serde_json::to_string::<ConnectionMessage>(&msg)
+            serde_json::to_string::<ServerMessage>(&msg)
                 .expect("failed to serialize response as JSON")
         );
     }
@@ -97,11 +117,11 @@ impl<T: Store> Handler<session::Connected<T>> for Connection<T> {
               ctx: &mut ws::WebsocketContext<Connection<T>, TamaWikiState<T>>) ->
         Self::Result
     {
-        let session::Connected {id, session} = msg;
+        let session::Connected {id, session, participants} = msg;
         self.session = Some((id, session.clone()));
         
-        ctx.address().do_send(ConnectionMessage::Connected(
-            Connected {id}
+        ctx.address().do_send(ServerMessage::Connected(
+            Connected {id, participants}
         ));
     }
 }
