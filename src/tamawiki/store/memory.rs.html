@@ -619,6 +619,19 @@
 <span id="619">619</span>
 <span id="620">620</span>
 <span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! An in-memory store, useful for testing.</span>
 
@@ -813,6 +826,7 @@
             <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
                 <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
                 <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">from</span>: <span class="number">1</span>,
                     <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                             <span class="ident">pos</span>: <span class="number">0</span>,
@@ -827,6 +841,7 @@
             <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
                 <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
                 <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">from</span>: <span class="number">1</span>,
                     <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                             <span class="ident">pos</span>: <span class="number">0</span>,
@@ -841,6 +856,7 @@
             <span class="kw">let</span> <span class="ident">push3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
                 <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
                 <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">from</span>: <span class="number">1</span>,
                     <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                             <span class="ident">pos</span>: <span class="number">5</span>,
@@ -873,6 +889,7 @@
             <span class="kw">let</span> <span class="ident">store</span> <span class="op">=</span> <span class="ident">MemoryStore</span>::<span class="ident">default</span>().<span class="ident">start</span>();
 
             <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Update</span> {
+                <span class="ident">from</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                         <span class="ident">pos</span>: <span class="number">0</span>,
@@ -882,6 +899,7 @@
             };
 
             <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Update</span> {
+                <span class="ident">from</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                         <span class="ident">pos</span>: <span class="number">5</span>,
@@ -891,6 +909,7 @@
             };
 
             <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Update</span> {
+                <span class="ident">from</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                         <span class="ident">pos</span>: <span class="number">12</span>,
@@ -1007,6 +1026,7 @@
             <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
                 <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/foo/bar&quot;</span>),
                 <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">from</span>: <span class="number">1</span>,
                     <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                             <span class="ident">pos</span>: <span class="number">0</span>,
@@ -1019,6 +1039,7 @@
             <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
                 <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
                 <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">from</span>: <span class="number">1</span>,
                     <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                             <span class="ident">pos</span>: <span class="number">0</span>,
@@ -1031,6 +1052,7 @@
             <span class="kw">let</span> <span class="ident">push3</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
                 <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
                 <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">from</span>: <span class="number">1</span>,
                     <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                             <span class="ident">pos</span>: <span class="number">5</span>,
@@ -1085,6 +1107,7 @@
             <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
                 <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
                 <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">from</span>: <span class="number">1</span>,
                     <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                             <span class="ident">pos</span>: <span class="number">0</span>,
@@ -1097,6 +1120,7 @@
             <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
                 <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
                 <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">from</span>: <span class="number">1</span>,
                     <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                             <span class="ident">pos</span>: <span class="number">5</span>,
@@ -1146,6 +1170,7 @@
             <span class="kw">let</span> <span class="ident">push1</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
                 <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
                 <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">from</span>: <span class="number">1</span>,
                     <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                             <span class="ident">pos</span>: <span class="number">0</span>,
@@ -1158,6 +1183,7 @@
             <span class="kw">let</span> <span class="ident">push2</span> <span class="op">=</span> <span class="ident">store</span>.<span class="ident">send</span>(<span class="ident">Push</span> {
                 <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="string">&quot;/asdf&quot;</span>),
                 <span class="ident">update</span>: <span class="ident">Update</span> {
+                    <span class="ident">from</span>: <span class="number">1</span>,
                     <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                         <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                             <span class="ident">pos</span>: <span class="number">5</span>,

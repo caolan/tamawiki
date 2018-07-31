@@ -1,0 +1,1533 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `proptest` crate."><meta name="keywords" content="rust, rustlang, rust-lang, proptest"><title>proptest - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Crate proptest</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'proptest', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>proptest</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/proptest/lib.rs.html#10-1757' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>Proptest is a property testing framework (i.e., the QuickCheck family)
+inspired by the <a href="http://hypothesis.works/">Hypothesis</a> framework for
+Python. It allows to test that certain properties of your code hold for
+arbitrary inputs, and if a failure is found, automatically finds the
+minimal test case to reproduce the problem. Unlike QuickCheck, generation
+and shrinking is defined on a per-value basis instead of per-type, which
+makes it more flexible and simplifies composition.</p>
+<p>If you have dependencies which provide QuickCheck <code>Arbitrary</code>
+implementations, see also the related
+<a href="https://crates.io/crates/proptest-quickcheck-interop"><code>proptest-quickcheck-interop</code></a>
+crates which enables reusing those implementations with proptest.</p>
+<!-- NOREADME
+NOREADME The funky ampersand stuff here is necessary since pulldown doesn't
+NOREADME allow HTML comments to span paragraphs. gen-readme.sh turns
+NOREADME these into the appropriate markup.
+&H2 Status of this crate
+&NL
+The majority of the functionality offered by proptest is in active use and
+is known to work well.
+&NL
+The API is unlikely to see drastic breaking changes, but there may still be
+minor breaking changes here and there, particularly when "impl Trait"
+becomes stable and after the upcoming redesign of the `rand` crate.
+&NL
+See the [changelog](https://github.com/AltSysrq/proptest/blob/master/CHANGELOG.md)
+for a full list of substantial historical changes, breaking and otherwise.
+NOREADME -->
+<h2 id="introduction" class="section-header"><a href="#introduction">Introduction</a></h2>
+<p><em>Property testing</em> is a system of testing code by checking that certain
+properties of its output or behaviour are fulfilled for all inputs. These
+inputs are generated automatically, and, critically, when a failing input
+is found, the input is automatically reduced to a <em>minimal</em> test case.</p>
+<p>Property testing is best used to compliment traditional unit testing (i.e.,
+using specific inputs chosen by hand). Traditional tests can test specific
+known edge cases, simple inputs, and inputs that were known in the past to
+reveal bugs, whereas property tests will search for more complicated inputs
+that cause problems.</p>
+<h2 id="getting-started" class="section-header"><a href="#getting-started">Getting Started</a></h2>
+<p>Let's say we want to make a function that parses dates of the form
+<code>YYYY-MM-DD</code>. We're not going to worry about <em>validating</em> the date, any
+triple of integers is fine. So let's bang something out real quick.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">fn</span> <span class="ident">parse_date</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">u32</span>)<span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="number">10</span> <span class="op">!=</span> <span class="ident">s</span>.<span class="ident">len</span>() { <span class="kw">return</span> <span class="prelude-val">None</span>; }
+    <span class="kw">if</span> <span class="string">&quot;-&quot;</span> <span class="op">!=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">4</span>..<span class="number">5</span>] <span class="op">||</span> <span class="string">&quot;-&quot;</span> <span class="op">!=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">7</span>..<span class="number">8</span>] { <span class="kw">return</span> <span class="prelude-val">None</span>; }
+
+    <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">0</span>..<span class="number">4</span>];
+    <span class="kw">let</span> <span class="ident">month</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">6</span>..<span class="number">7</span>];
+    <span class="kw">let</span> <span class="ident">day</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">8</span>..<span class="number">10</span>];
+
+    <span class="ident">year</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">ok</span>().<span class="ident">and_then</span>(
+        <span class="op">|</span><span class="ident">y</span><span class="op">|</span> <span class="ident">month</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">ok</span>().<span class="ident">and_then</span>(
+            <span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">day</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">ok</span>().<span class="ident">map</span>(
+                <span class="op">|</span><span class="ident">d</span><span class="op">|</span> (<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>))))
+}</pre>
+<p>It compiles, that means it works, right? Maybe not, let's add some tests.</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">test_parse_date</span>() {
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">None</span>, <span class="ident">parse_date</span>(<span class="string">&quot;2017-06-1&quot;</span>));
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">None</span>, <span class="ident">parse_date</span>(<span class="string">&quot;2017-06-170&quot;</span>));
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">None</span>, <span class="ident">parse_date</span>(<span class="string">&quot;2017006-17&quot;</span>));
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">None</span>, <span class="ident">parse_date</span>(<span class="string">&quot;2017-06017&quot;</span>));
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Some</span>((<span class="number">2017</span>, <span class="number">06</span>, <span class="number">17</span>)), <span class="ident">parse_date</span>(<span class="string">&quot;2017-06-17&quot;</span>));
+}</pre>
+<p>Tests pass, deploy to production! But now your application starts crashing,
+and people are upset that you moved Christmas to February. Maybe we need to
+be a bit more thorough.</p>
+<p>In <code>Cargo.toml</code>, add</p>
+<pre><code class="language-toml">[dev-dependencies]
+proptest = &quot;0.8.4&quot;
+</code></pre>
+<p>and at the top of <code>main.rs</code> or <code>lib.rs</code>:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;</pre>
+<p>Now we can add some property tests to our date parser. But how do we test
+the date parser for arbitrary inputs, without making another date parser in
+the test to validate it? We won't need to as long as we choose our inputs
+and properties correctly. But before correctness, there's actually an even
+simpler property to test: <em>The function should not crash.</em> Let's start
+there.</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">doesnt_crash</span>(<span class="ident">s</span> <span class="kw">in</span> <span class="string">&quot;\\PC*&quot;</span>) {
+        <span class="ident">parse_date</span>(<span class="ident">s</span>);
+    }
+}</pre>
+<p>What this does is take a literally random <code>&amp;String</code> (ignore <code>\\PC*</code> for the
+moment, we'll get back to that — if you've already figured it out, contain
+your excitement for a bit) and give it to <code>parse_date()</code> and then throw the
+output away.</p>
+<p>When we run this, we get a bunch of scary-looking output, eventually ending
+with</p>
+<pre><code class="language-text">thread 'main' panicked at 'Test failed: byte index 4 is not a char boundary; it is inside 'ௗ' (bytes 2..5) of `aAௗ0㌀0`; minimal failing input: s = &quot;aAௗ0㌀0&quot;
+    successes: 102
+    local rejects: 0
+    global rejects: 0
+'
+</code></pre>
+<p>If we look at the top directory after the test fails, we'll see a new
+<code>proptest-regressions</code> directory, which contains some files corresponding
+to source files containing failing test cases. These are <a href="#failure-persistence"><em>failure
+persistence</em></a> files. The first thing we should do is
+add these to source control.</p>
+<pre><code class="language-text">$ git add proptest-regressions
+</code></pre>
+<p>The next thing we should do is copy the failing case to a traditional unit
+test since it has exposed a bug not similar to what we've tested in the
+past.</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">test_unicode_gibberish</span>() {
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">None</span>, <span class="ident">parse_date</span>(<span class="string">&quot;aAௗ0㌀0&quot;</span>));
+}</pre>
+<p>Now, let's see what happened... we forgot about UTF-8! You can't just
+blindly slice strings since you could split a character, in this case that
+Tamil diacritic placed atop other characters in the string.</p>
+<p>In the interest of making the code changes as small as possible, we'll just
+check that the string is ASCII and reject anything that isn't.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">fn</span> <span class="ident">parse_date</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">u32</span>)<span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="number">10</span> <span class="op">!=</span> <span class="ident">s</span>.<span class="ident">len</span>() { <span class="kw">return</span> <span class="prelude-val">None</span>; }
+
+    <span class="comment">// NEW: Ignore non-ASCII strings so we don&#39;t need to deal with Unicode.</span>
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_ascii</span>() { <span class="kw">return</span> <span class="prelude-val">None</span>; }
+
+    <span class="kw">if</span> <span class="string">&quot;-&quot;</span> <span class="op">!=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">4</span>..<span class="number">5</span>] <span class="op">||</span> <span class="string">&quot;-&quot;</span> <span class="op">!=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">7</span>..<span class="number">8</span>] { <span class="kw">return</span> <span class="prelude-val">None</span>; }
+
+    <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">0</span>..<span class="number">4</span>];
+    <span class="kw">let</span> <span class="ident">month</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">6</span>..<span class="number">7</span>];
+    <span class="kw">let</span> <span class="ident">day</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">8</span>..<span class="number">10</span>];
+
+    <span class="ident">year</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">ok</span>().<span class="ident">and_then</span>(
+        <span class="op">|</span><span class="ident">y</span><span class="op">|</span> <span class="ident">month</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">ok</span>().<span class="ident">and_then</span>(
+            <span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">day</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">ok</span>().<span class="ident">map</span>(
+                <span class="op">|</span><span class="ident">d</span><span class="op">|</span> (<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>))))
+}</pre>
+<p>The tests pass now! But we know there are still more problems, so let's
+test more properties.</p>
+<p>Another property we want from our code is that it parses every valid date.
+We can add another test to the <code>proptest!</code> section:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="comment">// snip...</span>
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">parses_all_valid_dates</span>(<span class="ident">s</span> <span class="kw">in</span> <span class="string">&quot;[0-9]{4}-[0-9]{2}-[0-9]{2}&quot;</span>) {
+        <span class="ident">parse_date</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>();
+    }
+}</pre>
+<p>The thing to the right-hand side of <code>in</code> is actually a <em>regular
+expression</em>, and <code>s</code> is chosen from strings which match it. So in our
+previous test, <code>&quot;\\PC*&quot;</code> was generating arbitrary strings composed of
+arbitrary non-control characters. Now, we generate things in the YYYY-MM-DD
+format.</p>
+<p>The new test passes, so let's move on to something else.</p>
+<p>The final property we want to check is that the dates are actually parsed
+<em>correctly</em>. Now, we can't do this by generating strings — we'd end up just
+reimplementing the date parser in the test! Instead, we start from the
+expected output, generate the string, and check that it gets parsed back.</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="comment">// snip...</span>
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">parses_date_back_to_original</span>(<span class="ident">y</span> <span class="kw">in</span> <span class="number">0u32</span>..<span class="number">10000</span>,
+                                    <span class="ident">m</span> <span class="kw">in</span> <span class="number">1u32</span>..<span class="number">13</span>, <span class="ident">d</span> <span class="kw">in</span> <span class="number">1u32</span>..<span class="number">32</span>) {
+        <span class="kw">let</span> (<span class="ident">y2</span>, <span class="ident">m2</span>, <span class="ident">d2</span>) <span class="op">=</span> <span class="ident">parse_date</span>(
+            <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:04}-{:02}-{:02}&quot;</span>, <span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>)).<span class="ident">unwrap</span>();
+        <span class="comment">// prop_assert_eq! is basically the same as assert_eq!, but doesn&#39;t</span>
+        <span class="comment">// cause a bunch of panic messages to be printed on intermediate</span>
+        <span class="comment">// test failures. Which one to use is largely a matter of taste.</span>
+        <span class="macro">prop_assert_eq</span><span class="macro">!</span>((<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>), (<span class="ident">y2</span>, <span class="ident">m2</span>, <span class="ident">d2</span>));
+    }
+}</pre>
+<p>Here, we see that besides regexes, we can use any expression which is a
+<code>proptest::strategy::Strategy</code>, in this case, integer ranges.</p>
+<p>The test fails when we run it. Though there's not much output this time.</p>
+<pre><code class="language-text">thread 'main' panicked at 'Test failed: assertion failed: `(left == right)` (left: `(0, 10, 1)`, right: `(0, 0, 1)`) at examples/dateparser_v2.rs:46; minimal failing input: y = 0, m = 10, d = 1
+    successes: 2
+    local rejects: 0
+    global rejects: 0
+', examples/dateparser_v2.rs:33
+note: Run with `RUST_BACKTRACE=1` for a backtrace.
+</code></pre>
+<p>The failing input is <code>(y, m, d) = (0, 10, 1)</code>, which is a rather specific
+output. Before thinking about why this breaks the code, let's look at what
+proptest did to arrive at this value. At the start of our test function,
+insert</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;y = {}, m = {}, d = {}&quot;</span>, <span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>);</pre>
+<p>Running the test again, we get something like this:</p>
+<pre><code class="language-text">y = 2497, m = 8, d = 27
+y = 9641, m = 8, d = 18
+y = 7360, m = 12, d = 20
+y = 3680, m = 12, d = 20
+y = 1840, m = 12, d = 20
+y = 920, m = 12, d = 20
+y = 460, m = 12, d = 20
+y = 230, m = 12, d = 20
+y = 115, m = 12, d = 20
+y = 57, m = 12, d = 20
+y = 28, m = 12, d = 20
+y = 14, m = 12, d = 20
+y = 7, m = 12, d = 20
+y = 3, m = 12, d = 20
+y = 1, m = 12, d = 20
+y = 0, m = 12, d = 20
+y = 0, m = 6, d = 20
+y = 0, m = 9, d = 20
+y = 0, m = 11, d = 20
+y = 0, m = 10, d = 20
+y = 0, m = 10, d = 10
+y = 0, m = 10, d = 5
+y = 0, m = 10, d = 3
+y = 0, m = 10, d = 2
+y = 0, m = 10, d = 1
+</code></pre>
+<p>The test failure message said there were two successful cases; we see these
+at the very top, <code>2497-08-27</code> and <code>9641-08-18</code>. The next case,
+<code>7360-12-20</code>, failed. There's nothing immediately obviously special about
+this date. Fortunately, proptest reduced it to a much simpler case. First,
+it rapidly reduced the <code>y</code> input to <code>0</code> at the beginning, and similarly
+reduced the <code>d</code> input to the minimum allowable value of <code>1</code> at the end.
+Between those two, though, we see something different: it tried to shrink
+<code>12</code> to <code>6</code>, but then ended up raising it back up to <code>10</code>. This is because
+the <code>0000-06-20</code> and <code>0000-09-20</code> test cases <em>passed</em>.</p>
+<p>In the end, we get the date <code>0000-10-01</code>, which apparently gets parsed as
+<code>0000-00-01</code>. Again, this failing case was added to the failure persistence
+file, and we should add this as its own unit test:</p>
+<pre><code class="language-text">$ git add proptest-regressions
+</code></pre>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">test_october_first</span>() {
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Some</span>(<span class="number">0</span>, <span class="number">10</span>, <span class="number">1</span>), <span class="ident">parse_date</span>(<span class="string">&quot;0000-10-01&quot;</span>));
+}</pre>
+<p>Now to figure out what's broken in the code. Even without the intermediate
+input, we can say with reasonable confidence that the year and day parts
+don't come into the picture since both were reduced to the minimum
+allowable input. The month input was <em>not</em>, but was reduced to <code>10</code>. This
+means we can infer that there's something special about <code>10</code> that doesn't
+hold for <code>9</code>. In this case, that &quot;special something&quot; is being two digits
+wide. In our code:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+    <span class="kw">let</span> <span class="ident">month</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="number">6</span>..<span class="number">7</span>];</pre>
+<p>We were off by one, and need to use the range <code>5..7</code>. After fixing this,
+the test passes.</p>
+<p>The <code>proptest!</code> macro has some additional syntax, including for setting
+configuration for things like the number of test cases to generate. See its
+<a href="macro.proptest.html">documentation</a> <!-- NOREADME
+[documentation](https://altsysrq.github.io/rustdoc/proptest/latest/proptest/macro.proptest.html)
+NOREADME -->
+for more details.</p>
+<p>There is a more in-depth tutorial
+<a href="#in-depth-tutorial">further down</a>. <!-- NOREADME
+[in the crate documentation](https://altsysrq.github.io/rustdoc/proptest/latest/proptest/#in-depth-tutorial).
+NOREADME --></p>
+<h2 id="differences-between-quickcheck-and-proptest" class="section-header"><a href="#differences-between-quickcheck-and-proptest">Differences between QuickCheck and Proptest</a></h2>
+<p>QuickCheck and Proptest are similar in many ways: both generate random
+inputs for a function to check certain properties, and automatically shrink
+inputs to minimal failing cases.</p>
+<p>The one big difference is that QuickCheck generates and shrinks values
+based on type alone, whereas Proptest uses explicit <code>Strategy</code> objects. The
+QuickCheck approach has a lot of disadvantages in comparison:</p>
+<ul>
+<li>
+<p>QuickCheck can only define one generator and shrinker per type. If you
+need a custom generation strategy, you need to wrap it in a newtype and
+implement traits on that by hand. In Proptest, you can define arbitrarily
+many different strategies for the same type, and there are plenty built-in.</p>
+</li>
+<li>
+<p>For the same reason, QuickCheck has a single &quot;size&quot; configuration that
+tries to define the range of values generated. If you need an integer
+between 0 and 100 and another between 0 and 1000, you probably need to do
+another newtype. In Proptest, you can directly just express that you want a
+<code>0..100</code> integer and a <code>0..1000</code> integer.</p>
+</li>
+<li>
+<p>Types in QuickCheck are not easily composable. Defining <code>Arbitrary</code> and
+<code>Shrink</code> for a new struct which is simply produced by the composition of
+its fields requires implementing both by hand, including a bidirectional
+mapping between the struct and a tuple of its fields. In Proptest, you can
+make a tuple of the desired components and then <code>prop_map</code> it into the
+desired form. Shrinking happens automatically in terms of the input types.</p>
+</li>
+<li>
+<p>Because constraints on values cannot be expressed in QuickCheck,
+generation and shrinking may lead to a lot of input rejections. Strategies
+in Proptest are aware of simple constraints and do not generate or shrink
+to values that violate them.</p>
+</li>
+</ul>
+<p>The author of Hypothesis also has an <a href="http://hypothesis.works/articles/integrated-shrinking/">article on this
+topic</a>.</p>
+<p>Of course, there's also some relative downsides that fall out of what
+Proptest does differently:</p>
+<ul>
+<li>Generating complex values in Proptest can be up to an order of magnitude
+slower than in QuickCheck. This is because QuickCheck performs stateless
+shrinking based on the output value, whereas Proptest must hold on to all
+the intermediate states and relationships in order for its richer shrinking
+model to work.</li>
+</ul>
+<h2 id="limitations-of-property-testing" class="section-header"><a href="#limitations-of-property-testing">Limitations of Property Testing</a></h2>
+<p>Given infinite time, property testing will eventually explore the whole
+input space to a test. However, time is not infinite, so only a randomly
+sampled portion of the input space can be explored. This means that
+property testing is extremely unlikely to find single-value edge cases in a
+large space. For example, the following test will virtually always pass:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">i64_abs_is_never_negative</span>(<span class="ident">a</span> <span class="kw">in</span> <span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>()) {
+        <span class="comment">// This actually fails if a == i64::MIN, but randomly picking one</span>
+        <span class="comment">// specific value out of 2⁶⁴ is overwhelmingly unlikely.</span>
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">abs</span>() <span class="op">&gt;=</span> <span class="number">0</span>);
+    }
+}</pre>
+<p>Because of this, traditional unit testing with intelligently selected cases
+is still necessary for many kinds of problems.</p>
+<p>Similarly, in some cases it can be hard or impossible to define a strategy
+which actually produces useful inputs. A strategy of <code>.{1,4096}</code> may be
+great to fuzz a C parser, but is highly unlikely to produce anything that
+makes it to a code generator.</p>
+<h2 id="failure-persistence" class="section-header"><a href="#failure-persistence">Failure Persistence</a></h2>
+<p>By default, when Proptest finds a failing test case, it <em>persists</em> that
+failing case in a file named after the source containing the failing test,
+but in a separate directory tree rooted at <code>proptest-regressions</code>† . Later
+runs of tests will replay those test cases before generating novel cases.
+This ensures that the test will not fail on one run and then spuriously
+pass on the next, and also exposes similar tests to the same
+known-problematic input.</p>
+<p>(†  If you do not have an obvious source directory, you may instead find
+files next to the source files, with a different extension.)</p>
+<p>It is recommended to check these files in to your source control so that
+other test runners (e.g., collaborators or a CI system) also replay these
+cases.</p>
+<p>Note that, by default, all tests in the same crate will share that one
+persistence file. If you have a very large number of tests, it may be
+desirable to separate them into smaller groups so the number of extra test
+cases that get run is reduced. This can be done by adjusting the
+<code>failure_persistence</code> flag on <code>Config</code>.</p>
+<p>There are two ways this persistence could theoretically be done.</p>
+<p>The immediately obvious option is to persist a representation of the value
+itself, for example by using Serde. While this has some advantages,
+particularly being resistant to changes like tweaking the input strategy,
+it also has a lot of problems. Most importantly, there is no way to
+determine whether any given value is actually within the domain of the
+strategy that produces it. Thus, some (likely extremely fragile) mechanism
+to ensure that the strategy that produced the value exactly matches the one
+in use in a test case would be required.</p>
+<p>The other option is to store the <em>seed</em> that was used to produce the
+failing test case. This approach requires no support from the strategy or
+the produced value. If the strategy in use differs from the one used to
+produce failing case that was persisted, the seed may or may not produce
+the problematic value, but nonetheless produces a valid value. Due to these
+advantages, this is the approach Proptest uses.</p>
+<h2 id="forking-and-timeouts" class="section-header"><a href="#forking-and-timeouts">Forking and Timeouts</a></h2>
+<p>By default, proptest tests are run in-process and are allowed to run for
+however long it takes them. This is resource-efficient and produces the
+nicest test output, and for many use cases is sufficient. However, problems
+like overflowing the stack, aborting the process, or getting stuck in an
+infinite will simply break the entire test process and prevent proptest
+from determining a minimal reproducible case.</p>
+<p>As of version 0.7.1, proptest has optional &quot;fork&quot; and &quot;timeout&quot; features
+(both enabled by default), which make it possible to run your test cases in
+a subprocess and limit how long they may run. This is generally slower,
+may make using a debugger more difficult, and makes test output harder to
+interpret, but allows proptest to find and minimise test cases for these
+situations as well.</p>
+<p>To enable these features, simply set the <code>fork</code> and/or <code>timeout</code> fields on
+the <code>Config</code>. (Setting <code>timeout</code> implies <code>fork</code>.)</p>
+<p>Here is a simple example of using both features:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="comment">// The worst possible way to calculate Fibonacci numbers</span>
+<span class="kw">fn</span> <span class="ident">fib</span>(<span class="ident">n</span>: <span class="ident">u64</span>) <span class="op">-&gt;</span> <span class="ident">u64</span> {
+    <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;=</span> <span class="number">1</span> {
+        <span class="ident">n</span>
+    } <span class="kw">else</span> {
+        <span class="ident">fib</span>(<span class="ident">n</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">+</span> <span class="ident">fib</span>(<span class="ident">n</span> <span class="op">-</span> <span class="number">2</span>)
+    }
+}
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#![<span class="ident">proptest_config</span>(<span class="ident">ProptestConfig</span> {
+        <span class="comment">// Setting both fork and timeout is redundant since timeout implies</span>
+        <span class="comment">// fork, but both are shown for clarity.</span>
+        <span class="ident">fork</span>: <span class="bool-val">true</span>,
+        <span class="ident">timeout</span>: <span class="number">1000</span>,
+        .. <span class="ident">ProptestConfig</span>::<span class="ident">default</span>()
+    })]</span>
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_fib</span>(<span class="ident">n</span> <span class="kw">in</span> <span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()) {
+        <span class="comment">// For large n, this will variously run for an extremely long time,</span>
+        <span class="comment">// overflow the stack, or panic due to integer overflow.</span>
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">fib</span>(<span class="ident">n</span>) <span class="op">&gt;=</span> <span class="ident">n</span>);
+    }
+}</pre>
+<p>The exact value of the test failure depends heavily on the performance of
+the host system, the rust version, and compiler flags, but on the system
+where it was originally tested, it found that the maximum value that
+<code>fib()</code> could handle was 39, despite having dozens of processes dump core
+due to stack overflow or time out along the way.</p>
+<p>If you just want to run tests in subprocesses or with a timeout every now
+and then, you can do that by setting the <code>PROPTEST_FORK</code> or
+<code>PROPTEST_TIMEOUT</code> environment variables to alter the default
+configuration. For example, on Unix,</p>
+<pre><code class="language-sh"># Run all the proptest tests in subprocesses with no timeout.
+# Individual tests can still opt out by setting `fork: false` in their
+# own configuration.
+PROPTEST_FORK=true cargo test
+# Run all the proptest tests in subprocesses with a 1 second timeout.
+# Tests can still opt out or use a different timeout by setting `timeout: 0`
+# or another timeout in their own configuration.
+PROPTEST_TIMEOUT=1000 cargo test
+</code></pre>
+<!-- ENDREADME -->
+<h2 id="in-depth-tutorial" class="section-header"><a href="#in-depth-tutorial">In-Depth Tutorial</a></h2>
+<p>This tutorial will introduce proptest from the bottom up, starting from the
+basic building blocks, in the hopes of making the model as a whole clear.
+In particular, we'll start off without using the macros so that the macros
+can later be understood in terms of what they expand into rather than
+magic. But as a result, the first part is <em>not</em> representative of how
+proptest is normally used. If bottom-up isn't your style, you may wish to
+skim the first few sections.</p>
+<p>Also note that the examples here focus on the usage of proptest itself, and
+as such generally have trivial test bodies. In real code, you would
+obviously have assertions and so forth in the test bodies.</p>
+<h3 id="strategy-basics" class="section-header"><a href="#strategy-basics">Strategy Basics</a></h3>
+<p>The <a href="strategy/trait.Strategy.html"><em>Strategy</em></a> is the most fundamental
+concept in proptest. A strategy defines two things:</p>
+<ul>
+<li>
+<p>How to generate random values of a particular type from a random number
+generator.</p>
+</li>
+<li>
+<p>How to &quot;shrink&quot; such values into &quot;simpler&quot; forms.</p>
+</li>
+</ul>
+<p>Proptest ships with a substantial library of strategies. Some of these are
+defined in terms of built-in types; for example, <code>0..100i32</code> is a strategy
+to generate <code>i32</code>s between 0, inclusive, and 100, exclusive. As we've
+already seen, strings are themselves strategies for generating strings
+which match the former as a regular expression.</p>
+<p>Generating a value is a two-step process. First, a <code>TestRunner</code> is passed
+to the <code>new_tree()</code> method of the <code>Strategy</code>; this returns a <code>ValueTree</code>,
+which we'll look at in more detail momentarily. Calling the <code>current()</code>
+method on the <code>ValueTree</code> produces the actual value. Knowing that, we can
+put the pieces together and generate values. The below is the
+<code>tutoral-strategy-play.rs</code> example:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">test_runner</span>::<span class="ident">TestRunner</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">strategy</span>::{<span class="ident">Strategy</span>, <span class="ident">ValueTree</span>};
+
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">TestRunner</span>::<span class="ident">default</span>();
+    <span class="kw">let</span> <span class="ident">int_val</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">100i32</span>).<span class="ident">new_tree</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">runner</span>).<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">str_val</span> <span class="op">=</span> <span class="string">&quot;[a-z]{1,4}\\p{Cyrillic}{1,4}\\p{Greek}{1,4}&quot;</span>
+        .<span class="ident">new_tree</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">runner</span>).<span class="ident">unwrap</span>();
+    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;int_val = {}, str_val = {}&quot;</span>,
+             <span class="ident">int_val</span>.<span class="ident">current</span>(), <span class="ident">str_val</span>.<span class="ident">current</span>());
+}</pre>
+<p>If you run this a few times, you'll get output similar to the following:</p>
+<pre><code class="language-text">$ target/debug/examples/tutorial-strategy-play
+int_val = 99, str_val = vѨͿἕΌ
+$ target/debug/examples/tutorial-strategy-play
+int_val = 25, str_val = cwᵸійΉ
+$ target/debug/examples/tutorial-strategy-play
+int_val = 5, str_val = oegiᴫᵸӈᵸὛΉ
+</code></pre>
+<p>This knowledge is sufficient to build an extremely primitive fuzzing test.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">test_runner</span>::<span class="ident">TestRunner</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">strategy</span>::{<span class="ident">Strategy</span>, <span class="ident">ValueTree</span>};
+
+<span class="kw">fn</span> <span class="ident">some_function</span>(<span class="ident">v</span>: <span class="ident">i32</span>) {
+    <span class="comment">// Do a bunch of stuff, but crash if v &gt; 500</span>
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">v</span> <span class="op">&lt;=</span> <span class="number">500</span>);
+}
+
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">some_function_doesnt_crash</span>() {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">TestRunner</span>::<span class="ident">default</span>();
+    <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">256</span> {
+        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">10000i32</span>).<span class="ident">new_tree</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">runner</span>).<span class="ident">unwrap</span>();
+        <span class="ident">some_function</span>(<span class="ident">val</span>.<span class="ident">current</span>());
+    }
+}</pre>
+<p>This <em>works</em>, but when the test fails, we don't get much context, and even
+if we recover the input, we see some arbitrary-looking value like 1771
+rather than the boundary condition of 501. For a function taking just an
+integer, this is probably still good enough, but as inputs get more
+complex, interpreting completely random values becomes increasingly
+difficult.</p>
+<h3 id="shrinking-basics" class="section-header"><a href="#shrinking-basics">Shrinking Basics</a></h3>
+<p>Finding the &quot;simplest&quot; input that causes a test failure is referred to as
+<em>shrinking</em>. This is where the intermediate <code>ValueTree</code> type comes in.
+Besides <code>current()</code>, it provides two methods — <code>simplify()</code> and
+<code>complicate()</code> — which together allow binary searching over the input
+space. The <code>tutorial-simplify-play.rs</code> example shows how repeated calls to
+<code>simplify()</code> produce incrementally &quot;simpler&quot; outputs, both in terms of size
+and in characters used.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">test_runner</span>::<span class="ident">TestRunner</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">strategy</span>::{<span class="ident">Strategy</span>, <span class="ident">ValueTree</span>};
+
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">TestRunner</span>::<span class="ident">default</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">str_val</span> <span class="op">=</span> <span class="string">&quot;[a-z]{1,4}\\p{Cyrillic}{1,4}\\p{Greek}{1,4}&quot;</span>
+        .<span class="ident">new_tree</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">runner</span>).<span class="ident">unwrap</span>();
+    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;str_val = {}&quot;</span>, <span class="ident">str_val</span>.<span class="ident">current</span>());
+    <span class="kw">while</span> <span class="ident">str_val</span>.<span class="ident">simplify</span>() {
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;        = {}&quot;</span>, <span class="ident">str_val</span>.<span class="ident">current</span>());
+    }
+}</pre>
+<p>A couple runs:</p>
+<pre><code class="language-text">$ target/debug/examples/tutorial-simplify-play
+str_val = vy꙲ꙈᴫѱΆῨῨ
+        = y꙲ꙈᴫѱΆῨῨ
+        = y꙲ꙈᴫѱΆῨῨ
+        = m꙲ꙈᴫѱΆῨῨ
+        = g꙲ꙈᴫѱΆῨῨ
+        = d꙲ꙈᴫѱΆῨῨ
+        = b꙲ꙈᴫѱΆῨῨ
+        = a꙲ꙈᴫѱΆῨῨ
+        = aꙈᴫѱΆῨῨ
+        = aᴫѱΆῨῨ
+        = aѱΆῨῨ
+        = aѱΆῨῨ
+        = aѱΆῨῨ
+        = aиΆῨῨ
+        = aМΆῨῨ
+        = aЎΆῨῨ
+        = aЇΆῨῨ
+        = aЃΆῨῨ
+        = aЁΆῨῨ
+        = aЀΆῨῨ
+        = aЀῨῨ
+        = aЀῨ
+        = aЀῨ
+        = aЀῢ
+        = aЀ῟
+        = aЀ῞
+        = aЀ῝
+$ target/debug/examples/tutorial-simplify-play
+str_val = dyiꙭᾪῇΊ
+        = yiꙭᾪῇΊ
+        = iꙭᾪῇΊ
+        = iꙭᾪῇΊ
+        = iꙭᾪῇΊ
+        = eꙭᾪῇΊ
+        = cꙭᾪῇΊ
+        = bꙭᾪῇΊ
+        = aꙭᾪῇΊ
+        = aꙖᾪῇΊ
+        = aꙋᾪῇΊ
+        = aꙅᾪῇΊ
+        = aꙂᾪῇΊ
+        = aꙁᾪῇΊ
+        = aꙀᾪῇΊ
+        = aꙀῇΊ
+        = aꙀΊ
+        = aꙀΊ
+        = aꙀΊ
+        = aꙀΉ
+        = aꙀΈ
+</code></pre>
+<p>Note that shrinking never shrinks a value to something outside the range
+the strategy describes. Notice the strings in the above example still match
+the regular expression even in the end. An integer drawn from
+<code>100..1000i32</code> will shrink towards zero, but will stop at 100 since that is
+the minimum value.</p>
+<p><code>simplify()</code> and <code>complicate()</code> can be used to adapt our primitive fuzz
+test to actually find the boundary condition.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">test_runner</span>::<span class="ident">TestRunner</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">strategy</span>::{<span class="ident">Strategy</span>, <span class="ident">ValueTree</span>};
+
+<span class="kw">fn</span> <span class="ident">some_function</span>(<span class="ident">v</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+    <span class="comment">// Do a bunch of stuff, but crash if v &gt; 500</span>
+    <span class="comment">// assert!(v &lt;= 500);</span>
+    <span class="comment">// But return a boolean instead of panicking for simplicity</span>
+    <span class="ident">v</span> <span class="op">&lt;=</span> <span class="number">500</span>
+}
+
+<span class="comment">// We know the function is broken, so use a purpose-built main function to</span>
+<span class="comment">// find the breaking point.</span>
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">TestRunner</span>::<span class="ident">default</span>();
+    <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">256</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">val</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">10000i32</span>).<span class="ident">new_tree</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">runner</span>).<span class="ident">unwrap</span>();
+        <span class="kw">if</span> <span class="ident">some_function</span>(<span class="ident">val</span>.<span class="ident">current</span>()) {
+            <span class="comment">// Test case passed</span>
+            <span class="kw">continue</span>;
+        }
+
+        <span class="comment">// We found our failing test case, simplify it as much as possible.</span>
+        <span class="kw">loop</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">some_function</span>(<span class="ident">val</span>.<span class="ident">current</span>()) {
+                <span class="comment">// Still failing, find a simpler case</span>
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">val</span>.<span class="ident">simplify</span>() {
+                    <span class="comment">// No more simplification possible; we&#39;re done</span>
+                    <span class="kw">break</span>;
+                }
+            } <span class="kw">else</span> {
+                <span class="comment">// Passed this input, back up a bit</span>
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">val</span>.<span class="ident">complicate</span>() {
+                    <span class="kw">break</span>;
+                }
+            }
+        }
+
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;The minimal failing case is {}&quot;</span>, <span class="ident">val</span>.<span class="ident">current</span>());
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">501</span>, <span class="ident">val</span>.<span class="ident">current</span>());
+        <span class="kw">return</span>;
+    }
+    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Didn&#39;t find a failing test case&quot;</span>);
+}</pre>
+<p>This code reliably finds the boundary of the failure, 501.</p>
+<h3 id="using-the-test-runner" class="section-header"><a href="#using-the-test-runner">Using the Test Runner</a></h3>
+<p>The above is quite a bit of code though, and it can't handle things like
+panics. Fortunately, proptest's
+<a href="test_runner/struct.TestRunner.html"><code>TestRunner</code></a> provides this
+functionality for us. The method we're interested in is <code>run</code>. We simply
+give it the strategy and a function to test inputs and it takes care of the
+rest.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">test_runner</span>::{<span class="ident">Config</span>, <span class="ident">FileFailurePersistence</span>,
+                            <span class="ident">TestError</span>, <span class="ident">TestRunner</span>};
+
+<span class="kw">fn</span> <span class="ident">some_function</span>(<span class="ident">v</span>: <span class="ident">i32</span>) {
+    <span class="comment">// Do a bunch of stuff, but crash if v &gt; 500.</span>
+    <span class="comment">// We return to normal `assert!` here since `TestRunner` catches</span>
+    <span class="comment">// panics.</span>
+    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">v</span> <span class="op">&lt;=</span> <span class="number">500</span>);
+}
+
+<span class="comment">// We know the function is broken, so use a purpose-built main function to</span>
+<span class="comment">// find the breaking point.</span>
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">TestRunner</span>::<span class="ident">new</span>(<span class="ident">Config</span> {
+        <span class="comment">// Turn failure persistence off for demonstration</span>
+        <span class="ident">failure_persistence</span>: <span class="prelude-val">Some</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">FileFailurePersistence</span>::<span class="ident">Off</span>)),
+        .. <span class="ident">Config</span>::<span class="ident">default</span>()
+    });
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">runner</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span>(<span class="number">0</span>..<span class="number">10000i32</span>), <span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
+        <span class="ident">some_function</span>(<span class="ident">v</span>);
+        <span class="prelude-val">Ok</span>(())
+    });
+    <span class="kw">match</span> <span class="ident">result</span> {
+        <span class="prelude-val">Err</span>(<span class="ident">TestError</span>::<span class="ident">Fail</span>(<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=&gt;</span> {
+            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Found minimal failing case: {}&quot;</span>, <span class="ident">value</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">501</span>, <span class="ident">value</span>);
+        },
+        <span class="ident">result</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, <span class="ident">result</span>),
+    }
+}</pre>
+<p>That's a lot better! Still a bit boilerplatey; the <code>proptest!</code> macro will
+help with that, but it does some other stuff we haven't covered yet, so for
+the moment we'll keep using <code>TestRunner</code> directly.</p>
+<h3 id="compound-strategies" class="section-header"><a href="#compound-strategies">Compound Strategies</a></h3>
+<p>Testing functions that take single arguments of primitive types is nice and
+all, but is kind of underwhelming. Back when we were writing the whole
+stack by hand, extending the technique to, say, <em>two</em> integers was clear,
+if verbose. But <code>TestRunner</code> only takes a single <code>Strategy</code>; how can we
+test a function that needs inputs from more than one?</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">test_runner</span>::<span class="ident">TestRunner</span>;
+
+<span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">a</span>: <span class="ident">i32</span>, <span class="ident">b</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="ident">i32</span> {
+    <span class="ident">a</span> <span class="op">+</span> <span class="ident">b</span>
+}
+
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">test_add</span>() {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">TestRunner</span>::<span class="ident">default</span>();
+    <span class="ident">runner</span>.<span class="ident">run</span>(<span class="comment">/* uhhm... */</span>).<span class="ident">unwrap</span>();
+}</pre>
+<p>The key is that strategies are <em>composable</em>. The simplest form of
+composition is &quot;compound strategies&quot;, where we take multiple strategies and
+combine their values into one value that holds each input separately. There
+are several of these. The simplest is a tuple; a tuple of strategies is
+itself a strategy for tuples of the values those strategies produce. For
+example, <code>(0..100i32,100..1000i32)</code> is a strategy for pairs of integers
+where the first value is between 0 and 100 and the second is between 100
+and 1000.</p>
+<p>So for our two-argument function, our strategy is simply a tuple of ranges.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">test_runner</span>::<span class="ident">TestRunner</span>;
+
+<span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">a</span>: <span class="ident">i32</span>, <span class="ident">b</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="ident">i32</span> {
+    <span class="ident">a</span> <span class="op">+</span> <span class="ident">b</span>
+}
+
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">test_add</span>() {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runner</span> <span class="op">=</span> <span class="ident">TestRunner</span>::<span class="ident">default</span>();
+    <span class="comment">// Combine our two inputs into a strategy for one tuple. Our test</span>
+    <span class="comment">// function then destructures the generated tuples back into separate</span>
+    <span class="comment">// `a` and `b` variables to be passed in to `add()`.</span>
+    <span class="ident">runner</span>.<span class="ident">run</span>(<span class="kw-2">&amp;</span>(<span class="number">0</span>..<span class="number">1000i32</span>, <span class="number">0</span>..<span class="number">1000i32</span>), <span class="op">|</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="ident">add</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">sum</span> <span class="op">&gt;=</span> <span class="ident">a</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">sum</span> <span class="op">&gt;=</span> <span class="ident">b</span>);
+        <span class="prelude-val">Ok</span>(())
+    }).<span class="ident">unwrap</span>();
+}</pre>
+<p>Other compound strategies include fixed-sizes arrays of strategies, as well
+as the various strategies provided in the <a href="collection/index.html">collection</a>
+module.</p>
+<h3 id="syntax-sugar-proptest" class="section-header"><a href="#syntax-sugar-proptest">Syntax Sugar: <code>proptest!</code></a></h3>
+<p>Now that we know about compound strategies, we can understand how the
+<a href="macro.proptest.html"><code>proptest!</code></a> macro works. Our example from the prior
+section can be rewritten using that macro like so:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+
+<span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">a</span>: <span class="ident">i32</span>, <span class="ident">b</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="ident">i32</span> {
+    <span class="ident">a</span> <span class="op">+</span> <span class="ident">b</span>
+}
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_add</span>(<span class="ident">a</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000i32</span>, <span class="ident">b</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000i32</span>) {
+        <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="ident">add</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">sum</span> <span class="op">&gt;=</span> <span class="ident">a</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">sum</span> <span class="op">&gt;=</span> <span class="ident">b</span>);
+    }
+}</pre>
+<p>Conceptually, the desugaring process is fairly simple. At the start of the
+test function, a new <code>TestRunner</code> is constructed. The input strategies
+(after the <code>in</code> keyword) are grouped into a tuple. That tuple is passed in
+to the <code>TestRunner</code> as the input strategy. The test body has <code>Ok(())</code> added
+to the end, then is put into a lambda that destructures the generated input
+tuple back into the named parameters and then runs the body. The end result
+is extremely similar to what we wrote by hand in the prior section.</p>
+<p><code>proptest!</code> actually does a few other things in order to make failure
+output easier to read and to overcome the 10-tuple limit.</p>
+<h3 id="transforming-strategies" class="section-header"><a href="#transforming-strategies">Transforming Strategies</a></h3>
+<p>Suppose you have a function that takes a string which needs to be the
+<code>Display</code> format of an arbitrary <code>u32</code>. A first attempt to providing this
+argument might be to use a regular expression, like so:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+
+<span class="kw">fn</span> <span class="ident">do_stuff</span>(<span class="ident">v</span>: <span class="ident">String</span>) {
+    <span class="kw">let</span> <span class="ident">i</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">i</span>.<span class="ident">to_string</span>();
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">v</span>);
+}
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_do_stuff</span>(<span class="ident">v</span> <span class="kw">in</span> <span class="string">&quot;[1-9][0-9]{0,8}&quot;</span>) {
+        <span class="ident">do_stuff</span>(<span class="ident">v</span>);
+    }
+}</pre>
+<p>This kind of works, but it has problems. For one, it does not explore the
+whole <code>u32</code> space. It is possible to write a regular expression that does,
+but such an expression is rather long, and also results in a pretty odd
+distribution of values. The input also doesn't shrink correctly, since
+proptest tries to shrink it in terms of a string rather than an integer.</p>
+<p>What you really want to do is generate a <code>u32</code> and then pass in its string
+representation. One way to do this is to just take <code>u32</code> as an input to the
+test and then transform it to a string within the test code. This approach
+works fine, but isn't reusable or composable. Ideally, we could get a
+<em>strategy</em> that does this.</p>
+<p>The thing we're looking for is the first strategy <em>combinator</em>, <code>prop_map</code>.
+We need to ensure <code>Strategy</code> is in scope to use it.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="comment">// Grab `Strategy` and a shorter namespace prefix</span>
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="kw">fn</span> <span class="ident">do_stuff</span>(<span class="ident">v</span>: <span class="ident">String</span>) {
+    <span class="kw">let</span> <span class="ident">i</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">i</span>.<span class="ident">to_string</span>();
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">v</span>);
+}
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_do_stuff</span>(<span class="ident">v</span> <span class="kw">in</span> <span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">prop_map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_string</span>())) {
+        <span class="ident">do_stuff</span>(<span class="ident">v</span>);
+    }
+}</pre>
+<p>Calling <code>prop_map</code> on a <code>Strategy</code> creates a new strategy which transforms
+every generated value using the provided function. Proptest retains the
+relationship between the original <code>Strategy</code> and the transformed one; as a
+result, shrinking occurs in terms of <code>u32</code>, even though we're generating a
+<code>String</code>.</p>
+<p><code>prop_map</code> is also the principal way to define strategies for new types,
+since most types are simply composed of other, simpler values.</p>
+<p>Let's update our code so it takes a more interesting structure.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Order</span> {
+  <span class="ident">id</span>: <span class="ident">String</span>,
+  <span class="comment">// Some other fields, though the test doesn&#39;t do anything with them</span>
+  <span class="ident">item</span>: <span class="ident">String</span>,
+  <span class="ident">quantity</span>: <span class="ident">u32</span>,
+}
+
+<span class="kw">fn</span> <span class="ident">do_stuff</span>(<span class="ident">order</span>: <span class="ident">Order</span>) {
+    <span class="kw">let</span> <span class="ident">i</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">order</span>.<span class="ident">id</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">i</span>.<span class="ident">to_string</span>();
+    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>, <span class="ident">order</span>.<span class="ident">id</span>);
+}
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_do_stuff</span>(
+        <span class="ident">order</span> <span class="kw">in</span>
+        (<span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">prop_map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_string</span>()),
+         <span class="string">&quot;[a-z]*&quot;</span>, <span class="number">1</span>..<span class="number">1000u32</span>).<span class="ident">prop_map</span>(
+             <span class="op">|</span>(<span class="ident">id</span>, <span class="ident">item</span>, <span class="ident">quantity</span>)<span class="op">|</span> <span class="ident">Order</span> { <span class="ident">id</span>, <span class="ident">item</span>, <span class="ident">quantity</span> })
+    ) {
+        <span class="ident">do_stuff</span>(<span class="ident">order</span>);
+    }
+}</pre>
+<p>Notice how we were able to take the output from <code>prop_map</code> and put it in a
+tuple, then call <code>prop_map</code> on <em>that</em> tuple to produce yet another value.</p>
+<p>But that's quite a mouthful in the argument list. Fortunately, strategies
+are normal values, so we can extract it to a function.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="comment">// snip</span>
+
+<span class="kw">fn</span> <span class="ident">arb_order</span>(<span class="ident">max_quantity</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="ident">BoxedStrategy</span><span class="op">&lt;</span><span class="ident">Order</span><span class="op">&gt;</span> {
+    (<span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">prop_map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_string</span>()),
+     <span class="string">&quot;[a-z]*&quot;</span>, <span class="number">1</span>..<span class="ident">max_quantity</span>)
+    .<span class="ident">prop_map</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="ident">item</span>, <span class="ident">quantity</span>)<span class="op">|</span> <span class="ident">Order</span> { <span class="ident">id</span>, <span class="ident">item</span>, <span class="ident">quantity</span> })
+    .<span class="ident">boxed</span>()
+}
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_do_stuff</span>(<span class="ident">order</span> <span class="kw">in</span> <span class="ident">arb_order</span>(<span class="number">1000</span>)) {
+        <span class="ident">do_stuff</span>(<span class="ident">order</span>);
+    }
+}</pre>
+<p>We <code>boxed()</code> the strategy in the function since otherwise the type would
+not be nameable, and even if it were, it would be very hard to read or
+write. Boxing a <code>Strategy</code> turns both it and its <code>ValueTree</code>s into trait
+objects, which both makes the types simpler and can be used to mix
+heterogeneous <code>Strategy</code> types as long as they produce the same value
+types.</p>
+<p>The <code>arb_order()</code> function is also <em>parameterised</em>, which is another
+advantage of extracting strategies to separate functions. In this case, if
+we have a test that needs an <code>Order</code> with no more than a dozen items, we
+can simply call <code>arb_order(12)</code> rather than needing to write out a whole
+new strategy.</p>
+<p>We can also use <code>-&gt; impl Strategy&lt;Value = Order&gt;</code> instead to avoid the
+overhead as in the following example. You should use <code>-&gt; impl Strategy&lt;..&gt;</code>
+unless you need the dynamic dispatch.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="comment">// snip</span>
+
+
+<span class="kw">fn</span> <span class="ident">arb_order</span>(<span class="ident">max_quantity</span>: <span class="ident">u32</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Strategy</span><span class="op">&lt;</span><span class="ident">Value</span> <span class="op">=</span> <span class="ident">Order</span><span class="op">&gt;</span> {
+    (<span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">prop_map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_string</span>()),
+     <span class="string">&quot;[a-z]*&quot;</span>, <span class="number">1</span>..<span class="ident">max_quantity</span>)
+    .<span class="ident">prop_map</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="ident">item</span>, <span class="ident">quantity</span>)<span class="op">|</span> <span class="ident">Order</span> { <span class="ident">id</span>, <span class="ident">item</span>, <span class="ident">quantity</span> })
+}
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_do_stuff</span>(<span class="ident">order</span> <span class="kw">in</span> <span class="ident">arb_order</span>(<span class="number">1000</span>)) {
+        <span class="ident">do_stuff</span>(<span class="ident">order</span>);
+    }
+}
+</pre>
+<h3 id="syntax-sugar-prop_compose" class="section-header"><a href="#syntax-sugar-prop_compose">Syntax Sugar: <code>prop_compose!</code></a></h3>
+<p>Defining strategy-returning functions like this is extremely useful, but
+the code above is a bit verbose, as well as hard to read for similar
+reasons to writing test functions by hand.</p>
+<p>To simplify this task, proptest includes the
+<a href="macro.prop_compose.html"><code>prop_compose!</code></a> macro. Before going into
+details, here's our code from above rewritten to use it.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="comment">// snip</span>
+
+<span class="macro">prop_compose</span><span class="macro">!</span> {
+    <span class="kw">fn</span> <span class="ident">arb_order_id</span>()(<span class="ident">id</span> <span class="kw">in</span> <span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()) <span class="op">-&gt;</span> <span class="ident">String</span> {
+        <span class="ident">id</span>.<span class="ident">to_string</span>()
+    }
+}
+<span class="macro">prop_compose</span><span class="macro">!</span> {
+    <span class="kw">fn</span> <span class="ident">arb_order</span>(<span class="ident">max_quantity</span>: <span class="ident">u32</span>)
+                (<span class="ident">id</span> <span class="kw">in</span> <span class="ident">arb_order_id</span>(), <span class="ident">item</span> <span class="kw">in</span> <span class="string">&quot;[a-z]*&quot;</span>,
+                 <span class="ident">quantity</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">max_quantity</span>)
+                <span class="op">-&gt;</span> <span class="ident">Order</span> {
+        <span class="ident">Order</span> { <span class="ident">id</span>, <span class="ident">item</span>, <span class="ident">quantity</span> }
+    }
+}
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_do_stuff</span>(<span class="ident">order</span> <span class="kw">in</span> <span class="ident">arb_order</span>(<span class="number">1000</span>)) {
+        <span class="ident">do_stuff</span>(<span class="ident">order</span>);
+    }
+}</pre>
+<p>We had to extract <code>arb_order_id()</code> out into its own function, but otherwise
+this desugars to almost exactly what we wrote in the previous section. The
+generated function takes the first parameter list as arguments. These
+arguments are used to select the strategies in the second argument list.
+Values are then drawn from those strategies and transformed by the function
+body. The actual function has a return type of <code>impl Strategy&lt;Value = T&gt;</code>
+where <code>T</code> is the declared return type.</p>
+<h3 id="generating-enums" class="section-header"><a href="#generating-enums">Generating Enums</a></h3>
+<p>The syntax sugar for defining strategies for <code>enum</code>s is currently somewhat
+limited. Creating such strategies with <code>prop_compose!</code> is possible but
+generally is not very readable, so in most cases defining the function by
+hand is preferable.</p>
+<p>The core building block is the <a href="macro.prop_oneof.html"><code>prop_oneof!</code></a>
+macro, in which you list one case for each case in your <code>enum</code>. For <code>enum</code>s
+which have no data, the strategy for each case is
+<code>Just(YourEnum::TheCase)</code>. Enum cases with data generally require putting
+the data in a tuple and then using <code>prop_map</code> to map it into the enum case.</p>
+<p>Here is a simple example:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">enum</span> <span class="ident">MyEnum</span> {
+    <span class="ident">SimpleCase</span>,
+    <span class="ident">CaseWithSingleDatum</span>(<span class="ident">u32</span>),
+    <span class="ident">CaseWithMultipleData</span>(<span class="ident">u32</span>, <span class="ident">String</span>),
+}
+
+<span class="kw">fn</span> <span class="ident">my_enum_strategy</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Strategy</span><span class="op">&lt;</span><span class="ident">Value</span> <span class="op">=</span> <span class="ident">MyEnum</span><span class="op">&gt;</span> {
+  <span class="macro">prop_oneof</span><span class="macro">!</span>[
+    <span class="comment">// For cases without data, `Just` is all you need</span>
+    <span class="ident">Just</span>(<span class="ident">MyEnum</span>::<span class="ident">SimpleCase</span>),
+
+    <span class="comment">// For cases with data, write a strategy for the interior data, then</span>
+    <span class="comment">// map into the actual enum case.</span>
+    <span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>().<span class="ident">prop_map</span>(<span class="ident">MyEnum</span>::<span class="ident">CaseWithSingleDatum</span>),
+
+    (<span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(), <span class="string">&quot;.*&quot;</span>).<span class="ident">prop_map</span>(
+      <span class="op">|</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="op">|</span> <span class="ident">MyEnum</span>::<span class="ident">CaseWithMultipleData</span>(<span class="ident">a</span>, <span class="ident">b</span>)),
+  ]
+}</pre>
+<p>In general, it is best to list the enum cases in order from &quot;simplest&quot; to
+&quot;most complex&quot;, since shrinking will shrink down toward items earlier in
+the list.</p>
+<p>For particularly complex enum cases, it can be helpful to extract the
+strategy for that case to a separate strategy. Here,
+<a href="macro.prop_compose.html"><code>prop_compose!</code></a> can be of use.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">enum</span> <span class="ident">MyComplexEnum</span> {
+    <span class="ident">SimpleCase</span>,
+    <span class="ident">AnotherSimpleCase</span>,
+    <span class="ident">ComplexCase</span> {
+        <span class="ident">product_code</span>: <span class="ident">String</span>,
+        <span class="ident">id</span>: <span class="ident">u64</span>,
+        <span class="ident">chapter</span>: <span class="ident">String</span>,
+    },
+}
+
+<span class="macro">prop_compose</span><span class="macro">!</span> {
+  <span class="kw">fn</span> <span class="ident">my_complex_enum_complex_case</span>()(
+      <span class="ident">product_code</span> <span class="kw">in</span> <span class="string">&quot;[0-9A-Z]{10,20}&quot;</span>,
+      <span class="ident">id</span> <span class="kw">in</span> <span class="number">1u64</span>..<span class="number">10000u64</span>,
+      <span class="ident">chapter</span> <span class="kw">in</span> <span class="string">&quot;X{0,2}(V?I{1,3}|IV|IX)&quot;</span>,
+  ) <span class="op">-&gt;</span> <span class="ident">MyComplexEnum</span> {
+      <span class="ident">MyComplexEnum</span>::<span class="ident">ComplexCase</span> { <span class="ident">product_code</span>, <span class="ident">id</span>, <span class="ident">chapter</span> }
+  }
+}
+
+<span class="kw">fn</span> <span class="ident">my_enum_strategy</span>() <span class="op">-&gt;</span> <span class="ident">BoxedStrategy</span><span class="op">&lt;</span><span class="ident">MyComplexEnum</span><span class="op">&gt;</span> {
+  <span class="macro">prop_oneof</span><span class="macro">!</span>[
+    <span class="ident">Just</span>(<span class="ident">MyComplexEnum</span>::<span class="ident">SimpleCase</span>),
+    <span class="ident">Just</span>(<span class="ident">MyComplexEnum</span>::<span class="ident">AnotherSimpleCase</span>),
+    <span class="ident">my_complex_enum_complex_case</span>(),
+  ].<span class="ident">boxed</span>()
+}</pre>
+<h3 id="filtering" class="section-header"><a href="#filtering">Filtering</a></h3>
+<p>Sometimes, you have a case where your input values have some sort of
+&quot;irregular&quot; constraint on them. For example, an integer needing to be even,
+or two values needing to be non-equal.</p>
+<p>In general, the ideal solution is to find a way to take a seed value and
+then use <code>prop_map</code> to transform it into the desired, irregular domain. For
+example, to generate even integers, use something like</p>
+
+<pre class="rust rust-example-rendered">
+<span class="macro">prop_compose</span><span class="macro">!</span> {
+    <span class="comment">// Generate arbitrary integers up to half the maximum desired value,</span>
+    <span class="comment">// then multiply them by 2, thus producing only even integers in the</span>
+    <span class="comment">// desired range.</span>
+    <span class="kw">fn</span> <span class="ident">even_integer</span>(<span class="ident">max</span>: <span class="ident">i32</span>)(<span class="ident">base</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">max</span><span class="op">/</span><span class="number">2</span>) <span class="op">-&gt;</span> <span class="ident">i32</span> { <span class="ident">base</span> <span class="op">*</span> <span class="number">2</span> }
+}</pre>
+<p>For the cases where this is not viable, it is possible to filter
+strategies. Proptest actually divides filters into two categories:</p>
+<ul>
+<li>
+<p>&quot;Local&quot; filters apply to a single strategy. If a value is rejected,
+a new value is drawn from that strategy only.</p>
+</li>
+<li>
+<p>&quot;Global&quot; filters apply to the whole test case. If the test case is
+rejected, the whole thing is regenerated.</p>
+</li>
+</ul>
+<p>The distinction is somewhat arbitrary, since something like a &quot;global
+filter&quot; could be created by just putting a &quot;local filter&quot; around the whole
+input strategy. In practise, the distinction is as to what code performs
+the rejection.</p>
+<p>A local filter is created with the <code>prop_filter</code> combinator. Besides a
+function indicating whether to accept the value, it also takes a value of
+type <code>&amp;'static str</code>, <code>String</code>, .., which it uses to record where/why the
+rejection happened.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">some_test</span>(
+      <span class="ident">v</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="number">1000u32</span>)
+        .<span class="ident">prop_filter</span>(<span class="string">&quot;Values must not divisible by 7 xor 11&quot;</span>,
+                     <span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="op">!</span>((<span class="number">0</span> <span class="op">==</span> <span class="ident">v</span> <span class="op">%</span> <span class="number">7</span>) <span class="op">^</span> (<span class="number">0</span> <span class="op">==</span> <span class="ident">v</span> <span class="op">%</span> <span class="number">11</span>)))
+    ) {
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0</span> <span class="op">==</span> <span class="ident">v</span> <span class="op">%</span> <span class="number">7</span>, <span class="number">0</span> <span class="op">==</span> <span class="ident">v</span> <span class="op">%</span> <span class="number">11</span>);
+    }
+}</pre>
+<p>Global filtering results when a test itself returns
+<code>Err(TestCaseError::Reject)</code>. The <a href="macro.prop_assume.html"><code>prop_assume!</code></a>
+macro provides an easy way to do this.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+
+<span class="kw">fn</span> <span class="ident">frob</span>(<span class="ident">a</span>: <span class="ident">i32</span>, <span class="ident">b</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> (<span class="ident">i32</span>, <span class="ident">i32</span>) {
+    <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> (<span class="ident">a</span> <span class="op">-</span> <span class="ident">b</span>).<span class="ident">abs</span>();
+    (<span class="ident">a</span> <span class="op">/</span> <span class="ident">d</span>, <span class="ident">b</span> <span class="op">/</span> <span class="ident">d</span>)
+}
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_frob</span>(<span class="ident">a</span> <span class="kw">in</span> <span class="op">-</span><span class="number">1000</span>..<span class="number">1000</span>, <span class="ident">b</span> <span class="kw">in</span> <span class="op">-</span><span class="number">1000</span>..<span class="number">1000</span>) {
+        <span class="comment">// Input illegal if a==b.</span>
+        <span class="comment">// Equivalent to</span>
+        <span class="comment">// if (a == b) { return Err(TestCaseError::Reject(...)); }</span>
+        <span class="macro">prop_assume</span><span class="macro">!</span>(<span class="ident">a</span> <span class="op">!=</span> <span class="ident">b</span>);
+
+        <span class="kw">let</span> (<span class="ident">a2</span>, <span class="ident">b2</span>) <span class="op">=</span> <span class="ident">frob</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a2</span>.<span class="ident">abs</span>() <span class="op">&lt;=</span> <span class="ident">a</span>.<span class="ident">abs</span>());
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b2</span>.<span class="ident">abs</span>() <span class="op">&lt;=</span> <span class="ident">b</span>.<span class="ident">abs</span>());
+    }
+}</pre>
+<p>While useful, filtering has a lot of disadvantages:</p>
+<ul>
+<li>
+<p>Since it is simply rejection sampling, it will slow down generation of
+test cases since values need to be generated additional times to satisfy
+the filter. In the case where a filter always returns false, a test could
+theoretically never generate a result.</p>
+</li>
+<li>
+<p>Proptest tracks how many local and global rejections have happened, and
+aborts if they exceed a certain number. This prevents a test taking an
+extremely long time due to rejections, but means not all filters are viable
+in the default configuration. The limits for local and global rejections
+are different; by default, proptest allows a large number of local
+rejections but a fairly small number of global rejections, on the premise
+that the former are cheap but potentially common (having been built into
+the strategy) but the latter are expensive but rare (being an edge case in
+the particular test).</p>
+</li>
+<li>
+<p>Shrinking and filtering do not play well together. When shrinking, if a
+value winds up being rejected, there is no pass/fail information to
+continue shrinking properly. Instead, proptest treats such a rejection the
+same way it handles a shrink that results in a passing test: by backing
+away from simplification with a call to <code>complicate()</code>. Thus encountering a
+filter rejection during shrinking prevents shrinking from continuing to any
+simpler values, even if there are some that would be accepted by the
+filter.</p>
+</li>
+</ul>
+<h3 id="generating-recursive-data" class="section-header"><a href="#generating-recursive-data">Generating Recursive Data</a></h3>
+<p>Randomly generating recursive data structures is trickier than it sounds.
+For example, the below is a naïve attempt at generating a JSON AST by using
+recursion. This also uses the <a href="macro.prop_oneof.html"><code>prop_oneof!</code></a>, which
+we haven't seen yet but should be self-explanatory.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Json</span> {
+    <span class="ident">Null</span>,
+    <span class="ident">Bool</span>(<span class="ident">bool</span>),
+    <span class="ident">Number</span>(<span class="ident">f64</span>),
+    <span class="ident">String</span>(<span class="ident">String</span>),
+    <span class="ident">Array</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Json</span><span class="op">&gt;</span>),
+    <span class="ident">Map</span>(<span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Json</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">fn</span> <span class="ident">arb_json</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Strategy</span><span class="op">&lt;</span><span class="ident">Value</span> <span class="op">=</span> <span class="ident">Json</span><span class="op">&gt;</span> {
+    <span class="macro">prop_oneof</span><span class="macro">!</span>[
+        <span class="ident">Just</span>(<span class="ident">Json</span>::<span class="ident">Null</span>),
+        <span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>().<span class="ident">prop_map</span>(<span class="ident">Json</span>::<span class="ident">Bool</span>),
+        <span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">prop_map</span>(<span class="ident">Json</span>::<span class="ident">Number</span>),
+        <span class="string">&quot;.*&quot;</span>.<span class="ident">prop_map</span>(<span class="ident">Json</span>::<span class="ident">String</span>),
+        <span class="ident">prop</span>::<span class="ident">collection</span>::<span class="ident">vec</span>(<span class="ident">arb_json</span>(), <span class="number">0</span>..<span class="number">10</span>).<span class="ident">prop_map</span>(<span class="ident">Json</span>::<span class="ident">Array</span>),
+        <span class="ident">prop</span>::<span class="ident">collection</span>::<span class="ident">hash_map</span>(
+          <span class="string">&quot;.*&quot;</span>, <span class="ident">arb_json</span>(), <span class="number">0</span>..<span class="number">10</span>).<span class="ident">prop_map</span>(<span class="ident">Json</span>::<span class="ident">Map</span>),
+    ]
+}</pre>
+<p>Upon closer consideration, this obviously can't work because <code>arb_json()</code>
+recurses unconditionally.</p>
+<p>A more sophisticated attempt is to define one strategy for each level of
+nesting up to some maximum. This doesn't overflow the stack, but as defined
+here, even four levels of nesting will produce trees with <em>thousands</em> of
+nodes; by eight levels, we get to tens of <em>millions</em>.</p>
+<p>Proptest provides a more reliable solution in the form of the
+<code>prop_recursive</code> combinator. To use this, we create a strategy for the
+non-recursive case, then give the combinator that strategy, some size
+parameters, and a function to transform a nested strategy into a recursive
+strategy.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">enum</span> <span class="ident">Json</span> {
+    <span class="ident">Null</span>,
+    <span class="ident">Bool</span>(<span class="ident">bool</span>),
+    <span class="ident">Number</span>(<span class="ident">f64</span>),
+    <span class="ident">String</span>(<span class="ident">String</span>),
+    <span class="ident">Array</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Json</span><span class="op">&gt;</span>),
+    <span class="ident">Map</span>(<span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Json</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">fn</span> <span class="ident">arb_json</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Strategy</span><span class="op">&lt;</span><span class="ident">Value</span> <span class="op">=</span> <span class="ident">Json</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">leaf</span> <span class="op">=</span> <span class="macro">prop_oneof</span><span class="macro">!</span>[
+        <span class="ident">Just</span>(<span class="ident">Json</span>::<span class="ident">Null</span>),
+        <span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>().<span class="ident">prop_map</span>(<span class="ident">Json</span>::<span class="ident">Bool</span>),
+        <span class="ident">any</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>().<span class="ident">prop_map</span>(<span class="ident">Json</span>::<span class="ident">Number</span>),
+        <span class="string">&quot;.*&quot;</span>.<span class="ident">prop_map</span>(<span class="ident">Json</span>::<span class="ident">String</span>),
+    ];
+    <span class="ident">leaf</span>.<span class="ident">prop_recursive</span>(
+      <span class="number">8</span>, <span class="comment">// 8 levels deep</span>
+      <span class="number">256</span>, <span class="comment">// Shoot for maximum size of 256 nodes</span>
+      <span class="number">10</span>, <span class="comment">// We put up to 10 items per collection</span>
+      <span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="macro">prop_oneof</span><span class="macro">!</span>[
+          <span class="comment">// Take the inner strategy and make the two recursive cases.</span>
+          <span class="ident">prop</span>::<span class="ident">collection</span>::<span class="ident">vec</span>(<span class="ident">inner</span>.<span class="ident">clone</span>(), <span class="number">0</span>..<span class="number">10</span>)
+              .<span class="ident">prop_map</span>(<span class="ident">Json</span>::<span class="ident">Array</span>),
+          <span class="ident">prop</span>::<span class="ident">collection</span>::<span class="ident">hash_map</span>(<span class="string">&quot;.*&quot;</span>, <span class="ident">inner</span>, <span class="number">0</span>..<span class="number">10</span>)
+              .<span class="ident">prop_map</span>(<span class="ident">Json</span>::<span class="ident">Map</span>),
+      ])
+}</pre>
+<h3 id="higher-order-strategies" class="section-header"><a href="#higher-order-strategies">Higher-Order Strategies</a></h3>
+<p>A <em>higher-order strategy</em> is a strategy which is generated by another
+strategy. That sounds kind of scary, so let's consider an example first.</p>
+<p>Say you have a function you want to test that takes a slice and an index
+into that slice. If we use a fixed size for the slice, it's easy, but maybe
+we need to test with different slice sizes. We could try something with a
+filter:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
+<span class="kw">fn</span> <span class="ident">some_function</span>(<span class="ident">stuff</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>], <span class="ident">index</span>: <span class="ident">usize</span>) { <span class="comment">/* do stuff */</span> }
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_some_function</span>(
+        <span class="ident">stuff</span> <span class="kw">in</span> <span class="ident">prop</span>::<span class="ident">collection</span>::<span class="ident">vec</span>(<span class="string">&quot;.*&quot;</span>, <span class="number">1</span>..<span class="number">100</span>),
+        <span class="ident">index</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">100usize</span>
+    ) {
+        <span class="macro">prop_assume</span><span class="macro">!</span>(<span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">stuff</span>.<span class="ident">len</span>());
+        <span class="ident">some_function</span>(<span class="ident">stuff</span>, <span class="ident">index</span>);
+    }
+}</pre>
+<p>This doesn't work very well. First off, you get a lot of global rejections
+since <code>index</code> will be outside of <code>stuff</code> 50% of the time. But secondly, it
+will be rare to actually get a small <code>stuff</code> vector, since it would have to
+randomly choose a small <code>index</code> at the same time.</p>
+<p>The solution is the <code>prop_flat_map</code> combinator. This is sort of like
+<code>prop_map</code>, except that the transform returns a <em>strategy</em> instead of a
+value. This is more easily understood by implementing our example:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
+
+<span class="kw">fn</span> <span class="ident">some_function</span>(<span class="ident">stuff</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">index</span>: <span class="ident">usize</span>) {
+    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">stuff</span>[<span class="ident">index</span>];
+    <span class="comment">// Do stuff</span>
+}
+
+<span class="kw">fn</span> <span class="ident">vec_and_index</span>() <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Strategy</span><span class="op">&lt;</span><span class="ident">Value</span> <span class="op">=</span> (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+    <span class="ident">prop</span>::<span class="ident">collection</span>::<span class="ident">vec</span>(<span class="string">&quot;.*&quot;</span>, <span class="number">1</span>..<span class="number">100</span>)
+        .<span class="ident">prop_flat_map</span>(<span class="op">|</span><span class="ident">vec</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">len</span>();
+            (<span class="ident">Just</span>(<span class="ident">vec</span>), <span class="number">0</span>..<span class="ident">len</span>)
+        })
+}
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_some_function</span>((<span class="ident">vec</span>, <span class="ident">index</span>) <span class="kw">in</span> <span class="ident">vec_and_index</span>()) {
+        <span class="ident">some_function</span>(<span class="ident">vec</span>, <span class="ident">index</span>);
+    }
+}</pre>
+<p>In <code>vec_and_index()</code>, we make a strategy to produce an arbitrary vector.
+But then we derive a new strategy based on <em>values</em> produced by the first
+one. The new strategy produces the generated vector unchanged, but also
+adds a valid index into that vector, which we can do by picking the
+strategy for that index based on the size of the vector.</p>
+<p>Even though the new strategy specifies the singleton <code>Just(vec)</code> strategy
+for the vector, proptest still understands the connection to the original
+strategy and will shrink <code>vec</code> as well. All the while, <code>index</code> continues to
+be a valid index into <code>vec</code>.</p>
+<p><code>prop_compose!</code> actually allows making second-order strategies like this by
+simply providing three argument lists instead of two. The below desugars to
+something much like what we wrote by hand above, except that the index and
+vector's positions are internally reversed due to borrowing limitations.</p>
+
+<pre class="rust rust-example-rendered">
+<span class="macro">prop_compose</span><span class="macro">!</span> {
+    <span class="kw">fn</span> <span class="ident">vec_and_index</span>()(<span class="ident">vec</span> <span class="kw">in</span> <span class="ident">prop</span>::<span class="ident">collection</span>::<span class="ident">vec</span>(<span class="string">&quot;.*&quot;</span>, <span class="number">1</span>..<span class="number">100</span>))
+                    (<span class="ident">index</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">vec</span>.<span class="ident">len</span>(), <span class="ident">vec</span> <span class="kw">in</span> <span class="ident">Just</span>(<span class="ident">vec</span>))
+                    <span class="op">-&gt;</span> (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">usize</span>) {
+       (<span class="ident">vec</span>, <span class="ident">index</span>)
+   }
+}</pre>
+<h3 id="defining-a-canonical-strategy-for-a-type" class="section-header"><a href="#defining-a-canonical-strategy-for-a-type">Defining a canonical <code>Strategy</code> for a type</a></h3>
+<p>We previously used the function <code>any</code> as in <code>any::&lt;u32&gt;()</code> to generate a
+strategy for all <code>u32</code>s. This function works with the trait <code>Arbitrary</code>,
+which QuickCheck users may be familiar with. In proptest, this trait
+is already implemented for most owned types in the standard library,
+but you can of course implement it for your own types.</p>
+<p>In some cases, where it makes sense to define a canonical strategy, such
+as in the <a href="#generating-recursive-data">JSON AST example</a>, it is a good
+idea to implement <code>Arbitrary</code>.</p>
+<p>Stay tuned for more information about this. Soon you will be able to
+derive <code>Arbitrary</code> for a lot of cases.</p>
+<h3 id="configuring-the-number-of-tests-cases-requried" class="section-header"><a href="#configuring-the-number-of-tests-cases-requried">Configuring the number of tests cases requried</a></h3>
+<p>The default number of successful test cases that must execute for a test
+as a whole to pass is currently 256. If you are not satisfied with this
+and want to run more or fewer, there are a few ways to do this.</p>
+<p>The first way is to set the environment-variable <code>PROPTEST_CASES</code> to a
+value that can be successfully parsed as a <code>u32</code>. The value you set to this
+variable is now the new default.</p>
+<p>Another way is to use <code>#![proptest_config(expr)]</code> inside <code>proptest!</code> where
+<code>expr : Config</code>. To only change the number of test cases, you can simply
+write:</p>
+
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proptest</span>;
+<span class="kw">use</span> <span class="ident">proptest</span>::<span class="ident">test_runner</span>::<span class="ident">Config</span>;
+
+<span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">a</span>: <span class="ident">i32</span>, <span class="ident">b</span>: <span class="ident">i32</span>) <span class="op">-&gt;</span> <span class="ident">i32</span> { <span class="ident">a</span> <span class="op">+</span> <span class="ident">b</span> }
+
+<span class="macro">proptest</span><span class="macro">!</span> {
+    <span class="comment">// The next line modifies the number of tests.</span>
+    <span class="attribute">#![<span class="ident">proptest_config</span>(<span class="ident">Config</span>::<span class="ident">with_cases</span>(<span class="number">1000</span>))]</span>
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_add</span>(<span class="ident">a</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000i32</span>, <span class="ident">b</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">1000i32</span>) {
+        <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span> <span class="ident">add</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">sum</span> <span class="op">&gt;=</span> <span class="ident">a</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">sum</span> <span class="op">&gt;=</span> <span class="ident">b</span>);
+    }
+}</pre>
+<p>Through the same <code>proptest_config</code> mechanism you may fine-tune your
+configuration through the <code>Config</code> type. See its documentation for more
+information.</p>
+<h3 id="conclusion" class="section-header"><a href="#conclusion">Conclusion</a></h3>
+<p>That's it for the tutorial, at least for now. There are more details for
+the features discussed above on their individual documentation pages, and
+you can find out about all the strategies provided out-of-the-box by
+perusing the module tree below.</p>
+</div><h2 id='modules' class='section-header'><a href="#modules">Modules</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="arbitrary/index.html"
+                                  title='mod proptest::arbitrary'>arbitrary</a></td>
+                           <td class='docblock-short'>
+                                <p>Defines the <a href="trait.Arbitrary.html"><code>Arbitrary</code></a> trait and related free functions
+and type aliases. See the trait for more information.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="array/index.html"
+                                  title='mod proptest::array'>array</a></td>
+                           <td class='docblock-short'>
+                                <p>Support for strategies producing fixed-length arrays.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="bits/index.html"
+                                  title='mod proptest::bits'>bits</a></td>
+                           <td class='docblock-short'>
+                                <p>Strategies for working with bit sets.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="bool/index.html"
+                                  title='mod proptest::bool'>bool</a></td>
+                           <td class='docblock-short'>
+                                <p>Strategies for generating <code>bool</code> values.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="char/index.html"
+                                  title='mod proptest::char'>char</a></td>
+                           <td class='docblock-short'>
+                                <p>Strategies for generating <code>char</code> values.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="collection/index.html"
+                                  title='mod proptest::collection'>collection</a></td>
+                           <td class='docblock-short'>
+                                <p>Strategies for generating <code>std::collections</code> of values.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="num/index.html"
+                                  title='mod proptest::num'>num</a></td>
+                           <td class='docblock-short'>
+                                <p>Strategies to generate numeric values (as opposed to integers used as bit
+fields).</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="option/index.html"
+                                  title='mod proptest::option'>option</a></td>
+                           <td class='docblock-short'>
+                                <p>Strategies for generating <code>std::Option</code> values.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="prelude/index.html"
+                                  title='mod proptest::prelude'>prelude</a></td>
+                           <td class='docblock-short'>
+                                <p>Re-exports the most commonly-needed APIs of proptest.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="result/index.html"
+                                  title='mod proptest::result'>result</a></td>
+                           <td class='docblock-short'>
+                                <p>Strategies for combining delegate strategies into <code>std::Result</code>s.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="sample/index.html"
+                                  title='mod proptest::sample'>sample</a></td>
+                           <td class='docblock-short'>
+                                <p>Strategies for generating values by taking samples of collections.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="strategy/index.html"
+                                  title='mod proptest::strategy'>strategy</a></td>
+                           <td class='docblock-short'>
+                                <p>Defines the core traits used by Proptest.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="string/index.html"
+                                  title='mod proptest::string'>string</a></td>
+                           <td class='docblock-short'>
+                                <p>Strategies for generating strings and byte strings from regular
+expressions.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="test_runner/index.html"
+                                  title='mod proptest::test_runner'>test_runner</a></td>
+                           <td class='docblock-short'>
+                                <p>State and functions for running proptest tests.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="mod" href="tuple/index.html"
+                                  title='mod proptest::tuple'>tuple</a></td>
+                           <td class='docblock-short'>
+                                <p>Support for combining strategies into tuples.</p>
+
+                           </td>
+                       </tr></table><h2 id='macros' class='section-header'><a href="#macros">Macros</a></h2>
+<table>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.prop_assert.html"
+                                  title='macro proptest::prop_assert'>prop_assert</a></td>
+                           <td class='docblock-short'>
+                                <p>Similar to <code>assert!</code> from std, but returns a test failure instead of
+panicking if the condition fails.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.prop_assert_eq.html"
+                                  title='macro proptest::prop_assert_eq'>prop_assert_eq</a></td>
+                           <td class='docblock-short'>
+                                <p>Similar to <code>assert_eq!</code> from std, but returns a test failure instead of
+panicking if the condition fails.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.prop_assert_ne.html"
+                                  title='macro proptest::prop_assert_ne'>prop_assert_ne</a></td>
+                           <td class='docblock-short'>
+                                <p>Similar to <code>assert_ne!</code> from std, but returns a test failure instead of
+panicking if the condition fails.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.prop_assume.html"
+                                  title='macro proptest::prop_assume'>prop_assume</a></td>
+                           <td class='docblock-short'>
+                                <p>Rejects the test input if assumptions are not met.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.prop_compose.html"
+                                  title='macro proptest::prop_compose'>prop_compose</a></td>
+                           <td class='docblock-short'>
+                                <p>Convenience to define functions which produce new strategies.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.prop_oneof.html"
+                                  title='macro proptest::prop_oneof'>prop_oneof</a></td>
+                           <td class='docblock-short'>
+                                <p>Produce a strategy which picks one of the listed choices.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
+                           <td><a class="macro" href="macro.proptest.html"
+                                  title='macro proptest::proptest'>proptest</a></td>
+                           <td class='docblock-short'>
+                                <p>Easily define <code>proptest</code> tests.</p>
+
+                           </td>
+                       </tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../";window.currentCrate = "proptest";</script><script src="../aliases.js"></script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>
