@@ -175,16 +175,10 @@ fn edit_document<T: Store>(state: State<TamaWikiState<T>>, path: PathBuf) ->
 /// Creates a new TamaWiki HTTP server and binds to the given address
 pub fn server(addr: &str) -> server::HttpServer<impl server::HttpHandler>  {
     // Start MemoryStore in another thread
-    let store = Arbiter::start(|ctx: &mut Context<_>| {
-        // TODO: remove this when the issue with dropped actix messages
-        // when running apache bench is resolved?
-        // see issue: https://github.com/actix/actix/issues/120
-        // set unbounded mailbox capacity
-        ctx.set_mailbox_capacity(0);
+    let store = Arbiter::start(|_ctx| {
         MemoryStore::default()
     });
-    let session_manager = Arbiter::start(|ctx: &mut Context<_>| {
-        ctx.set_mailbox_capacity(0);
+    let session_manager = Arbiter::start(|_ctx| {
         EditSessionManager::default()
     });
     let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
