@@ -2,6 +2,7 @@
 use std::error;
 use std::fmt;
 use std::cmp;
+use actix::prelude::*;
 use connection::ConnectionId;
 
 
@@ -107,7 +108,7 @@ impl<'a> From<&'a str> for Document {
 }
 
 /// Inserts new content at a single position in the Document
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Deserialize, Serialize, Message, Clone)]
 pub struct Insert {
     /// Insert position as number of Unicode Scalar Values preceeding
     /// the Insert operation, from the beginning of the document (not
@@ -117,7 +118,7 @@ pub struct Insert {
 }
 
 /// Deletes a region of content from the Document
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Deserialize, Serialize, Message, Clone)]
 pub struct Delete {
     /// First Unicode Scalar Value to remove in range
     pub start: usize,
@@ -129,7 +130,7 @@ pub struct Delete {
 /// Describes incremental changes to a Document's content. Through the
 /// accumulated application of Operations to a Document, the
 /// Document's content at a point in time can be derived.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Deserialize, Serialize, Message, Clone)]
 pub enum Operation {
     Insert(Insert),
     Delete(Delete),
@@ -200,7 +201,7 @@ impl error::Error for UpdateError {
 /// An Update combines multiple operations into a single Document
 /// change (i.e. all the operations are applied together, or not at
 /// all).
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Deserialize, Serialize, Message, Clone)]
 pub struct Update {
     pub from: ConnectionId,
     pub operations: Vec<Operation>,
@@ -220,8 +221,8 @@ impl Update {
         use self::Operation as Op;
         let mut new_operations = vec![];
 
-        for op in concurrent.operations.iter() {
-            for operation in self.operations.iter_mut() {
+        for op in &concurrent.operations {
+            for operation in &mut self.operations {
                 match (operation, op) {
                     (Op::Insert(ref mut this), &Op::Insert(ref other)) => {
                         if other.pos < this.pos ||

@@ -16,10 +16,12 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
+#[macro_use]
+extern crate actix;
+
+extern crate futures;
 extern crate serde;
 extern crate actix_web;
-extern crate actix;
-extern crate futures;
 
 use std::path::PathBuf;
 use futures::future::Future;
@@ -70,10 +72,15 @@ struct DocQuery {
     edit: bool
 }
 
-fn start_websocket<T: Store>(data: (HttpRequest<TamaWikiState<T>>, Path<DocPath>)) -> impl Responder {
-    let (req, path) = data;
+#[derive(Debug, Deserialize)]
+struct WsQuery {
+    seq: usize
+}
+
+fn start_websocket<T: Store>(data: (HttpRequest<TamaWikiState<T>>, Path<DocPath>, Query<WsQuery>)) -> impl Responder {
+    let (req, path, query) = data;
     let path = path.into_inner().tail;
-    ws::start(&req, Connection::new(path, 0))
+    ws::start(&req, Connection::new(path, query.seq))
 }
 
 fn get_document<T: Store>(data: (State<TamaWikiState<T>>, Path<DocPath>, Query<DocQuery>)) ->
@@ -83,13 +90,13 @@ fn get_document<T: Store>(data: (State<TamaWikiState<T>>, Path<DocPath>, Query<D
     let path = path.into_inner().tail;
     
     match query.into_inner() {
-        DocQuery { edit: true } => edit_document(state, path),
-        _ => display_document(state, path),
+        DocQuery { edit: true } => edit_document(&state, path),
+        _ => display_document(&state, path),
     }
 }
 
 
-fn display_document<T: Store>(state: State<TamaWikiState<T>>, path: PathBuf) ->
+fn display_document<T: Store>(state: &State<TamaWikiState<T>>, path: PathBuf) ->
     Box<Future<Item=HttpResponse, Error=Error>>
 {
     let res = state.store.send(Content { path })
@@ -132,7 +139,7 @@ fn display_document<T: Store>(state: State<TamaWikiState<T>>, path: PathBuf) ->
     Box::new(res)
 }
 
-fn edit_document<T: Store>(state: State<TamaWikiState<T>>, path: PathBuf) ->
+fn edit_document<T: Store>(state: &State<TamaWikiState<T>>, path: PathBuf) ->
     Box<Future<Item=HttpResponse, Error=Error>>
 {
     let res = state.store.send(Content { path })
@@ -180,12 +187,11 @@ fn edit_document<T: Store>(state: State<TamaWikiState<T>>, path: PathBuf) ->
 /// Creates a new TamaWiki HTTP server and binds to the given address
 pub fn server(addr: &str) -> server::HttpServer<impl server::HttpHandler>  {
     // Start MemoryStore in another thread
-    let store = Arbiter::start(|_ctx| {
-        MemoryStore::default()
-    });
-    let session_manager = Arbiter::start(|_ctx| {
-        EditSessionManager::default()
-    });
+    let store = MemoryStore::default().start();
+    let session_manager = {
+        let store = store.clone();
+        EditSessionManager::new(store).start()
+    };
     let srv = server::new(move || app::<MemoryStore>(TamaWikiState {
         store: store.clone(),
         session_manager: session_manager.clone(),

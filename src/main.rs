@@ -3,7 +3,7 @@ extern crate actix;
 
 use actix::System;
 
-const ADDR: &'static str = "localhost:8080";
+const ADDR: &str = "localhost:8080";
 
 fn main() {
     System::run(|| {
@@ -13,7 +13,7 @@ fn main() {
         for (addr, scheme) in &srv.addrs_with_scheme() {
             println!("  {}://{}", scheme, addr);
         }
-        println!("");
+        println!();
 
         srv.start();
     });

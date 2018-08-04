@@ -2,20 +2,33 @@
 //! updates and notifications.
 
 use std::collections::HashMap;
+use futures::future::Future;
+use futures::stream::Stream;
 use std::path::PathBuf;
+// use actix::{Addr, Arbiter, Actor, Context, MailboxError, Message, Handler};
 use actix::prelude::*;
 
 // use super::TamaWikiState;
-use connection::{Connection, ConnectionId, ServerMessage, Join, Leave};
-use store::Store;
+use connection::{Connection, ConnectionId, ServerMessage, Join, Leave, Change, Edit};
+use store::{Store, Since, Push, StoreError};
+use document::Update;
 
 /// Central registry for current EditSessions in progress. The
 /// EditSessionManager lets clients join an existing EditSession if
 /// one is in progress, or will create a new one when the first client
 /// joins.
-#[derive(Default)]
 pub struct EditSessionManager<T: Store> {
+    store: Addr<T>,
     sessions: HashMap<PathBuf, Addr<EditSession<T>>>,
+}
+
+impl<T: Store> EditSessionManager<T> {
+    pub fn new(store: Addr<T>) -> Self {
+        Self {
+            store,
+            sessions: HashMap::default()
+        }
+    }
 }
 
 impl<T: Store> Actor for EditSessionManager<T> {
@@ -52,6 +65,15 @@ pub struct Disconnect {
     pub id: ConnectionId
 }
 
+/// Send an update to the EditSession for processing
+pub struct ClientUpdate {
+    pub id: ConnectionId,
+    pub edit: Edit,
+}
+impl Message for ClientUpdate {
+    type Result = Result<(), MailboxError>;
+}
+
 /// Sent by the EditSession to the EditSessionManager after all
 /// clients leave.
 #[derive(Message)]
@@ -72,17 +94,17 @@ impl<T: Store> Handler<Connect<T>> for EditSessionManager<T> {
             Some(addr) => addr.connected(),
             _ => false,
         };
-
         if !exists {
             self.sessions.insert(
                 msg.path.clone(),
-                EditSession::new(ctx.address(), msg.path.clone()).start()
+                EditSession::new(
+                    self.store.clone(),
+                    ctx.address(),
+                    msg.path.clone()
+                ).start()
             );
         }
-        
-        // we can be confident it exists now, so just unwrap the Option
-        let session = self.sessions.get(&msg.path).unwrap();
-        session.do_send(msg);
+        self.sessions[&msg.path].do_send(msg);
     }
 }
 
@@ -107,6 +129,7 @@ impl<T: Store> Handler<EndSession<T>> for EditSessionManager<T> {
 /// Represents a collaborative editing session for a single document.
 /// Co-ordinates messages between connected clients.
 pub struct EditSession<T: Store> {
+    store: Addr<T>,
     next_id: ConnectionId,
     connected: HashMap<ConnectionId, (Addr<Connection<T>>, usize)>,
     manager: Addr<EditSessionManager<T>>,
@@ -115,8 +138,12 @@ pub struct EditSession<T: Store> {
 
 impl<T: Store> EditSession<T> {
     /// Creates a new EditSession using the provided document store
-    pub fn new(manager: Addr<EditSessionManager<T>>, path: PathBuf) -> Self {
+    pub fn new(store: Addr<T>,
+               manager: Addr<EditSessionManager<T>>,
+               path: PathBuf) -> Self
+    {
         Self {
+            store,
             next_id: 0,
             connected: HashMap::new(),
             manager,
@@ -152,7 +179,7 @@ impl<T: Store> Handler<Connect<T>> for EditSession<T> {
         self.next_id += 1;
         let mut participants = Vec::new();
 
-        for (id, (addr, _seq)) in self.connected.iter() {
+        for (id, (addr, _seq)) in &self.connected {
             if *id == self.next_id {
                 panic!("Duplicate connection ID detected in EditSession");
             }
@@ -173,6 +200,30 @@ impl<T: Store> Handler<Connect<T>> for EditSession<T> {
             session: addr,
             participants
         });
+
+        Arbiter::spawn(
+            self.store.send(Since {
+                path: self.path.clone(),
+                seq: msg.seq,
+            }).map(|result| {
+                match result {
+                    Err(StoreError::NotFound) => (),
+                    Err(err) => panic!("{}", err),
+                    Ok(stream) => {
+                        Arbiter::spawn(
+                            stream.for_each(move |(seq, update)| {
+                                msg.from.send(ServerMessage::Change(Change {
+                                    seq,
+                                    update,
+                                })).map_err(|err| panic!("{}", err))
+                            }).map_err(|err| panic!("{}", err))
+                        );
+                    }
+                }
+            }).map_err(|err| {
+                panic!("Error communicating with store: {}", err);
+            })
+        );
     }
 }
 
@@ -182,7 +233,6 @@ impl<T: Store> Handler<Disconnect> for EditSession<T> {
     fn handle(&mut self, msg: Disconnect, ctx: &mut Context<Self>) ->
         Self::Result
     {
-        println!("removing connection {}", msg.id);
         self.connected.remove(&msg.id);
         
         if self.connected.is_empty() {
@@ -192,6 +242,53 @@ impl<T: Store> Handler<Disconnect> for EditSession<T> {
                 addr.do_send(ServerMessage::Leave(Leave {
                     id: msg.id
                 }));
+            }
+        }
+    }
+}
+
+impl<T: Store> Handler<ClientUpdate> for EditSession<T> {
+    type Result = Box<Future<Item=(), Error=MailboxError>>;
+    
+    fn handle(&mut self, msg: ClientUpdate, ctx: &mut Context<Self>) ->
+        Self::Result
+    {
+        let addr = ctx.address();
+        Box::new(
+            self.store.send(Push {
+                path: self.path.clone(),
+                update: Update {
+                    from: msg.id,
+                    operations: msg.edit.operations.clone()
+                }
+            }).map(move |result| {
+                match result {
+                    Ok(seq) => {
+                        addr.do_send(Change {
+                            seq,
+                            update: Update {
+                                from: msg.id,
+                                operations: msg.edit.operations
+                            }
+                        });
+                    },
+                    Err(err) => panic!("{}", err),
+                }
+            })
+        )
+    }
+}
+
+
+impl<T: Store> Handler<Change> for EditSession<T> {
+    type Result = ();
+    
+    fn handle(&mut self, msg: Change, _ctx: &mut Context<Self>) ->
+        Self::Result
+    {
+        for (id, (addr, _seq)) in &self.connected {
+            if *id != msg.update.from {
+                addr.do_send(ServerMessage::Change(msg.clone()))
             }
         }
     }

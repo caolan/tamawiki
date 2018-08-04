@@ -15,13 +15,14 @@ impl Store for MemoryStore {}
 impl StoreStream for MemoryStoreStream {}
 
 /// An asynchronous stream of Update objects
+#[derive(Debug)]
 pub struct MemoryStoreStream {
     updates: Arc<Mutex<Vec<Update>>>,
     seq: usize
 }
 
 impl Stream for MemoryStoreStream {
-    type Item = Update;
+    type Item = (usize, Update);
     type Error = StoreError;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
@@ -30,7 +31,9 @@ impl Stream for MemoryStoreStream {
             Ok(data) => {
                 self.seq += 1;
                 if self.seq <= data.len() {
-                    Ok(Async::Ready(Some(data[self.seq - 1].clone())))
+                    Ok(Async::Ready(Some(
+                        (self.seq, data[self.seq - 1].clone())
+                    )))
                 } else {
                     Ok(Async::Ready(None))
                 }
@@ -66,7 +69,7 @@ impl MemoryStore {
                         if seq <= data.len() {
                             Ok(MemoryStoreStream {
                                 updates: history.clone(),
-                                seq: seq,
+                                seq,
                             })
                         } else {
                             Err(StoreError::InvalidSequenceNumber)
@@ -90,7 +93,7 @@ impl MemoryStore {
                         if seq <= data.len() {
                             let mut doc: Document = Default::default();
                             for update in &data[..seq] {
-                                if let Err(_) = doc.apply(update) {
+                                if doc.apply(update).is_err() {
                                     return Err(StoreError::InvalidDocument);
                                 }
                             }
@@ -146,11 +149,11 @@ impl Handler<Seq> for MemoryStore {
 }
 
 impl Handler<Since> for MemoryStore {
-    type Result = Result<Box<StoreStream<Item=Update, Error=StoreError>>, StoreError>;
+    type Result = Result<Box<StoreStream<Item=(usize, Update), Error=StoreError>>, StoreError>;
 
     fn handle(&mut self, msg: Since, _ctx: &mut Context<Self>) -> Self::Result {
         self.since(msg.path.as_path(), msg.seq).map(
-            |stream| -> Box<StoreStream<Item=Update, Error=StoreError>> {
+            |stream| -> Box<StoreStream<Item=(usize, Update), Error=StoreError>> {
                 Box::new(stream)
             }
         )
@@ -309,7 +312,7 @@ mod tests {
                     panic!("{}", err);
                 })
             }).map(|updates| {
-                assert_eq!(updates, vec![a0, b0, c0]);
+                assert_eq!(updates, vec![(1, a0), (2, b0), (3, c0)]);
             });
 
             let b1 = b.clone();
@@ -322,7 +325,7 @@ mod tests {
                     panic!("{}", err);
                 })
             }).map(|updates| {
-                assert_eq!(updates, vec![b1, c1]);
+                assert_eq!(updates, vec![(2, b1), (3, c1)]);
             });
             
             let c2 = c.clone();
@@ -334,7 +337,7 @@ mod tests {
                     panic!("{}", err);
                 })
             }).map(|updates| {
-                assert_eq!(updates, vec![c2]);
+                assert_eq!(updates, vec![(3, c2)]);
             });
 
             let since3 = store.send(Since {
