@@ -1,4 +1,4 @@
-//! Documents and Operations on their content.
+//! Defines documents and operations on their content.
 use std::error;
 use std::fmt;
 use std::cmp;
@@ -262,11 +262,12 @@ impl Update {
                         }
                     },
                     (Op::Delete(ref mut this), &Op::Delete(ref other)) => {
-                        let mut chars_deleted_before = 0;
-                        if other.start < this.start {
+                        let chars_deleted_before = if other.start < this.start {
                             let end = cmp::min(this.start, other.end);
-                            chars_deleted_before = end - other.start;
-                        }
+                            end - other.start
+                        } else {
+                            0
+                        };
                         let mut chars_deleted_inside = 0;
                         if other.start < this.start {
                             if other.end > this.start {
