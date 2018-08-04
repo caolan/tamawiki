@@ -1,14 +1,15 @@
 #![deny(warnings)]
+extern crate tamawiki;
 extern crate warp;
 
-use warp::Filter;
+use tamawiki::store::memory::MemoryStore;
+use std::sync::{Arc, Mutex};
+
 
 fn main() {
-    // Match any request and return hello world!
-    let routes = warp::any()
-        .map(|| "Hello, World!\n");
-
-    warp::serve(routes)
-        .run(([127, 0, 0, 1], 8080));
+    let store = Arc::new(Mutex::new(MemoryStore::default()));
+    let app = tamawiki::app(store.clone());
+    
+    warp::serve(app).run(([127, 0, 0, 1], 8080));
 }
 

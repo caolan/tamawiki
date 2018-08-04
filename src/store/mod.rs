@@ -7,7 +7,7 @@
 //! store implementation may checkpoint or cache these update
 //! applications in order to speed up this process.
 
-use std::fmt::{self, Display};
+use std::fmt::{self, Debug, Display};
 use std::error::Error;
 use std::path::{PathBuf, Path};
 use futures::stream::Stream;
@@ -23,21 +23,29 @@ pub mod memory;
 /// SequenceId=0 will return *all* Updates for a Document.
 pub type SequenceId = u64;
 
+pub trait Store: Debug + Sync + Send {
+    type Client: StoreClient;
+
+    /// Obtains a new client interface to the store. This will be
+    /// called for each HTTP request and from multiple threads.
+    fn client(&self) -> Self::Client;
+}
+
 /// Every store backend must provide an interface to the store using
 /// the StoreClient trait, which defines the API used by TamaWiki.
-pub trait StoreClient {
+pub trait StoreClient: Debug + Sync + Send {
     type Stream: Stream<Item=(SequenceId, Update), Error=StoreError>;
     
     /// Adds a new Update to the document at 'path' and returns the
     /// new SequenceId. If the document does not exist, the act of
     /// pushing an Update creates it.
     fn push(&mut self, path: PathBuf, update: Update) ->
-        Box<Future<Item=SequenceId, Error=StoreError>>;
+        Box<Future<Item=SequenceId, Error=StoreError> + Send>;
 
     /// Requests the current SequenceId for the document at 'path',
     /// or StoreError::NotFound if it does not exist.
     fn seq(&self, path: &Path) ->
-        Box<Future<Item=SequenceId, Error=StoreError>>;
+        Box<Future<Item=SequenceId, Error=StoreError> + Send>;
 
     /// Requests a stream of Updates starting *after* the provided
     /// SequenceId. Requesting the current (head) SequenceId is not an
@@ -45,13 +53,13 @@ pub trait StoreClient {
     /// since a SequenceId that does not exist yet is a
     /// StoreError::InvalidSequenceId.
     fn since(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Self::Stream, Error=StoreError>>;
+        Box<Future<Item=Self::Stream, Error=StoreError> + Send>;
 
     /// Requests the current SequenceId and content for the document
     /// at 'path' (with all updates applied), or StoreError::NotFound
     /// if the document does not exist.
     fn content(&self, path: &Path) ->
-        Box<Future<Item=(SequenceId, Document), Error=StoreError>>;
+        Box<Future<Item=(SequenceId, Document), Error=StoreError> + Send>;
 
     /// Requests a snapshot of the document's content at a specific
     /// SequenceId. All updates from SequenceId=1 (inclusive) to
@@ -60,7 +68,7 @@ pub trait StoreClient {
     /// StoreError::InvalidSequenceId if the SequenceId does not
     /// exist.
     fn content_at(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Document, Error=StoreError>>;
+        Box<Future<Item=Document, Error=StoreError> + Send>;
 }
 
 /// Error conditions for reading data from, or writing data to, the

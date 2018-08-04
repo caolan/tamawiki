@@ -6,7 +6,7 @@ use futures::{Poll, Async};
 use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 
-use super::{StoreError, StoreClient, SequenceId};
+use super::{Store, StoreClient, StoreError, SequenceId};
 use document::{Document, Update};
 
 
@@ -14,14 +14,16 @@ type Updates = Arc<Mutex<Vec<Update>>>;
 type Documents = Arc<Mutex<HashMap<PathBuf, Updates>>>;
 
 /// Holds document data in shared memory location
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct MemoryStore {
     documents: Documents
 }
 
-impl MemoryStore {
-    pub fn client(&self) -> MemoryStoreClient {
-        MemoryStoreClient {
+impl Store for MemoryStore {
+    type Client = MemoryStoreClient;
+    
+    fn client(&self) -> Self::Client {
+        Self::Client {
             documents: self.documents.clone()
         }
     }
@@ -55,6 +57,7 @@ impl Stream for MemoryStoreStream {
 }
 
 /// A thread-safe client interface to the shared document data memory
+#[derive(Debug, Clone)]
 pub struct MemoryStoreClient {
     documents: Documents
 }
@@ -63,7 +66,7 @@ impl StoreClient for MemoryStoreClient {
     type Stream = MemoryStoreStream;
     
     fn push(&mut self, path: PathBuf, update: Update) ->
-        Box<Future<Item=SequenceId, Error=StoreError>>
+        Box<Future<Item=SequenceId, Error=StoreError> + Send>
     {
         let mut documents = match self.documents.lock() {
             Ok(documents) => documents,
@@ -87,7 +90,7 @@ impl StoreClient for MemoryStoreClient {
     }
 
     fn seq(&self, path: &Path) ->
-        Box<Future<Item=SequenceId, Error=StoreError>>
+        Box<Future<Item=SequenceId, Error=StoreError> + Send>
     {
         let documents = match self.documents.lock() {
             Ok(documents) => documents,
@@ -111,7 +114,7 @@ impl StoreClient for MemoryStoreClient {
     }
 
     fn since(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Self::Stream, Error=StoreError>>
+        Box<Future<Item=Self::Stream, Error=StoreError> + Send>
     {
         let documents = match self.documents.lock() {
             Ok(documents) => documents,
@@ -141,7 +144,7 @@ impl StoreClient for MemoryStoreClient {
     }
 
     fn content(&self, path: &Path) ->
-        Box<Future<Item=(SequenceId, Document), Error=StoreError>>
+        Box<Future<Item=(SequenceId, Document), Error=StoreError> + Send>
     {
         Box::new(
             self.since(path, 0).and_then(|stream| {
@@ -159,7 +162,7 @@ impl StoreClient for MemoryStoreClient {
     }
 
     fn content_at(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Document, Error=StoreError>>
+        Box<Future<Item=Document, Error=StoreError> + Send>
     {
         let check_seq = self.seq(path).and_then(move |head| {
             if seq > head {
