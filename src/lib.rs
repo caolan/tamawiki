@@ -7,6 +7,7 @@
 extern crate serde;
 extern crate futures;
 extern crate warp;
+extern crate http;
 
 
 pub mod connection;
@@ -19,6 +20,7 @@ use warp::filters::BoxedFilter;
 use futures::future::Future;
 use std::sync::{Arc, Mutex};
 use std::path::PathBuf;
+use http::{StatusCode, Response};
 
 use store::{Store, StoreClient, StoreError, SequenceId};
 use document::Document;
@@ -50,10 +52,28 @@ pub fn app<T: 'static + Store>(store: Arc<Mutex<T>>) -> BoxedFilter<(impl Reply,
         });
 
     // display document on success
-    let display_document = document_content.map(|data: (SequenceId, Document)| {
-        format!("{}\n\n\nseq: {}", data.1.content, data.0)
-    });
+    let display_document = warp::get(
+        document_content
+            .map(|data: (SequenceId, Document)| {
+                Response::builder()
+                    .status(StatusCode::OK)
+                    .header("Content-Type", "text/html")
+                    .body(format!("{}\n\n\nseq: {}", data.1.content, data.0))
+            })
+    );
 
     // app filter
-    display_document.boxed()
+    display_document
+        .or_else(|err: warp::reject::Rejection| {
+            match err.status() {
+                StatusCode::NOT_FOUND => {
+                    Ok((Response::builder()
+                        .status(StatusCode::NOT_FOUND)
+                        .header("Content-Type", "text/html")
+                        .body("Not found\n".to_owned()),))
+                },
+                _ => Err(err)
+            }
+        })
+        .boxed()
 }
