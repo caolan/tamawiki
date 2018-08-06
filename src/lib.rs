@@ -62,18 +62,22 @@ pub fn app<T: 'static + Store>(store: Arc<Mutex<T>>) -> BoxedFilter<(impl Reply,
             })
     );
 
+    let static_files = warp::path("_static")
+        .and(warp::fs::dir("static"));
+    
     // app filter
-    display_document
-        .or_else(|err: warp::reject::Rejection| {
-            match err.status() {
-                StatusCode::NOT_FOUND => {
-                    Ok((Response::builder()
-                        .status(StatusCode::NOT_FOUND)
-                        .header("Content-Type", "text/html")
-                        .body("Not found\n".to_owned()),))
-                },
-                _ => Err(err)
-            }
-        })
+    warp::get(static_files)
+        .or(display_document
+            .or_else(|err: warp::reject::Rejection| {
+                match err.status() {
+                    StatusCode::NOT_FOUND => {
+                        Ok((Response::builder()
+                            .status(StatusCode::NOT_FOUND)
+                            .header("Content-Type", "text/html")
+                            .body("Not found\n".to_owned()),))
+                    },
+                    _ => Err(err)
+                }
+            }))
         .boxed()
 }
