@@ -87,3 +87,56 @@ fn request_static_file() {
 
     assert_eq!(response.status(), StatusCode::OK);
 }
+
+#[test]
+fn request_missing_page_with_edit_action() {
+    let store = Arc::new(Mutex::new(MemoryStore::default()));
+    let app = tamawiki::app(store);
+
+    let response = warp::test::request()
+        .method("GET")
+        .path("/example.html?action=edit")
+        .reply(&app);
+    
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+
+    assert!(
+        String::from_utf8(response.body().to_vec()).unwrap()
+            .contains("id=\"editor\"")
+    );
+}
+
+#[test]
+fn request_existing_page_with_edit_action() {
+    let store = Arc::new(Mutex::new(MemoryStore::default()));
+    let app = tamawiki::app(store.clone());
+
+    let mut store = store.lock().unwrap().client();
+    
+    let push = store.push(
+        PathBuf::from("example.html"),
+        Update {
+            from: 1,
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("test"),
+            })]
+        }
+    );
+    
+    push.map_err(|err| panic!("{}", err))
+        .wait()
+        .unwrap();
+
+    let response = warp::test::request()
+        .method("GET")
+        .path("/example.html?action=edit")
+        .reply(&app);
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    assert!(
+        String::from_utf8(response.body().to_vec()).unwrap()
+            .contains("id=\"editor\"")
+    );
+}

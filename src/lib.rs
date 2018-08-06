@@ -1,5 +1,3 @@
-#![deny(warnings)]
-
 #[cfg(test)]
 #[macro_use] extern crate proptest;
 
@@ -7,6 +5,7 @@
 #[macro_use] extern crate lazy_static;
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate serde_json;
+extern crate serde_urlencoded;
 extern crate serde;
 extern crate futures;
 extern crate warp;
@@ -24,12 +23,12 @@ use warp::reject::Rejection;
 use futures::future::Future;
 use std::sync::{Arc, Mutex};
 use std::path::PathBuf;
+use std::collections::HashMap;
 use http::{StatusCode, Response};
 use serde::Serialize;
 use tera::Tera;
 
-use store::{Store, StoreClient, StoreError, SequenceId};
-use document::Document;
+use store::{Store, StoreClient, StoreError};
 
 
 lazy_static! {
@@ -40,6 +39,21 @@ lazy_static! {
 
 
 pub fn app<T: 'static + Store>(store: Arc<Mutex<T>>) -> BoxedFilter<(impl Reply,)> {
+    warp::get(static_files())
+        // TODO: chaining render_rejections() off document() until
+        // https://github.com/seanmonstar/warp/issues/8#issuecomment-410100585
+        // is implemented
+        .or(document(store).or_else(render_rejection))
+        .boxed()
+}
+
+fn static_files() -> BoxedFilter<(impl Reply,)> {
+    warp::path("_static").and(warp::fs::dir("static")).boxed()
+}
+
+fn document<T: 'static + Store>(store: Arc<Mutex<T>>) ->
+    BoxedFilter<(Response<String>,)>
+{
     // request a new store client for this request
     let store_client = warp::any().map(move || {
         store.lock().unwrap().client()
@@ -48,45 +62,93 @@ pub fn app<T: 'static + Store>(store: Arc<Mutex<T>>) -> BoxedFilter<(impl Reply,
     // extract a document path using the remaining URL path components
     let document_path = warp::any()
         .and(warp::path::tail())
-        .map(|tail: warp::path::Tail| PathBuf::from(tail.as_str()));
+        .and_then(|tail: warp::path::Tail| {
+            let tail = tail.as_str();
+            // all paths starting with an underscore are reserved
+            if tail.starts_with("_") {
+                Err(warp::reject::not_found())
+            }
+            else {
+                Ok(PathBuf::from(tail))
+            }
+        });
 
-    // get document content from store or return error
-    let display_document = warp::any()
-        .and(store_client)
+    // serde_urlencoded (0.5.2) doesn't support deserializing unit
+    // enums, so instead of using a custom query struct to match
+    // available actions we have to fall back to a hashmap for now.
+    // TODO: change this one warp support a different deserializer or
+    // https://github.com/nox/serde_urlencoded/pull/30 is merged.
+    let document_action = warp::query()
+        .map(|q: HashMap<String, String>| {
+            match q.get("action") {
+                Some(name) if name == "edit" => DocumentAction::Edit,
+                _ => DocumentAction::View,
+            }
+        })
+        .or_else(|_| {
+            Ok((DocumentAction::View,))
+        });
+
+    // display document content from store, render empty document
+    // page, or return warp rejection
+    warp::any()
         .and(document_path)
-        .and_then(|store: T::Client, tail: PathBuf| {
-            store.content(&tail.as_path()).map_err(|err| {
-                match err {
-                    StoreError::NotFound => warp::reject::not_found(),
-                    _ => warp::reject::server_error()
+        .and(document_action)
+        .and(store_client.clone())
+        .and_then(|path: PathBuf, action: DocumentAction, store: T::Client| {
+            store.content(&path.as_path()).then(move |result| {
+                match result {
+                    Ok((seq, doc)) => {
+                        let tmpl = match action {
+                            DocumentAction::Edit => "editor.html",
+                            DocumentAction::View => "document.html",
+                        };
+                        let res = Response::builder()
+                            .status(StatusCode::OK)
+                            .header("Content-Type", "text/html")
+                            .body(
+                                template(tmpl, &json!({
+                                    "title": "Document",
+                                    "seq": seq,
+                                    "content": doc.content
+                                }))?
+                            );
+                        Ok(res.unwrap())
+                    },
+                    Err(StoreError::NotFound) => {
+                        let body = match action {
+                            DocumentAction::Edit => {
+                                template("editor.html", &json!({
+                                    "title": "Document",
+                                    "seq": 0,
+                                    "content": ""
+                                }))?
+                            },
+                            DocumentAction::View => {
+                                template("empty_document.html", &json!({
+                                    "title": "Document",
+                                }))?
+                            }
+                        };
+                        let res = Response::builder()
+                            .status(StatusCode::NOT_FOUND)
+                            .header("Content-Type", "text/html")
+                            .body(body);
+                        Ok(res.unwrap())
+                    },
+                    Err(_) =>
+                        Err(warp::reject::server_error()),
                 }
             })
         })
-        .and_then(|(seq, doc): (SequenceId, Document)| {
-            template("document.html", &json!({
-                "title": "Document",
-                "seq": seq,
-                "content": doc.content
-            }))
-        })
-        .map(|body| {
-            Response::builder()
-                .status(StatusCode::OK)
-                .header("Content-Type", "text/html")
-                .body(body)
-                .unwrap()
-        });
-
-    let static_files = warp::path("_static")
-        .and(warp::fs::dir("static"));
-    
-    // app filter
-    warp::get(static_files)
-        .or(display_document
-            .or_else(render_rejection))
         .boxed()
 }
 
+#[derive(Deserialize, Debug)]
+enum DocumentAction {
+    View,
+    Edit,
+}
 
 fn template<T: Serialize>(name: &'static str, context: &T) ->
     Result<String, warp::Rejection>
