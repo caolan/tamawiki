@@ -11,6 +11,8 @@ serde_derive = "1.0"
 serde = "1.0"
 futures = "0.1"
 http = "0.1"
+tera = "0.11"
+lazy_static = "1.1"
 
 [dev-dependencies]
 proptest = "0.8"

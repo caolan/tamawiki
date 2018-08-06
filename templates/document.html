@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block actions %}
+<a href="?edit=true">Edit</a>
+{% endblock actions %}
+
+{% block content %}
+{{ content }}
+{% endblock content %}
+
+{% block footer %}
+Version: {{ seq }}
+{% endblock footer %}
