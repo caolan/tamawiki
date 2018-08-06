@@ -74,3 +74,16 @@ fn get_page_content_from_store() {
             .contains("Testing 123")
     );
 }
+
+#[test]
+fn request_static_file() {
+    let store = Arc::new(Mutex::new(MemoryStore::default()));
+    let app = tamawiki::app(store);
+        
+    let response = warp::test::request()
+        .method("GET")
+        .path("/_static/css/style.css")
+        .reply(&app);
+
+    assert_eq!(response.status(), StatusCode::OK);
+}
