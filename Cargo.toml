@@ -5,3 +5,4 @@ authors = ["Caolan McMahon <caolan.mcmahon@gmail.com>"]
 
 [dependencies]
 hyper = "0.12"
+futures = "0.1"
