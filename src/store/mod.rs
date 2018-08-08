@@ -36,12 +36,12 @@ pub trait Store: Clone {
     /// new SequenceId. If the document does not exist, the act of
     /// pushing an Update creates it.
     fn push(&mut self, path: PathBuf, update: Update) ->
-        Box<Future<Item=SequenceId, Error=StoreError>>;
+        Box<Future<Item=SequenceId, Error=StoreError> + Send>;
 
     /// Requests the current SequenceId for the document at 'path',
     /// or StoreError::NotFound if it does not exist.
     fn seq(&self, path: &Path) ->
-        Box<Future<Item=SequenceId, Error=StoreError>>;
+        Box<Future<Item=SequenceId, Error=StoreError> + Send>;
 
     /// Requests a stream of Updates starting *after* the provided
     /// SequenceId. Requesting the current (head) SequenceId is not an
@@ -49,13 +49,13 @@ pub trait Store: Clone {
     /// since a SequenceId that does not exist yet is a
     /// StoreError::InvalidSequenceId.
     fn since(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Self::Stream, Error=StoreError>>;
+        Box<Future<Item=Self::Stream, Error=StoreError> + Send>;
 
     /// Requests the current SequenceId and content for the document
     /// at 'path' (with all updates applied), or StoreError::NotFound
     /// if the document does not exist.
     fn content(&self, path: &Path) ->
-        Box<Future<Item=(SequenceId, Document), Error=StoreError>>;
+        Box<Future<Item=(SequenceId, Document), Error=StoreError> + Send>;
 
     /// Requests a snapshot of the document's content at a specific
     /// SequenceId. All updates from SequenceId=1 (inclusive) to
@@ -64,7 +64,7 @@ pub trait Store: Clone {
     /// StoreError::InvalidSequenceId if the SequenceId does not
     /// exist.
     fn content_at(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Document, Error=StoreError>>;
+        Box<Future<Item=Document, Error=StoreError> + Send>;
     
 }
 

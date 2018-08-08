@@ -9,7 +9,10 @@
 extern crate serde;
 extern crate hyper;
 extern crate futures;
+extern crate http;
 
 pub mod service;
 pub mod document;
 pub mod store;
+
+pub use service::TamaWiki;

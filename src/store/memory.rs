@@ -23,7 +23,7 @@ impl Store for MemoryStore {
     type Stream = MemoryStoreStream;
     
     fn push(&mut self, path: PathBuf, update: Update) ->
-        Box<Future<Item=SequenceId, Error=StoreError>>
+        Box<Future<Item=SequenceId, Error=StoreError> + Send>
     {
         let mut documents = match self.documents.write() {
             Ok(documents) => documents,
@@ -47,7 +47,7 @@ impl Store for MemoryStore {
     }
 
     fn seq(&self, path: &Path) ->
-        Box<Future<Item=SequenceId, Error=StoreError>>
+        Box<Future<Item=SequenceId, Error=StoreError> + Send>
     {
         let documents = match self.documents.read() {
             Ok(documents) => documents,
@@ -71,7 +71,7 @@ impl Store for MemoryStore {
     }
 
     fn since(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Self::Stream, Error=StoreError>>
+        Box<Future<Item=Self::Stream, Error=StoreError> + Send>
     {
         let documents = match self.documents.read() {
             Ok(documents) => documents,
@@ -101,7 +101,7 @@ impl Store for MemoryStore {
     }
 
     fn content(&self, path: &Path) ->
-        Box<Future<Item=(SequenceId, Document), Error=StoreError>>
+        Box<Future<Item=(SequenceId, Document), Error=StoreError> + Send>
     {
         Box::new(
             self.since(path, 0).and_then(|stream| {
@@ -119,7 +119,7 @@ impl Store for MemoryStore {
     }
 
     fn content_at(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Document, Error=StoreError>>
+        Box<Future<Item=Document, Error=StoreError> + Send>
     {
         let check_seq = self.seq(path).and_then(move |head| {
             if seq > head {

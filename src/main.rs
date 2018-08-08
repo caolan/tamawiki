@@ -2,16 +2,18 @@ extern crate tamawiki;
 extern crate futures;
 extern crate hyper;
 
-use tamawiki::service::TamaWiki;
+use tamawiki::TamaWiki;
+use tamawiki::store::memory::MemoryStore;
 use futures::future::Future;
 use hyper::Server;
 
 
 fn main() {
     let addr = ([127, 0, 0, 1], 8080).into();
+    let store = MemoryStore::default();
 
     let server = Server::bind(&addr)
-        .serve(TamaWiki::default())
+        .serve(TamaWiki {store})
         .map_err(|err| eprintln!("Server error: {}", err));
     
     hyper::rt::run(server);
