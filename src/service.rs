@@ -24,7 +24,6 @@ use hyper::{Response, Request};
 use hyper::body::Body;
 use hyper::service::{NewService, Service};
 use futures::future::{self, Future, FutureResult};
-use futures::stream::Stream;
 use http::StatusCode;
 use std::error::Error;
 use std::path::PathBuf;

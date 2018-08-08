@@ -7,16 +7,16 @@ use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 
 use super::{Store, StoreError, SequenceId};
-use document::{Document, Update};
+use document::{Document, Update, Operation, Insert};
 
 
 type Updates = Arc<RwLock<Vec<Update>>>;
-type Documents = Arc<RwLock<HashMap<PathBuf, Updates>>>;
+type Documents = HashMap<PathBuf, Updates>;
 
 /// Holds document data in shared memory location
 #[derive(Default, Clone)]
 pub struct MemoryStore {
-    documents: Documents
+    documents: Arc<RwLock<Documents>>
 }
 
 impl Store for MemoryStore {
@@ -143,6 +143,59 @@ impl Store for MemoryStore {
             check_seq.and_then(move |_| doc)
         )
     }
+}
+
+impl From<HashMap<String, String>> for MemoryStore {
+    fn from(data: HashMap<String, String>) -> Self {
+        let mut documents: Documents = Default::default();
+        for (k, v) in data.into_iter() {
+            documents.insert(
+                PathBuf::from(k),
+                Arc::new(RwLock::new(vec![Update {
+                    author: 1,
+                    operations: vec![
+                        Operation::Insert(Insert {
+                            pos: 0,
+                            content: v
+                        })
+                    ]
+                }]))
+            );
+        }
+        MemoryStore {
+            documents: Arc::new(RwLock::new(documents))
+        }
+    }
+}
+
+/// Convenient way to create a new MemoryStore with existing content.
+///
+/// Each document defined using this macro will consist of a single
+/// Insert Operation which inserts the provided content.
+///
+/// # Example
+///
+/// ```
+/// #[macro_use] extern crate tamawiki;
+///
+/// use tamawiki::store::memory::MemoryStore;
+///
+/// let store = memorystore! {
+///     "example/index.html" => "My Example Page",
+///     "example/blah.html" => "blah blah blah"
+/// };
+/// ```
+#[macro_export]
+macro_rules! memorystore {
+    { $($path:expr => $content:expr),* } => {
+        {
+            let mut docs = std::collections::HashMap::<String, String>::new();
+            $(
+                docs.insert(String::from($path), String::from($content));
+            )*
+            MemoryStore::from(docs)
+        }
+    };
 }
 
 /// An asynchronous stream of Update objects cloned from memory
