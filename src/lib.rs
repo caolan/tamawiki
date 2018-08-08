@@ -12,3 +12,4 @@ extern crate futures;
 
 pub mod service;
 pub mod document;
+pub mod store;
