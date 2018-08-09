@@ -18,7 +18,10 @@ use tamawiki::store::memory::MemoryStore;
 fn get_missing_page() {
     let store = MemoryStore::default();
     let static_path = PathBuf::from("public");
-    let mut service = TamaWikiService::new(store, &static_path.as_path());
+    let mut service = TamaWikiService {
+        static_path,
+        store,
+    };
 
     let request = Request::get("/missing.html")
         .body(Body::from(""))
@@ -34,10 +37,10 @@ fn get_page_content_from_store() {
         "test.html" => "Testing 123"
     };
     let static_path = PathBuf::from("public");
-    let mut service = TamaWikiService::new(
-        store.clone(),
-        &static_path.as_path()
-    );
+    let mut service = TamaWikiService {
+        store: store.clone(),
+        static_path,
+    };
 
     let request = Request::get("/test.html")
         .body(Body::from(""))
@@ -63,10 +66,14 @@ fn get_page_content_from_store() {
 }
 
 #[test]
+
 fn get_static_file() {
     let store = MemoryStore::default();
     let static_path = PathBuf::from("public");
-    let mut service = TamaWikiService::new(store, &static_path.as_path());
+    let mut service = TamaWikiService {
+        static_path,
+        store,
+    };
 
     let request = Request::get("/_static/css/style.css")
         .body(Body::from(""))

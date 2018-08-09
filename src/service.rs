@@ -28,10 +28,10 @@ use hyper::service::{NewService, Service};
 use futures::future::{self, Future, FutureResult};
 use http::StatusCode;
 use tera::Tera;
-use hyper_staticfile::Static;
+use hyper_staticfile::{self, resolve};
 use std::fmt::{self, Display};
 use std::error::Error;
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 
 use store::{Store, StoreError};
 
@@ -73,21 +73,29 @@ impl<T: Store> NewService for TamaWiki<T> {
     type Future = FutureResult<Self::Service, Self::InitError>;
     
     fn new_service(&self) -> Self::Future {
-        future::ok(TamaWikiService::new(
-            self.store.clone(),
-            &self.static_path.as_path()
-        ))
+        future::ok(TamaWikiService {
+            store: self.store.clone(),
+            static_path: self.static_path.clone()
+        })
     }
 }
 
 #[derive(Debug)]
 enum HttpError {
-    InternalServerError(String)
+    InternalServerError(String),
+    MethodNotAllowed,
+    BadRequest,
+    NotFound,
+    Unauthorized,
 }
 
 impl Display for HttpError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
+            HttpError::MethodNotAllowed => write!(f, "MethodNotAllowed"),
+            HttpError::BadRequest => write!(f, "BadRequest"),
+            HttpError::NotFound => write!(f, "NotFound"),
+            HttpError::Unauthorized => write!(f, "Unauthorized"),
             HttpError::InternalServerError(ref err) => 
                 write!(f, "InternalServerError: {}", err),
         }
@@ -97,6 +105,10 @@ impl Display for HttpError {
 impl Error for HttpError {
     fn description(&self) -> &str {
         match *self {
+            HttpError::MethodNotAllowed => "method not allowed",
+            HttpError::BadRequest => "bad request",
+            HttpError::NotFound => "not found",
+            HttpError::Unauthorized => "unauthorized",
             HttpError::InternalServerError(ref err) => err,
         }
     }
@@ -107,28 +119,44 @@ pub struct TamaWikiService<T: Store> {
     /// A cloneable interface to the backing store used by TamaWiki to
     /// persist document updates
     pub store: T,
-    /// Interface for serving static files from a root path
-    pub static_files: Static,
+    /// Path to serve static files from
+    pub static_path: PathBuf,
 }
 
 impl<T: Store> TamaWikiService<T> {
-    /// Creates a new TamaWikiService with the provided Store, and a
-    /// Static file serving interface using the provided static_path
-    /// as the root directory.
-    pub fn new(store: T, static_path: &Path) -> Self {
-        TamaWikiService {
-            static_files: Static::new(static_path),
-            store,
-        }
-    }
-
+    
     fn serve_static(&mut self, req: Request<Body>) -> 
         Box<Future<Item=Response<Body>, Error=HttpError> + Send>
     {
+        // First, resolve the request. Returns a `ResolveFuture` for a `ResolveResult`.
+        let result = resolve(&self.static_path.as_path(), &req).map_err(|err| {
+            println!("{}", err);
+            HttpError::InternalServerError(format!("{}", err))
+        }).and_then(|res| {
+            use hyper_staticfile::ResolveResult::*;
+            match res {
+                // The request was not `GET` or `HEAD` request,
+                MethodNotMatched => Err(HttpError::MethodNotAllowed),
+                // The request URI was not just a path.
+                UriNotMatched => Err(HttpError::BadRequest),
+                // The requested file does not exist.
+                NotFound => Err(HttpError::NotFound),
+                // The requested file could not be accessed.
+                PermissionDenied => Err(HttpError::Unauthorized),
+                // A directory was requested as a file.
+                IsDirectory => Ok(IsDirectory),
+                // The requested file was found.
+                Found(file, metadata) => Ok(Found(file, metadata)),
+            }
+        });
+
+        // Then, build a response based on the result.
+        // The `ResponseBuilder` is typically a short-lived, per-request instance.
         Box::new(
-            self.static_files.serve(req).map_err(|err| {
-                println!("static_files error: {}", err);
-                HttpError::InternalServerError(format!("{}", err))
+            result.map(move |result| {
+                hyper_staticfile::ResponseBuilder::new()
+                    .build(&req, result)
+                    .unwrap()
             })
         )
     }
@@ -198,7 +226,39 @@ impl<T: Store> Service for TamaWikiService<T> {
                             .status(StatusCode::INTERNAL_SERVER_ERROR)
                             .body(Body::from(text))
                             .unwrap())
-                }
+                },
+                Err(HttpError::NotFound) => {
+                    let ctx = json!({
+                        "title": "Not Found"
+                    });
+                    let text = TERA.render("404.html", &ctx).unwrap();
+                    future::ok(
+                        Response::builder()
+                            .status(StatusCode::NOT_FOUND)
+                            .body(Body::from(text))
+                            .unwrap())
+                },
+                Err(HttpError::MethodNotAllowed) => {
+                    future::ok(
+                        Response::builder()
+                            .status(StatusCode::METHOD_NOT_ALLOWED)
+                            .body(Body::from(""))
+                            .unwrap())
+                },
+                Err(HttpError::Unauthorized) => {
+                    future::ok(
+                        Response::builder()
+                            .status(StatusCode::UNAUTHORIZED)
+                            .body(Body::from(""))
+                            .unwrap())
+                },
+                Err(HttpError::BadRequest) => {
+                    future::ok(
+                        Response::builder()
+                            .status(StatusCode::BAD_REQUEST)
+                            .body(Body::from(""))
+                            .unwrap())
+                },
             }
         });
         Box::new(res)
