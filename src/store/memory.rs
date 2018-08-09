@@ -148,7 +148,7 @@ impl Store for MemoryStore {
 impl From<HashMap<String, String>> for MemoryStore {
     fn from(data: HashMap<String, String>) -> Self {
         let mut documents: Documents = Default::default();
-        for (k, v) in data.into_iter() {
+        for (k, v) in data {
             documents.insert(
                 PathBuf::from(k),
                 Arc::new(RwLock::new(vec![Update {
