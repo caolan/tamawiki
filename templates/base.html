@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>{{ title }}</title>
+        
+        <link rel="stylesheet" href="/_static/css/style.css" />
+        {% block stylesheets %}
+        {% endblock stylesheets %}
+    </head>
+    <body>
+        <div id="actions">
+            {% block actions %}
+            {% endblock actions %}
+        </div>
+        <main>
+            <h1>{{ title }}</h1>
+            {% block content %}{% endblock content %}
+        </main>
+        <footer>
+            {% block footer %}
+            {% endblock footer %}
+        </footer>
+
+        {% block scripts %}
+        {% endblock scripts %}
+    </body>
+</html>
