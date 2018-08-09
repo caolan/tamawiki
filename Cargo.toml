@@ -12,6 +12,7 @@ serde = "1.0"
 http = "0.1"
 tera = "0.11"
 lazy_static = "1.1"
+hyper-staticfile = "0.3"
 
 [dev-dependencies]
 proptest = "0.8"

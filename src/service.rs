@@ -11,12 +11,14 @@
 //! use tamawiki::store::memory::MemoryStore;
 //! use futures::future::Future;
 //! use hyper::Server;
+//! use std::path::PathBuf;
 //!
 //! let addr = ([127, 0, 0, 1], 8080).into();
 //! let store = MemoryStore::default();
+//! let static_path = PathBuf::from("static");
 //!
 //! let server = Server::bind(&addr)
-//!     .serve(TamaWiki {store})
+//!     .serve(TamaWiki {store, static_path})
 //!     .map_err(|err| eprintln!("Server error: {}", err));
 //! ```
 
@@ -26,9 +28,10 @@ use hyper::service::{NewService, Service};
 use futures::future::{self, Future, FutureResult};
 use http::StatusCode;
 use tera::Tera;
+use hyper_staticfile::Static;
 use std::fmt::{self, Display};
 use std::error::Error;
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 
 use store::{Store, StoreError};
 
@@ -56,7 +59,9 @@ impl Error for TamaWikiError {}
 pub struct TamaWiki<T: Store> {
     /// A cloneable interface to the backing store used by TamaWiki to
     /// persist document updates
-    pub store: T
+    pub store: T,
+    /// Path to serve static files from
+    pub static_path: PathBuf,
 }
 
 impl<T: Store> NewService for TamaWiki<T> {
@@ -68,17 +73,11 @@ impl<T: Store> NewService for TamaWiki<T> {
     type Future = FutureResult<Self::Service, Self::InitError>;
     
     fn new_service(&self) -> Self::Future {
-        future::ok(TamaWikiService {
-            store: self.store.clone()
-        })
+        future::ok(TamaWikiService::new(
+            self.store.clone(),
+            &self.static_path.as_path()
+        ))
     }
-}
-
-/// Handles a request and returns a response
-pub struct TamaWikiService<T: Store> {
-    /// A cloneable interface to the backing store used by TamaWiki to
-    /// persist document updates
-    pub store: T
 }
 
 #[derive(Debug)]
@@ -103,7 +102,37 @@ impl Error for HttpError {
     }
 }
 
+/// Handles a request and returns a response
+pub struct TamaWikiService<T: Store> {
+    /// A cloneable interface to the backing store used by TamaWiki to
+    /// persist document updates
+    pub store: T,
+    /// Interface for serving static files from a root path
+    pub static_files: Static,
+}
+
 impl<T: Store> TamaWikiService<T> {
+    /// Creates a new TamaWikiService with the provided Store, and a
+    /// Static file serving interface using the provided static_path
+    /// as the root directory.
+    pub fn new(store: T, static_path: &Path) -> Self {
+        TamaWikiService {
+            static_files: Static::new(static_path),
+            store,
+        }
+    }
+
+    fn serve_static(&mut self, req: Request<Body>) -> 
+        Box<Future<Item=Response<Body>, Error=HttpError> + Send>
+    {
+        Box::new(
+            self.static_files.serve(req).map_err(|err| {
+                println!("static_files error: {}", err);
+                HttpError::InternalServerError(format!("{}", err))
+            })
+        )
+    }
+    
     fn serve_document(&mut self, req: &Request<Body>) ->
         Box<Future<Item=Response<Body>, Error=HttpError> + Send>
     {
@@ -150,25 +179,28 @@ impl<T: Store> Service for TamaWikiService<T> {
                       Send>;
     
     fn call(&mut self, req: Request<Self::ReqBody>) -> Self::Future {
-        Box::new(
-            self.serve_document(&req).then(|result| {
-                match result {
-                    Ok(response) => future::ok(response),
-                    Err(HttpError::InternalServerError(err)) => {
-                        let ctx = json!({
-                            "title": "Internal Server Error",
-                            "error": err
-                        });
-                        let text = TERA.render("500.html", &ctx).unwrap();
-                        future::ok(Response::builder()
-                                   .status(StatusCode::INTERNAL_SERVER_ERROR)
-                                   .body(Body::from(text))
-                                   .unwrap())
-                    }
+        let res = if req.uri().path().starts_with("/_static/") {
+            self.serve_static(req)
+        } else {
+            self.serve_document(&req)
+        };
+        let res = res.then(|result| -> FutureResult<Response<Body>, TamaWikiError> {
+            match result {
+                Ok(response) => future::ok(response),
+                Err(HttpError::InternalServerError(err)) => {
+                    let ctx = json!({
+                        "title": "Internal Server Error",
+                        "error": err
+                    });
+                    let text = TERA.render("500.html", &ctx).unwrap();
+                    future::ok(
+                        Response::builder()
+                            .status(StatusCode::INTERNAL_SERVER_ERROR)
+                            .body(Body::from(text))
+                            .unwrap())
                 }
-            }).map_err(|_err: HttpError| {
-                TamaWikiError {}
-            })
-        )
+            }
+        });
+        Box::new(res)
     }
 }

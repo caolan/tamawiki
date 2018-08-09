@@ -6,6 +6,7 @@ use tamawiki::TamaWiki;
 use tamawiki::store::memory::MemoryStore;
 use futures::future::Future;
 use hyper::Server;
+use std::path::PathBuf;
 
 
 fn main() {
@@ -15,8 +16,13 @@ fn main() {
         "index.html" => "Welcome to TamaWiki.\n"
     };
     
+    let static_path = PathBuf::from("public");
+    
     let server = Server::bind(&addr)
-        .serve(TamaWiki {store})
+        .serve(TamaWiki {
+            static_path,
+            store
+        })
         .map_err(|err| eprintln!("Server error: {}", err));
     
     hyper::rt::run(server);

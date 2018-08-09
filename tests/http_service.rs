@@ -8,6 +8,7 @@ use hyper::Body;
 use http::{Request, StatusCode};
 use futures::future::Future;
 use futures::stream::Stream;
+use std::path::PathBuf;
 
 use tamawiki::service::TamaWikiService;
 use tamawiki::store::memory::MemoryStore;
@@ -16,7 +17,8 @@ use tamawiki::store::memory::MemoryStore;
 #[test]
 fn get_missing_page() {
     let store = MemoryStore::default();
-    let mut service = TamaWikiService {store};
+    let static_path = PathBuf::from("public");
+    let mut service = TamaWikiService::new(store, &static_path.as_path());
 
     let request = Request::get("/missing.html")
         .body(Body::from(""))
@@ -31,9 +33,11 @@ fn get_page_content_from_store() {
     let store = memorystore! {
         "test.html" => "Testing 123"
     };
-    let mut service = TamaWikiService {
-        store: store.clone()
-    };
+    let static_path = PathBuf::from("public");
+    let mut service = TamaWikiService::new(
+        store.clone(),
+        &static_path.as_path()
+    );
 
     let request = Request::get("/test.html")
         .body(Body::from(""))
@@ -55,5 +59,22 @@ fn get_page_content_from_store() {
     assert!(
         String::from_utf8(body.to_vec()).unwrap()
             .contains("Testing 123")
+    );
+}
+
+#[test]
+fn get_static_file() {
+    let store = MemoryStore::default();
+    let static_path = PathBuf::from("public");
+    let mut service = TamaWikiService::new(store, &static_path.as_path());
+
+    let request = Request::get("/_static/css/style.css")
+        .body(Body::from(""))
+        .unwrap();
+    
+    hyper::rt::run(
+        service.call(request).map(|response| {
+            assert_eq!(response.status(), StatusCode::OK);
+        }).map_err(|err| panic!("{}", err))
     );
 }
