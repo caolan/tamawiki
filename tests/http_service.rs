@@ -85,3 +85,67 @@ fn get_static_file() {
         }).map_err(|err| panic!("{}", err))
     );
 }
+
+#[test]
+fn request_missing_page_with_edit_action() {
+    let store = MemoryStore::default();
+    let static_path = PathBuf::from("public");
+    let mut service = TamaWikiService {
+        static_path,
+        store,
+    };
+
+    let request = Request::get("/missing.html?action=edit")
+        .body(Body::from(""))
+        .unwrap();
+    
+    let response = service.call(request).wait().unwrap();
+
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+
+    let body = response.into_body().fold(
+        Vec::new(),
+        |mut body, chunk| -> Result<Vec<u8>, hyper::Error> {
+            body.append(&mut chunk.to_vec());
+            Ok(body)
+        }
+    ).wait().unwrap();
+    
+    assert!(
+        String::from_utf8(body.to_vec()).unwrap()
+            .contains("id=\"editor\"")
+    );
+}
+
+#[test]
+fn request_existing_page_with_edit_action() {
+    let store = memorystore! {
+        "example.html" => "test"
+    };
+    let static_path = PathBuf::from("public");
+    let mut service = TamaWikiService {
+        static_path,
+        store,
+    };
+
+    let request = Request::get("/example.html?action=edit")
+        .body(Body::from(""))
+        .unwrap();
+    
+    let response = service.call(request).wait().unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body = response.into_body().fold(
+        Vec::new(),
+        |mut body, chunk| -> Result<Vec<u8>, hyper::Error> {
+            body.append(&mut chunk.to_vec());
+            Ok(body)
+        }
+    ).wait().unwrap();
+    
+    assert!(
+        String::from_utf8(body.to_vec()).unwrap()
+            .contains("id=\"editor\"")
+    );
+}

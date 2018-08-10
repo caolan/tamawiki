@@ -34,6 +34,7 @@ use std::error::Error;
 use std::path::PathBuf;
 
 use store::{Store, StoreError};
+use request::query_params;
 
 
 lazy_static! {
@@ -165,8 +166,13 @@ impl<T: Store> TamaWikiService<T> {
         Box<Future<Item=Response<Body>, Error=HttpError> + Send>
     {
         let path = PathBuf::from(&req.uri().path()[1..]);
+        let q = query_params(req);
+        let edit = match q.get("action") {
+            Some(value) => value == "edit",
+            _ => false,
+        };
         Box::new(
-            self.store.content(&path.as_path()).then(|result| {
+            self.store.content(&path.as_path()).then(move |result| {
                 match result {
                     Ok((seq, doc)) => {
                         let ctx = json!({
@@ -174,16 +180,28 @@ impl<T: Store> TamaWikiService<T> {
                             "content": doc.content,
                             "seq": seq
                         });
-                        let text = TERA.render("document.html", &ctx).unwrap();
+                        let tmpl = if edit {
+                            "editor.html"
+                        } else {
+                            "document.html"
+                        };
+                        let text = TERA.render(tmpl, &ctx).unwrap();
                         Ok(Response::builder()
                            .body(Body::from(text))
                            .unwrap())
                     }
                     Err(StoreError::NotFound) => {
-                        let ctx = json!({
-                            "title": "Document",
-                        });
-                        let text = TERA.render("empty_document.html", &ctx).unwrap();
+                        let text = if edit {
+                            TERA.render("editor.html", &json!({
+                                "title": "Document",
+                                "content": "",
+                                "seq": 0
+                            })).unwrap()
+                        } else {
+                            TERA.render("new_document.html", &json!({
+                                "title": "Document"
+                            })).unwrap()
+                        };
                         Ok(Response::builder()
                            .status(StatusCode::NOT_FOUND)
                            .body(Body::from(text))
