@@ -29,11 +29,10 @@ use futures::future::{self, Future, FutureResult};
 use http::StatusCode;
 use tera::Tera;
 use hyper_staticfile::{self, resolve};
-use std::fmt::{self, Display};
-use std::error::Error;
 use std::path::PathBuf;
 
 use store::{Store, StoreError};
+use error::{TamaWikiError, HttpError};
 use request::query_params;
 
 
@@ -42,18 +41,6 @@ lazy_static! {
         compile_templates!("templates/**/*")
     };
 }
-
-/// Error conditions that could not be handled as a HTTP response
-#[derive(Debug)]
-pub struct TamaWikiError {}
-
-impl fmt::Display for TamaWikiError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "TamaWikiError")
-    }
-}
-
-impl Error for TamaWikiError {}
 
 /// Constructs TamaWikiServices
 #[derive(Default)]
@@ -78,40 +65,6 @@ impl<T: Store> NewService for TamaWiki<T> {
             store: self.store.clone(),
             static_path: self.static_path.clone()
         })
-    }
-}
-
-#[derive(Debug)]
-enum HttpError {
-    InternalServerError(String),
-    MethodNotAllowed,
-    BadRequest,
-    NotFound,
-    Unauthorized,
-}
-
-impl Display for HttpError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            HttpError::MethodNotAllowed => write!(f, "MethodNotAllowed"),
-            HttpError::BadRequest => write!(f, "BadRequest"),
-            HttpError::NotFound => write!(f, "NotFound"),
-            HttpError::Unauthorized => write!(f, "Unauthorized"),
-            HttpError::InternalServerError(ref err) => 
-                write!(f, "InternalServerError: {}", err),
-        }
-    }
-}
-
-impl Error for HttpError {
-    fn description(&self) -> &str {
-        match *self {
-            HttpError::MethodNotAllowed => "method not allowed",
-            HttpError::BadRequest => "bad request",
-            HttpError::NotFound => "not found",
-            HttpError::Unauthorized => "unauthorized",
-            HttpError::InternalServerError(ref err) => err,
-        }
     }
 }
 
