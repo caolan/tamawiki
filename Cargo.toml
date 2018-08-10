@@ -14,6 +14,11 @@ tera = "0.11"
 lazy_static = "1.1"
 hyper-staticfile = "0.3"
 serde_urlencoded = "0.5"
+tungstenite = "0.6"
+base64 = "0.9"
+sha-1 = "0.7"
 
 [dev-dependencies]
 proptest = "0.8"
+tokio = "0.1"
+url = "1.7"

@@ -29,11 +29,13 @@ use futures::future::{self, Future, FutureResult};
 use http::StatusCode;
 use hyper_staticfile::{self, resolve};
 use std::path::PathBuf;
+use futures::stream::Stream;
 
 use store::{Store, StoreError};
 use error::{TamaWikiError, HttpError};
 use request::query_params;
 use templates::TERA;
+use websocket::{websocket, is_upgrade_request};
 
 
 /// Constructs TamaWikiServices
@@ -174,6 +176,16 @@ impl<T: Store> Service for TamaWikiService<T> {
     fn call(&mut self, req: Request<Self::ReqBody>) -> Self::Future {
         let res = if req.uri().path().starts_with("/_static/") {
             self.serve_static(req)
+        } else if is_upgrade_request(&req) {
+            websocket(req, |websocket| {
+                // Just echo all messages back...
+                let (tx, rx) = websocket.split();
+                rx.forward(tx)
+                    .map(|_| ())
+                    .map_err(|e| {
+                        eprintln!("websocket error: {:?}", e);
+                    })
+            })
         } else {
             self.serve_document(&req)
         };

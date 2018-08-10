@@ -15,11 +15,15 @@ extern crate hyper;
 extern crate futures;
 extern crate http;
 extern crate hyper_staticfile;
+extern crate tungstenite;
+extern crate base64;
+extern crate sha1;
 
 pub mod service;
 pub mod document;
 pub mod store;
 mod templates;
+mod websocket;
 mod request;
 mod error;
 

@@ -7,3 +7,15 @@ var editor = CodeMirror(editor_el, {
     value: value,
     lineWrapping: true
 });
+
+var seq = editor_el.dataset.initialSeq;
+var host = window.location.host;
+var pathname = window.location.pathname;
+var ws_url = 'ws://' + host + pathname + '?seq=' + seq;
+
+console.log('Connecting to: ' + ws_url);
+var ws = new WebSocket(ws_url);
+
+ws.onopen = function (event) {
+    console.log('CONNECTED');
+};
