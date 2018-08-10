@@ -19,6 +19,7 @@ extern crate hyper_staticfile;
 pub mod service;
 pub mod document;
 pub mod store;
+mod templates;
 mod request;
 mod error;
 

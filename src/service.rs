@@ -27,20 +27,14 @@ use hyper::body::Body;
 use hyper::service::{NewService, Service};
 use futures::future::{self, Future, FutureResult};
 use http::StatusCode;
-use tera::Tera;
 use hyper_staticfile::{self, resolve};
 use std::path::PathBuf;
 
 use store::{Store, StoreError};
 use error::{TamaWikiError, HttpError};
 use request::query_params;
+use templates::TERA;
 
-
-lazy_static! {
-    static ref TERA: Tera = {
-        compile_templates!("templates/**/*")
-    };
-}
 
 /// Constructs TamaWikiServices
 #[derive(Default)]
@@ -186,50 +180,7 @@ impl<T: Store> Service for TamaWikiService<T> {
         let res = res.then(|result| -> FutureResult<Response<Body>, TamaWikiError> {
             match result {
                 Ok(response) => future::ok(response),
-                Err(HttpError::InternalServerError(err)) => {
-                    let ctx = json!({
-                        "title": "Internal Server Error",
-                        "error": err
-                    });
-                    let text = TERA.render("500.html", &ctx).unwrap();
-                    future::ok(
-                        Response::builder()
-                            .status(StatusCode::INTERNAL_SERVER_ERROR)
-                            .body(Body::from(text))
-                            .unwrap())
-                },
-                Err(HttpError::NotFound) => {
-                    let ctx = json!({
-                        "title": "Not Found"
-                    });
-                    let text = TERA.render("404.html", &ctx).unwrap();
-                    future::ok(
-                        Response::builder()
-                            .status(StatusCode::NOT_FOUND)
-                            .body(Body::from(text))
-                            .unwrap())
-                },
-                Err(HttpError::MethodNotAllowed) => {
-                    future::ok(
-                        Response::builder()
-                            .status(StatusCode::METHOD_NOT_ALLOWED)
-                            .body(Body::from(""))
-                            .unwrap())
-                },
-                Err(HttpError::Unauthorized) => {
-                    future::ok(
-                        Response::builder()
-                            .status(StatusCode::UNAUTHORIZED)
-                            .body(Body::from(""))
-                            .unwrap())
-                },
-                Err(HttpError::BadRequest) => {
-                    future::ok(
-                        Response::builder()
-                            .status(StatusCode::BAD_REQUEST)
-                            .body(Body::from(""))
-                            .unwrap())
-                },
+                Err(err) => future::ok(err.into()),
             }
         });
         Box::new(res)
