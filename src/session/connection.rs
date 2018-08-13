@@ -13,12 +13,19 @@ use std::fmt::{self, Display};
 use std::error::Error;
 
 
+/// Errors reading or writing edit session messages
 #[derive(Debug)]
 pub enum ConnectionError {
     /// Failed to serialize or deserialize message
-    InvalidMessage { reason: String },
+    InvalidMessage {
+        /// Detailed information on the error if available
+        reason: String
+    },
     /// Errors from underlying protocol
-    Communication { error: Box<Error> },
+    Communication {
+        /// The original protocol error
+        error: Box<Error>
+    },
 }
 
 impl From<tungstenite::Error> for ConnectionError {
@@ -38,6 +45,10 @@ impl Display for ConnectionError {
 impl Error for ConnectionError {}
 
 
+/// Wraps a WebSocket connection and handles
+/// serialization/deserialization so that ServerMessages can be
+/// directly written to it and ClientMessages can be directly read
+/// from it.
 pub struct WebSocketConnection {
     websocket: WebSocket,
 }

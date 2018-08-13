@@ -9,16 +9,19 @@
 //!
 //! use tamawiki::service::TamaWiki;
 //! use tamawiki::store::memory::MemoryStore;
+//! use tamawiki::session::EditSessionManager;
 //! use futures::future::Future;
 //! use hyper::Server;
 //! use std::path::PathBuf;
+//! use std::sync::{Arc, Mutex};
 //!
 //! let addr = ([127, 0, 0, 1], 8080).into();
 //! let store = MemoryStore::default();
 //! let static_path = PathBuf::from("static");
+//! let edit_sessions = Arc::new(Mutex::new(EditSessionManager::default()));
 //!
 //! let server = Server::bind(&addr)
-//!     .serve(TamaWiki {store, static_path})
+//!     .serve(TamaWiki {store, static_path, edit_sessions})
 //!     .map_err(|err| eprintln!("Server error: {}", err));
 //! ```
 
@@ -29,6 +32,7 @@ use futures::future::{self, Future, FutureResult};
 use http::StatusCode;
 use hyper_staticfile::{self, resolve};
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 use futures::stream::Stream;
 use futures::sink::Sink;
 
@@ -36,7 +40,7 @@ use templates::TERA;
 use store::{Store, StoreError};
 use session::connection::WebSocketConnection;
 use session::message::{ServerMessage, Connected};
-
+use session::EditSessionManager;
 
 mod error;
 mod request;
@@ -55,6 +59,8 @@ pub struct TamaWiki<T: Store> {
     pub store: T,
     /// Path to serve static files from
     pub static_path: PathBuf,
+    /// Co-ordinates edit session access
+    pub edit_sessions: Arc<Mutex<EditSessionManager>>,
 }
 
 impl<T: Store> NewService for TamaWiki<T> {
@@ -68,7 +74,8 @@ impl<T: Store> NewService for TamaWiki<T> {
     fn new_service(&self) -> Self::Future {
         future::ok(TamaWikiService {
             store: self.store.clone(),
-            static_path: self.static_path.clone()
+            static_path: self.static_path.clone(),
+            edit_sessions: self.edit_sessions.clone(),
         })
     }
 }
@@ -80,6 +87,8 @@ pub struct TamaWikiService<T: Store> {
     pub store: T,
     /// Path to serve static files from
     pub static_path: PathBuf,
+    /// Co-ordinates edit session access
+    pub edit_sessions: Arc<Mutex<EditSessionManager>>,
 }
 
 impl<T: Store> TamaWikiService<T> {
@@ -176,9 +185,14 @@ impl<T: Store> TamaWikiService<T> {
     fn handle_websocket(&self, req: Request<Body>) ->
         Box<Future<Item=Response<Body>, Error=HttpError> + Send>
     {
-        websocket_upgrade(req, |websocket| {
+        let path = PathBuf::from(&req.uri().path()[1..]);
+        let edit_sessions = self.edit_sessions.clone();
+        
+        websocket_upgrade(req, move |websocket| {
             let (tx, _rx) = WebSocketConnection::from(websocket).split();
-            tx.send(ServerMessage::Connected(Connected {id: 1}))
+            let id = edit_sessions.lock().unwrap().join(&path.as_path());
+            
+            tx.send(ServerMessage::Connected(Connected {id}))
                 .map(|_| ())
                 .map_err(|e| {
                     eprintln!("websocket error: {:?}", e);

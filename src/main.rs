@@ -4,9 +4,11 @@ extern crate hyper;
 
 use tamawiki::TamaWiki;
 use tamawiki::store::memory::MemoryStore;
+use tamawiki::session::EditSessionManager;
 use futures::future::Future;
 use hyper::Server;
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
 
 fn main() {
@@ -20,6 +22,7 @@ fn main() {
     
     let server = Server::bind(&addr)
         .serve(TamaWiki {
+            edit_sessions: Arc::new(Mutex::new(EditSessionManager::default())),
             static_path,
             store
         })
