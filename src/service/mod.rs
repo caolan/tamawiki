@@ -32,13 +32,20 @@ use std::path::PathBuf;
 use futures::stream::Stream;
 use futures::sink::Sink;
 
-use store::{Store, StoreError};
-use error::{TamaWikiError, HttpError};
-use request::query_params;
 use templates::TERA;
-use websocket::{websocket, is_upgrade_request};
+use store::{Store, StoreError};
 use session::connection::WebSocketConnection;
 use session::message::{ServerMessage, Connected};
+
+
+mod error;
+mod request;
+mod upgrade;
+
+use service::error::{TamaWikiError, HttpError};
+use service::request::query_params;
+use service::upgrade::{websocket_upgrade, is_websocket_upgrade_request};
+
 
 /// Constructs TamaWikiServices
 #[derive(Default)]
@@ -169,7 +176,7 @@ impl<T: Store> TamaWikiService<T> {
     fn handle_websocket(&self, req: Request<Body>) ->
         Box<Future<Item=Response<Body>, Error=HttpError> + Send>
     {
-        websocket(req, |websocket| {
+        websocket_upgrade(req, |websocket| {
             let (tx, _rx) = WebSocketConnection::from(websocket).split();
             tx.send(ServerMessage::Connected(Connected {id: 1}))
                 .map(|_| ())
@@ -191,7 +198,7 @@ impl<T: Store> Service for TamaWikiService<T> {
     fn call(&mut self, req: Request<Self::ReqBody>) -> Self::Future {
         let res = if req.uri().path().starts_with("/_static/") {
             self.serve_static(req)
-        } else if is_upgrade_request(&req) {
+        } else if is_websocket_upgrade_request(&req) {
             self.handle_websocket(req)
         } else {
             self.serve_document(&req)

@@ -24,8 +24,6 @@ pub mod document;
 pub mod store;
 mod templates;
 mod websocket;
-mod request;
-mod error;
 mod session;
 
 pub use service::TamaWiki;
