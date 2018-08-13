@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-executor-0.1.2/src/park.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>park.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-executor-0.1.3/src/park.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>park.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -298,6 +298,8 @@
 <span id="298">298</span>
 <span id="299">299</span>
 <span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Abstraction over blocking and unblocking the current thread.</span>
 <span class="doccomment">//!</span>
@@ -330,7 +332,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! * If [`unpark`] is called before [`park`], the next call to [`park`] will</span>
 <span class="doccomment">//! **not** block the thread.</span>
-<span class="doccomment">//! * **Spurious** wakeups are permited, i.e., the [`park`] method may unblock</span>
+<span class="doccomment">//! * **Spurious** wakeups are permitted, i.e., the [`park`] method may unblock</span>
 <span class="doccomment">//!   even if [`unpark`] was not called.</span>
 <span class="doccomment">//! * [`park_timeout`] does the same as [`park`] but allows specifying a maximum</span>
 <span class="doccomment">//!   time to block the thread for.</span>
@@ -343,7 +345,7 @@
 <span class="doccomment">//! [`park_timeout`]: trait.Park.html#tymethod.park_timeout</span>
 <span class="doccomment">//! [`unpark`]: trait.Unpark.html#tymethod.unpark</span>
 <span class="doccomment">//! [up]: trait.Unpark.html</span>
-<span class="doccomment">//! [mio]: https://docs.rs/mio/0.6.13/mio/struct.Poll.html</span>
+<span class="doccomment">//! [mio]: https://docs.rs/mio/0.6/mio/struct.Poll.html</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
@@ -376,7 +378,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This function **should** not panic, but ultimiately, panics are left as</span>
+    <span class="doccomment">/// This function **should** not panic, but ultimately, panics are left as</span>
     <span class="doccomment">/// an implementation detail. Refer to the documentation for the specific</span>
     <span class="doccomment">/// `Park` implementation</span>
     <span class="doccomment">///</span>
@@ -396,7 +398,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This function **should** not panic, but ultimiately, panics are left as</span>
+    <span class="doccomment">/// This function **should** not panic, but ultimately, panics are left as</span>
     <span class="doccomment">/// an implementation detail. Refer to the documentation for the specific</span>
     <span class="doccomment">/// `Park` implementation</span>
     <span class="doccomment">///</span>
@@ -420,7 +422,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This function **should** not panic, but ultimiately, panics are left as</span>
+    <span class="doccomment">/// This function **should** not panic, but ultimately, panics are left as</span>
     <span class="doccomment">/// an implementation detail. Refer to the documentation for the specific</span>
     <span class="doccomment">/// `Unpark` implementation</span>
     <span class="doccomment">///</span>
@@ -565,7 +567,7 @@
             <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">condvar</span>.<span class="ident">wait</span>(<span class="ident">m</span>).<span class="ident">unwrap</span>(),
         };
 
-        <span class="comment">// Transition back to idle. If the state has transitione dto `NOTIFY`,</span>
+        <span class="comment">// Transition back to idle. If the state has transitioned to `NOTIFY`,</span>
         <span class="comment">// this will consume that notification</span>
         <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">store</span>(<span class="ident">IDLE</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>);
 
@@ -589,10 +591,12 @@
         <span class="comment">// The other half is sleeping, this requires a lock</span>
         <span class="kw">let</span> <span class="ident">_m</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">mutex</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
 
-        <span class="comment">// Transition from SLEEP -&gt; NOTIFY</span>
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_and_swap</span>(<span class="ident">SLEEP</span>, <span class="ident">NOTIFY</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) {
+        <span class="comment">// Transition to NOTIFY</span>
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">swap</span>(<span class="ident">NOTIFY</span>, <span class="ident">Ordering</span>::<span class="ident">SeqCst</span>) {
             <span class="ident">SLEEP</span> <span class="op">=&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">return</span>,
+            <span class="ident">NOTIFY</span> <span class="op">=&gt;</span> <span class="kw">return</span>,
+            <span class="ident">IDLE</span> <span class="op">=&gt;</span> <span class="kw">return</span>,
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         }
 
         <span class="comment">// Wakeup the sleeper</span>

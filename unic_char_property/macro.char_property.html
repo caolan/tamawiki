@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `char_property` macro in crate `unic_char_property`."><meta name="keywords" content="rust, rustlang, rust-lang, char_property"><title>unic_char_property::char_property - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script></head><body class="rustdoc macro"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><div class="sidebar-elems"><p class='location'><a href='index.html'>unic_char_property</a></p><script>window.sidebarCurrent = {name: 'char_property', ty: 'macro', relpath: ''};</script><script defer src="sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Macro <a href='index.html'>unic_char_property</a>::<wbr><a class="macro" href=''>char_property</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/unic_char_property/macros.rs.html#88-356' title='goto source code'>[src]</a></span></h1><div class="docblock type-decl"><pre class="rust macro">
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">char_property</span> {
+    (
+        $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_meta</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
+        <span class="kw">pub</span> <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_name</span>:<span class="ident">ident</span> {
+            <span class="ident">abbr</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_abbr</span>:<span class="ident">expr</span>;
+            <span class="ident">long</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_long</span>:<span class="ident">expr</span>;
+            <span class="ident">human</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_human</span>:<span class="ident">expr</span>;
+
+            $(
+                $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant_meta</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant_name</span>:<span class="ident">ident</span> {
+                    <span class="ident">abbr</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant_abbr</span>:<span class="ident">ident</span>,
+                    <span class="ident">long</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant_long</span>:<span class="ident">ident</span>,
+                    <span class="ident">human</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant_human</span>:<span class="ident">expr</span>,
+                }
+            )<span class="op">*</span>
+        }
+
+        $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">abbr_mod_meta</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
+        <span class="kw">pub</span> <span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">abbr_mod</span>:<span class="ident">ident</span> <span class="kw">for</span> <span class="ident">abbr</span>;
+
+        $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">long_mod_meta</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
+        <span class="kw">pub</span> <span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">long_mod</span>:<span class="ident">ident</span> <span class="kw">for</span> <span class="ident">long</span>;
+
+    ) <span class="op">=&gt;</span> { ... };
+    (
+        $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_meta</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
+        <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_name</span>:<span class="ident">ident</span>(<span class="ident">bool</span>) {
+            <span class="ident">abbr</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_abbr</span>:<span class="ident">expr</span>;
+            <span class="ident">long</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_long</span>:<span class="ident">expr</span>;
+            <span class="ident">human</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_human</span>:<span class="ident">expr</span>;
+
+            <span class="ident">data_table_path</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">data_path</span>:<span class="ident">expr</span>;
+        }
+
+        $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_fn_meta</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">is_fn</span>:<span class="ident">ident</span>(<span class="ident">char</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+
+    ) <span class="op">=&gt;</span> { ... };
+    (
+        <span class="ident">__impl</span> <span class="ident">CharProperty</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_name</span>:<span class="ident">ident</span>;
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_abbr</span>:<span class="ident">expr</span>;
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_long</span>:<span class="ident">expr</span>;
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_human</span>:<span class="ident">expr</span>;
+    ) <span class="op">=&gt;</span> { ... };
+    (
+        <span class="ident">__impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_name</span>:<span class="ident">ident</span>;
+        $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">id</span>:<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>; )<span class="op">*</span>
+    ) <span class="op">=&gt;</span> { ... };
+    ( <span class="ident">__impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">prop_name</span>:<span class="ident">ident</span> <span class="ident">by</span> <span class="macro-nonterminal">$</span><span class="kw">trait</span>:<span class="macro-nonterminal">ident</span> ) <span class="op">=&gt;</span> { ... };
+}</pre>
+</div><div class='docblock'><p>Macro for declaring a character property.</p>
+<h1 id="syntax-enumerated-property" class="section-header"><a href="#syntax-enumerated-property">Syntax (Enumerated Property)</a></h1>
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">unic_char_property</span>;
+
+<span class="comment">// First we define the type itself.</span>
+<span class="macro">char_property</span><span class="macro">!</span> {
+    <span class="doccomment">/// This is the enum type created for the character property.</span>
+    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MyProp</span> {
+        <span class="ident">abbr</span> <span class="op">=&gt;</span> <span class="string">&quot;AbbrPropName&quot;</span>;
+        <span class="ident">long</span> <span class="op">=&gt;</span> <span class="string">&quot;Long_Property_Name&quot;</span>;
+        <span class="ident">human</span> <span class="op">=&gt;</span> <span class="string">&quot;Human-Readable Property Name&quot;</span>;
+
+        <span class="doccomment">/// Zero or more documentation or other attributes.</span>
+        <span class="ident">RustName</span> {
+            <span class="ident">abbr</span> <span class="op">=&gt;</span> <span class="ident">AbbrName</span>,
+            <span class="ident">long</span> <span class="op">=&gt;</span> <span class="ident">Long_Name</span>,
+            <span class="ident">human</span> <span class="op">=&gt;</span> <span class="string">&quot;&amp;&#39;static str that is a nicer presentation of the name&quot;</span>,
+        }
+    }
+
+    <span class="doccomment">/// Module aliasing property value abbreviated names.</span>
+    <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">abbr_names</span> <span class="kw">for</span> <span class="ident">abbr</span>;
+
+    <span class="doccomment">/// Module aliasing property value long names.</span>
+    <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">long_names</span> <span class="kw">for</span> <span class="ident">long</span>;
+}
+
+<span class="comment">// We also need to impl `PartialCharProperty` or `TotalCharProperty` manually.</span></pre>
+<h1 id="syntax-binary-property" class="section-header"><a href="#syntax-binary-property">Syntax (Binary Property)</a></h1>
+<pre class="rust rust-example-rendered">
+<span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">unic_char_property</span>;
+
+<span class="macro">char_property</span><span class="macro">!</span> {
+    <span class="doccomment">/// This is the newtype used for the character property.</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MyProp</span>(<span class="ident">bool</span>) {
+        <span class="ident">abbr</span> <span class="op">=&gt;</span> <span class="string">&quot;AbbrPropName&quot;</span>;
+        <span class="ident">long</span> <span class="op">=&gt;</span> <span class="string">&quot;Long_Property_Name&quot;</span>;
+        <span class="ident">human</span> <span class="op">=&gt;</span> <span class="string">&quot;Human-Readable Property Name&quot;</span>;
+
+        <span class="comment">// Unlike an enumerated property, a binary property will handle the table for you.</span>
+        <span class="ident">data_table_path</span> <span class="op">=&gt;</span> <span class="string">&quot;../tests/tables/property_table.rsv&quot;</span>;
+    }
+
+    <span class="doccomment">/// A function that returns whether the given character has the property or not.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_prop</span>(<span class="ident">char</span>) <span class="op">-&gt;</span> <span class="ident">bool</span>;
+}
+
+<span class="comment">// You may also want to create a trait for easy access to the properties you define.</span></pre>
+<h1 id="effect" class="section-header"><a href="#effect">Effect</a></h1>
+<ul>
+<li>Implements the <code>CharProperty</code> trait and appropriate range trait</li>
+<li>Implements <code>FromStr</code> accepting either the abbr or long name, ascii case insensitive</li>
+<li>Implements <code>Display</code> using the <code>human</code> string</li>
+<li>Populates the module <code>abbr_names</code> with <code>pub use</code> bindings of variants to their abbr names
+(Enumerated properties only)</li>
+<li>Populates the module <code>long_names</code> with <code>pub use</code> bindings of variants to their long names
+(Enumerated properties only)</li>
+<li>Maintains all documentation comments and other <code>#[attributes]</code> as would be expected
+(with some limitations, listed below)</li>
+</ul>
+</div></section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../";window.currentCrate = "unic_char_property";</script><script src="../aliases.js"></script><script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>

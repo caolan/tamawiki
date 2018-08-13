@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["DIGEST_LENGTH","The length of a SHA1 digest in bytes"]],"struct":[["Digest","Digest generated from a `Sha1` instance."],["DigestParseError","Indicates that a digest couldn't be parsed."],["Sha1","Represents a Sha1 hash object in memory."]]});
+initSidebarItems({"struct":[["Sha1","Structure representing the state of a SHA-1 computation"]],"trait":[["Digest","The `Digest` trait specifies an interface common for digest functions."]]});

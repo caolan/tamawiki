@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `visit` mod in crate `syn`."><meta name="keywords" content="rust, rustlang, rust-lang, visit"><title>syn::visit - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module visit</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'><a href='../index.html'>syn</a></p><script>window.sidebarCurrent = {name: 'visit', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>syn</a>::<wbr><a class="mod" href=''>visit</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/syn/gen/visit.rs.html#3-2286' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>Syntax tree traversal to walk a shared borrow of a syntax tree.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `visit` mod in crate `syn`."><meta name="keywords" content="rust, rustlang, rust-lang, visit"><title>syn::visit - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module visit</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div><p class='location'><a href='../index.html'>syn</a></p><script>window.sidebarCurrent = {name: 'visit', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>syn</a>::<wbr><a class="mod" href=''>visit</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/syn/gen/visit.rs.html#3-3379' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>Syntax tree traversal to walk a shared borrow of a syntax tree.</p>
 <p>Each method of the <a href="trait.Visit.html"><code>Visit</code></a> trait is a hook that can be overridden to
 customize the behavior when visiting the corresponding type of node. By
 default, every method recursively visits the substructure of the input
@@ -46,34 +46,6 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_arg_captured.html"
-                                  title='fn syn::visit::visit_arg_captured'>visit_arg_captured</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_arg_self.html"
-                                  title='fn syn::visit::visit_arg_self'>visit_arg_self</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_arg_self_ref.html"
-                                  title='fn syn::visit::visit_arg_self_ref'>visit_arg_self_ref</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_arm.html"
-                                  title='fn syn::visit::visit_arm'>visit_arm</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_attr_style.html"
                                   title='fn syn::visit::visit_attr_style'>visit_attr_style</a></td>
                            <td class='docblock-short'>
@@ -111,13 +83,6 @@ by invoking the right visitor method of each of its fields.</p>
                        <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_binding.html"
                                   title='fn syn::visit::visit_binding'>visit_binding</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_block.html"
-                                  title='fn syn::visit::visit_block'>visit_block</a></td>
                            <td class='docblock-short'>
                                 
                            </td>
@@ -179,50 +144,8 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_array.html"
-                                  title='fn syn::visit::visit_expr_array'>visit_expr_array</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_assign.html"
-                                  title='fn syn::visit::visit_expr_assign'>visit_expr_assign</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_assign_op.html"
-                                  title='fn syn::visit::visit_expr_assign_op'>visit_expr_assign_op</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_expr_binary.html"
                                   title='fn syn::visit::visit_expr_binary'>visit_expr_binary</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_block.html"
-                                  title='fn syn::visit::visit_expr_block'>visit_expr_block</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_box.html"
-                                  title='fn syn::visit::visit_expr_box'>visit_expr_box</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_break.html"
-                                  title='fn syn::visit::visit_expr_break'>visit_expr_break</a></td>
                            <td class='docblock-short'>
                                 
                            </td>
@@ -242,64 +165,8 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_catch.html"
-                                  title='fn syn::visit::visit_expr_catch'>visit_expr_catch</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_closure.html"
-                                  title='fn syn::visit::visit_expr_closure'>visit_expr_closure</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_continue.html"
-                                  title='fn syn::visit::visit_expr_continue'>visit_expr_continue</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_expr_field.html"
                                   title='fn syn::visit::visit_expr_field'>visit_expr_field</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_for_loop.html"
-                                  title='fn syn::visit::visit_expr_for_loop'>visit_expr_for_loop</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_group.html"
-                                  title='fn syn::visit::visit_expr_group'>visit_expr_group</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_if.html"
-                                  title='fn syn::visit::visit_expr_if'>visit_expr_if</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_if_let.html"
-                                  title='fn syn::visit::visit_expr_if_let'>visit_expr_if_let</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_in_place.html"
-                                  title='fn syn::visit::visit_expr_in_place'>visit_expr_in_place</a></td>
                            <td class='docblock-short'>
                                 
                            </td>
@@ -319,34 +186,6 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_loop.html"
-                                  title='fn syn::visit::visit_expr_loop'>visit_expr_loop</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_macro.html"
-                                  title='fn syn::visit::visit_expr_macro'>visit_expr_macro</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_match.html"
-                                  title='fn syn::visit::visit_expr_match'>visit_expr_match</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_method_call.html"
-                                  title='fn syn::visit::visit_expr_method_call'>visit_expr_method_call</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_expr_paren.html"
                                   title='fn syn::visit::visit_expr_paren'>visit_expr_paren</a></td>
                            <td class='docblock-short'>
@@ -361,71 +200,8 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_range.html"
-                                  title='fn syn::visit::visit_expr_range'>visit_expr_range</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_reference.html"
-                                  title='fn syn::visit::visit_expr_reference'>visit_expr_reference</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_repeat.html"
-                                  title='fn syn::visit::visit_expr_repeat'>visit_expr_repeat</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_return.html"
-                                  title='fn syn::visit::visit_expr_return'>visit_expr_return</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_struct.html"
-                                  title='fn syn::visit::visit_expr_struct'>visit_expr_struct</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_try.html"
-                                  title='fn syn::visit::visit_expr_try'>visit_expr_try</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_tuple.html"
-                                  title='fn syn::visit::visit_expr_tuple'>visit_expr_tuple</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_type.html"
-                                  title='fn syn::visit::visit_expr_type'>visit_expr_type</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_expr_unary.html"
                                   title='fn syn::visit::visit_expr_unary'>visit_expr_unary</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_unsafe.html"
-                                  title='fn syn::visit::visit_expr_unsafe'>visit_expr_unsafe</a></td>
                            <td class='docblock-short'>
                                 
                            </td>
@@ -438,43 +214,8 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_while.html"
-                                  title='fn syn::visit::visit_expr_while'>visit_expr_while</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_while_let.html"
-                                  title='fn syn::visit::visit_expr_while_let'>visit_expr_while_let</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_expr_yield.html"
-                                  title='fn syn::visit::visit_expr_yield'>visit_expr_yield</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_field.html"
                                   title='fn syn::visit::visit_field'>visit_field</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_field_pat.html"
-                                  title='fn syn::visit::visit_field_pat'>visit_field_pat</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_field_value.html"
-                                  title='fn syn::visit::visit_field_value'>visit_field_value</a></td>
                            <td class='docblock-short'>
                                 
                            </td>
@@ -501,71 +242,8 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_file.html"
-                                  title='fn syn::visit::visit_file'>visit_file</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_fn_arg.html"
-                                  title='fn syn::visit::visit_fn_arg'>visit_fn_arg</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_fn_decl.html"
-                                  title='fn syn::visit::visit_fn_decl'>visit_fn_decl</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_foreign_item.html"
-                                  title='fn syn::visit::visit_foreign_item'>visit_foreign_item</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_foreign_item_fn.html"
-                                  title='fn syn::visit::visit_foreign_item_fn'>visit_foreign_item_fn</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_foreign_item_static.html"
-                                  title='fn syn::visit::visit_foreign_item_static'>visit_foreign_item_static</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_foreign_item_type.html"
-                                  title='fn syn::visit::visit_foreign_item_type'>visit_foreign_item_type</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_foreign_item_verbatim.html"
-                                  title='fn syn::visit::visit_foreign_item_verbatim'>visit_foreign_item_verbatim</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_generic_argument.html"
                                   title='fn syn::visit::visit_generic_argument'>visit_generic_argument</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_generic_method_argument.html"
-                                  title='fn syn::visit::visit_generic_method_argument'>visit_generic_method_argument</a></td>
                            <td class='docblock-short'>
                                 
                            </td>
@@ -592,176 +270,8 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_impl_item.html"
-                                  title='fn syn::visit::visit_impl_item'>visit_impl_item</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_impl_item_const.html"
-                                  title='fn syn::visit::visit_impl_item_const'>visit_impl_item_const</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_impl_item_macro.html"
-                                  title='fn syn::visit::visit_impl_item_macro'>visit_impl_item_macro</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_impl_item_method.html"
-                                  title='fn syn::visit::visit_impl_item_method'>visit_impl_item_method</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_impl_item_type.html"
-                                  title='fn syn::visit::visit_impl_item_type'>visit_impl_item_type</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_impl_item_verbatim.html"
-                                  title='fn syn::visit::visit_impl_item_verbatim'>visit_impl_item_verbatim</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_index.html"
                                   title='fn syn::visit::visit_index'>visit_index</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item.html"
-                                  title='fn syn::visit::visit_item'>visit_item</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_const.html"
-                                  title='fn syn::visit::visit_item_const'>visit_item_const</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_enum.html"
-                                  title='fn syn::visit::visit_item_enum'>visit_item_enum</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_extern_crate.html"
-                                  title='fn syn::visit::visit_item_extern_crate'>visit_item_extern_crate</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_fn.html"
-                                  title='fn syn::visit::visit_item_fn'>visit_item_fn</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_foreign_mod.html"
-                                  title='fn syn::visit::visit_item_foreign_mod'>visit_item_foreign_mod</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_impl.html"
-                                  title='fn syn::visit::visit_item_impl'>visit_item_impl</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_macro.html"
-                                  title='fn syn::visit::visit_item_macro'>visit_item_macro</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_macro2.html"
-                                  title='fn syn::visit::visit_item_macro2'>visit_item_macro2</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_mod.html"
-                                  title='fn syn::visit::visit_item_mod'>visit_item_mod</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_static.html"
-                                  title='fn syn::visit::visit_item_static'>visit_item_static</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_struct.html"
-                                  title='fn syn::visit::visit_item_struct'>visit_item_struct</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_trait.html"
-                                  title='fn syn::visit::visit_item_trait'>visit_item_trait</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_type.html"
-                                  title='fn syn::visit::visit_item_type'>visit_item_type</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_union.html"
-                                  title='fn syn::visit::visit_item_union'>visit_item_union</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_use.html"
-                                  title='fn syn::visit::visit_item_use'>visit_item_use</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_item_verbatim.html"
-                                  title='fn syn::visit::visit_item_verbatim'>visit_item_verbatim</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_label.html"
-                                  title='fn syn::visit::visit_label'>visit_label</a></td>
                            <td class='docblock-short'>
                                 
                            </td>
@@ -844,13 +354,6 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_local.html"
-                                  title='fn syn::visit::visit_local'>visit_local</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_macro.html"
                                   title='fn syn::visit::visit_macro'>visit_macro</a></td>
                            <td class='docblock-short'>
@@ -893,20 +396,6 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_method_sig.html"
-                                  title='fn syn::visit::visit_method_sig'>visit_method_sig</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_method_turbofish.html"
-                                  title='fn syn::visit::visit_method_turbofish'>visit_method_turbofish</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_nested_meta.html"
                                   title='fn syn::visit::visit_nested_meta'>visit_nested_meta</a></td>
                            <td class='docblock-short'>
@@ -916,104 +405,6 @@ by invoking the right visitor method of each of its fields.</p>
                        <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_parenthesized_generic_arguments.html"
                                   title='fn syn::visit::visit_parenthesized_generic_arguments'>visit_parenthesized_generic_arguments</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat.html"
-                                  title='fn syn::visit::visit_pat'>visit_pat</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_box.html"
-                                  title='fn syn::visit::visit_pat_box'>visit_pat_box</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_ident.html"
-                                  title='fn syn::visit::visit_pat_ident'>visit_pat_ident</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_lit.html"
-                                  title='fn syn::visit::visit_pat_lit'>visit_pat_lit</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_macro.html"
-                                  title='fn syn::visit::visit_pat_macro'>visit_pat_macro</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_path.html"
-                                  title='fn syn::visit::visit_pat_path'>visit_pat_path</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_range.html"
-                                  title='fn syn::visit::visit_pat_range'>visit_pat_range</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_ref.html"
-                                  title='fn syn::visit::visit_pat_ref'>visit_pat_ref</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_slice.html"
-                                  title='fn syn::visit::visit_pat_slice'>visit_pat_slice</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_struct.html"
-                                  title='fn syn::visit::visit_pat_struct'>visit_pat_struct</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_tuple.html"
-                                  title='fn syn::visit::visit_pat_tuple'>visit_pat_tuple</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_tuple_struct.html"
-                                  title='fn syn::visit::visit_pat_tuple_struct'>visit_pat_tuple_struct</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_verbatim.html"
-                                  title='fn syn::visit::visit_pat_verbatim'>visit_pat_verbatim</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_pat_wild.html"
-                                  title='fn syn::visit::visit_pat_wild'>visit_pat_wild</a></td>
                            <td class='docblock-short'>
                                 
                            </td>
@@ -1068,13 +459,6 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_range_limits.html"
-                                  title='fn syn::visit::visit_range_limits'>visit_range_limits</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_return_type.html"
                                   title='fn syn::visit::visit_return_type'>visit_return_type</a></td>
                            <td class='docblock-short'>
@@ -1089,13 +473,6 @@ by invoking the right visitor method of each of its fields.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_stmt.html"
-                                  title='fn syn::visit::visit_stmt'>visit_stmt</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_trait_bound.html"
                                   title='fn syn::visit::visit_trait_bound'>visit_trait_bound</a></td>
                            <td class='docblock-short'>
@@ -1105,48 +482,6 @@ by invoking the right visitor method of each of its fields.</p>
                        <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_trait_bound_modifier.html"
                                   title='fn syn::visit::visit_trait_bound_modifier'>visit_trait_bound_modifier</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_trait_item.html"
-                                  title='fn syn::visit::visit_trait_item'>visit_trait_item</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_trait_item_const.html"
-                                  title='fn syn::visit::visit_trait_item_const'>visit_trait_item_const</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_trait_item_macro.html"
-                                  title='fn syn::visit::visit_trait_item_macro'>visit_trait_item_macro</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_trait_item_method.html"
-                                  title='fn syn::visit::visit_trait_item_method'>visit_trait_item_method</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_trait_item_type.html"
-                                  title='fn syn::visit::visit_trait_item_type'>visit_trait_item_type</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_trait_item_verbatim.html"
-                                  title='fn syn::visit::visit_trait_item_verbatim'>visit_trait_item_verbatim</a></td>
                            <td class='docblock-short'>
                                 
                            </td>
@@ -1280,48 +615,6 @@ by invoking the right visitor method of each of its fields.</p>
                        <tr class=' module-item'>
                            <td><a class="fn" href="fn.visit_un_op.html"
                                   title='fn syn::visit::visit_un_op'>visit_un_op</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_use_glob.html"
-                                  title='fn syn::visit::visit_use_glob'>visit_use_glob</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_use_group.html"
-                                  title='fn syn::visit::visit_use_group'>visit_use_group</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_use_name.html"
-                                  title='fn syn::visit::visit_use_name'>visit_use_name</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_use_path.html"
-                                  title='fn syn::visit::visit_use_path'>visit_use_path</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_use_rename.html"
-                                  title='fn syn::visit::visit_use_rename'>visit_use_rename</a></td>
-                           <td class='docblock-short'>
-                                
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="fn" href="fn.visit_use_tree.html"
-                                  title='fn syn::visit::visit_use_tree'>visit_use_tree</a></td>
                            <td class='docblock-short'>
                                 
                            </td>

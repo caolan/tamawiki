@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ClientMessage","Message sent from the client to the server"],["ServerMessage","Message sent from the server to the client"]],"struct":[["Connected","Client successfully connected"]]});

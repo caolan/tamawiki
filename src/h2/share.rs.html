@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.1.10/src/share.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>share.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.1.11/src/share.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>share.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -429,6 +429,54 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">codec</span>::<span class="ident">UserError</span>;
 <span class="kw">use</span> <span class="ident">frame</span>::<span class="ident">Reason</span>;
@@ -527,6 +575,19 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SendStream</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">IntoBuf</span><span class="op">&gt;</span> {
     <span class="ident">inner</span>: <span class="ident">proto</span>::<span class="ident">StreamRef</span><span class="op">&lt;</span><span class="ident">B</span>::<span class="ident">Buf</span><span class="op">&gt;</span>,
 }
+
+<span class="doccomment">/// A stream identifier, as described in [Section 5.1.1] of RFC 7540.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Streams are identified with an unsigned 31-bit integer. Streams</span>
+<span class="doccomment">/// initiated by a client MUST use odd-numbered stream identifiers; those</span>
+<span class="doccomment">/// initiated by the server MUST use even-numbered stream identifiers.  A</span>
+<span class="doccomment">/// stream identifier of zero (0x0) is used for connection control</span>
+<span class="doccomment">/// messages; the stream identifier of zero cannot be used to establish a</span>
+<span class="doccomment">/// new stream.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [Section 5.1.1]: https://tools.ietf.org/html/rfc7540#section-5.1.1</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StreamId</span>(<span class="ident">u32</span>);
 
 <span class="doccomment">/// Receives the body stream and trailers from the remote peer.</span>
 <span class="doccomment">///</span>
@@ -767,8 +828,24 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_reset</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">Reason</span>, ::<span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">poll_reset</span>(<span class="ident">proto</span>::<span class="ident">PollReset</span>::<span class="ident">Streaming</span>)
     }
+
+    <span class="doccomment">/// Returns the stream ID of this `SendStream`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the lock on the stream store has been poisoned.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">StreamId</span> {
+        <span class="ident">StreamId</span>::<span class="ident">from_internal</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">stream_id</span>())
+    }
 }
 
+<span class="comment">// ===== impl StreamId =====</span>
+
+<span class="kw">impl</span> <span class="ident">StreamId</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_internal</span>(<span class="ident">id</span>: ::<span class="ident">frame</span>::<span class="ident">StreamId</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="ident">StreamId</span>(<span class="ident">id</span>.<span class="ident">into</span>())
+    }
+}
 <span class="comment">// ===== impl RecvStream =====</span>
 
 <span class="kw">impl</span> <span class="ident">RecvStream</span> {
@@ -802,6 +879,15 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_trailers</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">HeaderMap</span><span class="op">&gt;</span>, ::<span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">inner</span>.<span class="ident">poll_trailers</span>().<span class="ident">map_err</span>(<span class="ident">Into</span>::<span class="ident">into</span>)
     }
+
+    <span class="doccomment">/// Returns the stream ID of this stream.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the lock on the stream store has been poisoned.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">StreamId</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">stream_id</span>()
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">futures</span>::<span class="ident">Stream</span> <span class="kw">for</span> <span class="ident">RecvStream</span> {
@@ -826,6 +912,16 @@
 <span class="kw">impl</span> <span class="ident">ReleaseCapacity</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">proto</span>::<span class="ident">OpaqueStreamRef</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">ReleaseCapacity</span> { <span class="ident">inner</span> }
+    }
+
+    <span class="doccomment">/// Returns the stream ID of the stream whose capacity will</span>
+    <span class="doccomment">/// be released by this `ReleaseCapacity`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the lock on the stream store has been poisoned.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">StreamId</span> {
+        <span class="ident">StreamId</span>::<span class="ident">from_internal</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">stream_id</span>())
     }
 
     <span class="doccomment">/// Release window capacity back to remote stream.</span>

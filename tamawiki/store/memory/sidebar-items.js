@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["MemoryStore","An in-memory Store, useful for testing."],["MemoryStoreStream","An asynchronous stream of Update objects"]]});
+initSidebarItems({"struct":[["MemoryStore","Holds document data in shared memory location"],["MemoryStoreStream","An asynchronous stream of Update objects cloned from memory"]]});

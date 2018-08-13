@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.9/src/tera.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tera.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.12/src/tera.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tera.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -960,6 +960,8 @@
 <span id="960">960</span>
 <span id="961">961</span>
 <span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
@@ -1461,6 +1463,7 @@
         <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;sort&quot;</span>, <span class="ident">array</span>::<span class="ident">sort</span>);
         <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;slice&quot;</span>, <span class="ident">array</span>::<span class="ident">slice</span>);
         <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;group_by&quot;</span>, <span class="ident">array</span>::<span class="ident">group_by</span>);
+        <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;filter&quot;</span>, <span class="ident">array</span>::<span class="ident">filter</span>);
 
         <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;pluralize&quot;</span>, <span class="ident">number</span>::<span class="ident">pluralize</span>);
         <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;round&quot;</span>, <span class="ident">number</span>::<span class="ident">round</span>);
@@ -1492,6 +1495,7 @@
     <span class="kw">fn</span> <span class="ident">register_tera_global_functions</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">register_global_function</span>(<span class="string">&quot;range&quot;</span>, <span class="ident">global_functions</span>::<span class="ident">make_range_fn</span>());
         <span class="self">self</span>.<span class="ident">register_global_function</span>(<span class="string">&quot;now&quot;</span>, <span class="ident">global_functions</span>::<span class="ident">make_now_fn</span>());
+        <span class="self">self</span>.<span class="ident">register_global_function</span>(<span class="string">&quot;throw&quot;</span>, <span class="ident">global_functions</span>::<span class="ident">make_throw_fn</span>());
     }
 
     <span class="doccomment">/// Select which suffix(es) to automatically do HTML escaping on,</span>
@@ -1881,13 +1885,13 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">can_load_from_glob</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">new</span>(<span class="string">&quot;examples/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">new</span>(<span class="string">&quot;examples/basic/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;base.html&quot;</span>).<span class="ident">is_ok</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">full_reload_with_glob</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">new</span>(<span class="string">&quot;examples/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">new</span>(<span class="string">&quot;examples/basic/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
         <span class="ident">tera</span>.<span class="ident">full_reload</span>().<span class="ident">unwrap</span>();
 
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;base.html&quot;</span>).<span class="ident">is_ok</span>());
@@ -1895,7 +1899,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">full_reload_with_glob_after_extending</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">new</span>(<span class="string">&quot;examples/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">new</span>(<span class="string">&quot;examples/basic/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">framework_tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">default</span>();
         <span class="ident">framework_tera</span>.<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[
             (<span class="string">&quot;one&quot;</span>, <span class="string">&quot;FRAMEWORK&quot;</span>),
@@ -1911,7 +1915,7 @@
     <span class="attribute">#[<span class="ident">should_panic</span>]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_can_only_parse_templates</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">parse</span>(<span class="string">&quot;examples/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">parse</span>(<span class="string">&quot;examples/basic/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
         <span class="kw">for</span> <span class="ident">tpl</span> <span class="kw">in</span> <span class="ident">tera</span>.<span class="ident">templates</span>.<span class="ident">values_mut</span>() {
             <span class="ident">tpl</span>.<span class="ident">name</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;a-theme/templates/{}&quot;</span>, <span class="ident">tpl</span>.<span class="ident">name</span>);
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">parent</span>) <span class="op">=</span> <span class="ident">tpl</span>.<span class="ident">parent</span>.<span class="ident">clone</span>() {

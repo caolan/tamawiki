@@ -25,11 +25,11 @@ current readiness state of the <code>PollEvented</code> instance. If
 <a href="#method.poll_read_ready"><code>poll_read_ready</code></a> again will also indicate read readiness.</p>
 <p>When the operation is attempted and is unable to succeed due to the I/O
 resource not being ready, the caller must call <a href="#method.clear_read_ready"><code>clear_read_ready</code></a> or
-<a href="#method.clear_write_ready"><code>clear_write_ready</code></a>. This clears the readiness state until a new readiness
+[<code>clear_write_ready</code>]. This clears the readiness state until a new readiness
 event is received.</p>
 <p>This allows the caller to implement additional functions. For example,
 <a href="../net/struct.TcpListener.html"><code>TcpListener</code></a> implements poll_accept by using <a href="#method.poll_read_ready"><code>poll_read_ready</code></a> and
-<a href="#method.clear_write_ready"><code>clear_write_ready</code></a>.</p>
+<a href="#method.clear_read_ready"><code>clear_read_ready</code></a>.</p>
 
 <div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_accept</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span>(<span class="ident">net</span>::<span class="ident">TcpStream</span>, <span class="ident">SocketAddr</span>), <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
@@ -111,7 +111,7 @@ task to be notified once a write readiness event is received.</p>
 <p>This only clears writable readiness. HUP (on platforms that support HUP)
 cannot be cleared as it is a final state.</p>
 <p>After calling this function, <code>poll_write_ready(Ready::writable())</code> will
-return <code>NotReady</code> until a new read readiness event has been received.</p>
+return <code>NotReady</code> until a new write readiness event has been received.</p>
 <h1 id="panics-3" class="section-header"><a href="#panics-3">Panics</a></h1>
 <p>This function will panic if called from outside of a task context.</p>
 </div></div>

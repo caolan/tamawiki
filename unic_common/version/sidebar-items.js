@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["UnicodeVersion","Represents a Unicode Version type."]]});

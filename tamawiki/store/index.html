@@ -1,8 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `store` mod in crate `tamawiki`."><meta name="keywords" content="rust, rustlang, rust-lang, store"><title>tamawiki::store - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module store</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div><p class='location'><a href='../index.html'>tamawiki</a></p><script>window.sidebarCurrent = {name: 'store', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>tamawiki</a>::<wbr><a class="mod" href=''>store</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/tamawiki/store/mod.rs.html#1-133' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>A store persists document updates using paths as keys.</p>
-<p>Every store implementation must define an Actor capable of
-handling the messages in this module by implementing the Store
-trait.</p>
-<p>A document's content is calculated by the accumulated application
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `store` mod in crate `tamawiki`."><meta name="keywords" content="rust, rustlang, rust-lang, store"><title>tamawiki::store - Rust</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Module store</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#types">Type Definitions</a></li></ul></div><p class='location'><a href='../index.html'>tamawiki</a></p><script>window.sidebarCurrent = {name: 'store', ty: 'mod', relpath: '../'};</script><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Module <a href='../index.html'>tamawiki</a>::<wbr><a class="mod" href=''>store</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../../src/tamawiki/store/mod.rs.html#1-114' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>Persists document updates using paths as keys.</p>
+<p>Every store backend must implement the Store trait.</p>
+<p>A document's content is obtained by the accumulated application
 of updates within the store up until a given point in time. A
 store implementation may checkpoint or cache these update
 applications in order to speed up this process.</p>
@@ -13,60 +11,6 @@ applications in order to speed up this process.</p>
                                   title='mod tamawiki::store::memory'>memory</a></td>
                            <td class='docblock-short'>
                                 <p>An in-memory store, useful for testing.</p>
-
-                           </td>
-                       </tr></table><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
-<table>
-                       <tr class=' module-item'>
-                           <td><a class="struct" href="struct.Content.html"
-                                  title='struct tamawiki::store::Content'>Content</a></td>
-                           <td class='docblock-short'>
-                                <p>Requests the current sequence number and content for the document
-(with all updates applied), or StoreError::NotFound if the
-document does not exist.</p>
-
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="struct" href="struct.ContentAt.html"
-                                  title='struct tamawiki::store::ContentAt'>ContentAt</a></td>
-                           <td class='docblock-short'>
-                                <p>Requests a snapshot of the document's content at a specific
-sequence number. All updates from 0 to 'seq' will be applied.
-Results in a StoreError::NotFound if the document does not exist,
-and StoreError::InvalidSequenceNumber if the sequence number does
-not exist.</p>
-
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="struct" href="struct.Push.html"
-                                  title='struct tamawiki::store::Push'>Push</a></td>
-                           <td class='docblock-short'>
-                                <p>Adds a new Update to the document at 'path' and increments the
-sequence number. If the document does not exist, the act of
-pushing an update creates it.</p>
-
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="struct" href="struct.Seq.html"
-                                  title='struct tamawiki::store::Seq'>Seq</a></td>
-                           <td class='docblock-short'>
-                                <p>Requests the current sequence number for the document at 'path',
-or StoreError::NotFound if it does not exist.</p>
-
-                           </td>
-                       </tr>
-                       <tr class=' module-item'>
-                           <td><a class="struct" href="struct.Since.html"
-                                  title='struct tamawiki::store::Since'>Since</a></td>
-                           <td class='docblock-short'>
-                                <p>Requests a Stream of Updates starting <em>after</em> the provided
-sequence number. Requesting the current sequence number is not an
-error, but will return an empty Stream. Requesting updates since a
-sequence number that does not exist yet is a
-StoreError::InvalidSequenceNumber.</p>
 
                            </td>
                        </tr></table><h2 id='enums' class='section-header'><a href="#enums">Enums</a></h2>
@@ -85,19 +29,21 @@ store.</p>
                            <td><a class="trait" href="trait.Store.html"
                                   title='trait tamawiki::store::Store'>Store</a></td>
                            <td class='docblock-short'>
-                                <p>Every Store backend must implement the Store trait, which ensures
-it can handle all the messages that can be sent to a Store
-implementation.</p>
+                                <p>Every store backend must provide a client interface to the store
+using the Store trait. This client interface will be cloned for
+multiple requests and orchestrating concurrent access (e.g. via
+locking and a connection pool) is left to the implementation.</p>
 
                            </td>
-                       </tr>
+                       </tr></table><h2 id='types' class='section-header'><a href="#types">Type Definitions</a></h2>
+<table>
                        <tr class=' module-item'>
-                           <td><a class="trait" href="trait.StoreStream.html"
-                                  title='trait tamawiki::store::StoreStream'>StoreStream</a></td>
+                           <td><a class="type" href="type.SequenceId.html"
+                                  title='type tamawiki::store::SequenceId'>SequenceId</a></td>
                            <td class='docblock-short'>
-                                <p>A stream of Updates which can be sent between threads. The store
-backend will need a stream implementing this trait in order to
-respond to the Since message.</p>
+                                <p>The sequence number for an Update. The first Update for a Document
+is SequenceId=1 (not 0). This is so requesting updates since
+SequenceId=0 will return <em>all</em> Updates for a Document.</p>
 
                            </td>
                        </tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "tamawiki";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

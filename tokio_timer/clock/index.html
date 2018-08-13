@@ -4,7 +4,7 @@ the source of time may be configured. This allows mocking out the source of
 time in tests.</p>
 <p>The <a href="fn.now.html"><code>now</code></a> function returns the current <code>Instant</code>. By default, it delegates
 to <a href="https://doc.rust-lang.org/std/time/struct.Instant.html"><code>Instant::now</code></a>.</p>
-<p>The source of time used by <a href="trait.Now.html"><code>now</code></a> can be configured by implementing the
+<p>The source of time used by <a href="fn.now.html"><code>now</code></a> can be configured by implementing the
 <a href="trait.Now.html"><code>Now</code></a> trait and passing an instance to <a href="fn.with_default.html"><code>with_default</code></a>.</p>
 </div><h2 id='structs' class='section-header'><a href="#structs">Structs</a></h2>
 <table>
