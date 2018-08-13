@@ -19,3 +19,7 @@ var ws = new WebSocket(ws_url);
 ws.onopen = function (event) {
     console.log('CONNECTED');
 };
+
+ws.onmessage = function (event) {
+    console.log('RECEIVED: ' + event.data);
+};

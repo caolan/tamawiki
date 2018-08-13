@@ -5,7 +5,7 @@ use std::cmp;
 
 
 /// Connection identifier, which must be unique between concurrent updates
-pub type ConnectionId = usize;
+pub type ParticipantId = usize;
 
 /// Represents some String content at a point in time
 #[derive(Debug, PartialEq, Default, Clone)]
@@ -208,16 +208,16 @@ impl error::Error for UpdateError {
 /// all).
 #[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
 pub struct Update {
-    /// The ConnectionId for the original author of this update
-    pub author: ConnectionId,
+    /// The ParticipantId for the original author of this update
+    pub author: ParticipantId,
     /// The Operations which describe this Update
     pub operations: Vec<Operation>,
 }
 
 impl Update {
-    // Does the Update from ConnectionId 'a' take precedence over the
-    // Update from ConnectionId 'b' if operations conflict?
-    fn has_priority(a: ConnectionId, b: ConnectionId) -> bool {
+    // Does the Update from ParticipantId 'a' take precedence over the
+    // Update from ParticipantId 'b' if operations conflict?
+    fn has_priority(a: ParticipantId, b: ParticipantId) -> bool {
         a > b
     }
     

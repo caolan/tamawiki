@@ -209,22 +209,22 @@ impl Message {
         }
     }
 
-    /// Construct a new Binary `Message`.
-    pub fn binary<V: Into<Vec<u8>>>(v: V) -> Message {
-        Message {
-            inner: protocol::Message::binary(v),
-        }
-    }
+    // /// Construct a new Binary `Message`.
+    // pub fn binary<V: Into<Vec<u8>>>(v: V) -> Message {
+    //     Message {
+    //         inner: protocol::Message::binary(v),
+    //     }
+    // }
 
-    /// Returns true if this message is a Text message.
-    pub fn is_text(&self) -> bool {
-        self.inner.is_text()
-    }
+    // /// Returns true if this message is a Text message.
+    // pub fn is_text(&self) -> bool {
+    //     self.inner.is_text()
+    // }
 
-    /// Returns true if this message is a Binary message.
-    pub fn is_binary(&self) -> bool {
-        self.inner.is_binary()
-    }
+    // /// Returns true if this message is a Binary message.
+    // pub fn is_binary(&self) -> bool {
+    //     self.inner.is_binary()
+    // }
 
     /// Try to get a reference to the string text, if this is a Text message.
     pub fn to_str(&self) -> Result<&str, ()> {
@@ -234,14 +234,14 @@ impl Message {
         }
     }
 
-    /// Return the bytes of this message.
-    pub fn as_bytes(&self) -> &[u8] {
-        match self.inner {
-            protocol::Message::Text(ref s) => s.as_bytes(),
-            protocol::Message::Binary(ref v) => v,
-            _ => unreachable!(),
-        }
-    }
+    // /// Return the bytes of this message.
+    // pub fn as_bytes(&self) -> &[u8] {
+    //     match self.inner {
+    //         protocol::Message::Text(ref s) => s.as_bytes(),
+    //         protocol::Message::Binary(ref v) => v,
+    //         _ => unreachable!(),
+    //     }
+    // }
 }
 
 impl fmt::Debug for Message {

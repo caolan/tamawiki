@@ -18,7 +18,7 @@ use url::Url;
 
 #[test]
 fn connect_via_websocket() {
-    let mut rt = Runtime::new().expect("test");
+    let mut rt = Runtime::new().expect("new test runtime");
 
     // bind to port 0 to get random port assigned by OS
     let addr = ([127, 0, 0, 1], 0).into();
@@ -39,9 +39,22 @@ fn connect_via_websocket() {
     
     let client = lazy(move || {
         let url = format!("ws://127.0.0.1:{}/index.html?seq=0", port);
-        tungstenite::connect(Url::parse(&url).unwrap()).map_err(|_| {
-            "Could not establish websocket connection"
-        })
+        tungstenite::connect(Url::parse(&url).unwrap())
+            .map_err(|_| {
+                String::from("Could not establish websocket connection")
+            })
+            .and_then(|(mut ws, _response)| {
+                ws.read_message()
+                    .map_err(|err| {
+                        format!("Error reading 'Connected' message: {}", err)
+                    })
+            })
+            .map(|msg| {
+                assert_eq!(
+                    msg.into_text().unwrap(),
+                    "{\"Connected\":{\"id\":1}}"
+                )
+            })
     });
 
     rt.spawn(server.map_err(|err| panic!("Server error: {}", err)));
