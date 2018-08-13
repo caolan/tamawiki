@@ -38,6 +38,9 @@ use std::fmt;
 
 use error::HttpError;
 
+// re-export tungstenite Message
+pub use tungstenite::protocol::Message;
+
 
 pub fn is_upgrade_request(req: &Request<Body>) -> bool {
     match req.headers().get(UPGRADE) {
@@ -114,31 +117,16 @@ impl Stream for WebSocket {
     type Error = ::tungstenite::Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        loop {
-            let msg = match self.inner.read_message() {
-                Ok(item) => item,
-                Err(::tungstenite::Error::Io(ref err)) if err.kind() == WouldBlock => return Ok(Async::NotReady),
-                Err(::tungstenite::Error::ConnectionClosed(_frame)) => {
-                    return Ok(Async::Ready(None));
-                },
-                Err(e) => {
-                    return Err(e)
-                }
-            };
-
-            match msg {
-                msg @ protocol::Message::Text(..) |
-                msg @ protocol::Message::Binary(..) => {
-                    return Ok(Async::Ready(Some(Message {
-                        inner: msg,
-                    })));
-                },
-                protocol::Message::Ping(_payload) => {
-                    // tungstenite automatically responds to pings, so this
-                    // branch should actually never happen...
-                }
-                protocol::Message::Pong(_payload) => {
-                }
+        match self.inner.read_message() {
+            Ok(item) => Ok(Async::Ready(Some(item))),
+            Err(::tungstenite::Error::Io(ref err)) if err.kind() == WouldBlock => {
+                Ok(Async::NotReady)
+            },
+            Err(::tungstenite::Error::ConnectionClosed(_frame)) => {
+                Ok(Async::Ready(None))
+            },
+            Err(e) => {
+                Err(e)
             }
         }
     }
@@ -149,10 +137,10 @@ impl Sink for WebSocket {
     type SinkError = ::tungstenite::Error;
 
     fn start_send(&mut self, item: Self::SinkItem) -> StartSend<Self::SinkItem, Self::SinkError> {
-        match self.inner.write_message(item.inner) {
+        match self.inner.write_message(item) {
             Ok(()) => Ok(AsyncSink::Ready),
             Err(::tungstenite::Error::SendQueueFull(inner)) => {
-                Ok(AsyncSink::NotReady(Message { inner }))
+                Ok(AsyncSink::NotReady(inner))
             },
             Err(::tungstenite::Error::Io(ref err)) if err.kind() == WouldBlock => {
                 // the message was accepted and partly written, so this
@@ -194,58 +182,5 @@ impl fmt::Debug for WebSocket {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("WebSocket")
             .finish()
-    }
-}
-
-pub struct Message {
-    inner: protocol::Message,
-}
-
-impl Message {
-    /// Construct a new Text `Message`.
-    pub fn text<S: Into<String>>(s: S) -> Message {
-        Message {
-            inner: protocol::Message::text(s),
-        }
-    }
-
-    // /// Construct a new Binary `Message`.
-    // pub fn binary<V: Into<Vec<u8>>>(v: V) -> Message {
-    //     Message {
-    //         inner: protocol::Message::binary(v),
-    //     }
-    // }
-
-    // /// Returns true if this message is a Text message.
-    // pub fn is_text(&self) -> bool {
-    //     self.inner.is_text()
-    // }
-
-    // /// Returns true if this message is a Binary message.
-    // pub fn is_binary(&self) -> bool {
-    //     self.inner.is_binary()
-    // }
-
-    /// Try to get a reference to the string text, if this is a Text message.
-    pub fn to_str(&self) -> Result<&str, ()> {
-        match self.inner {
-            protocol::Message::Text(ref s) => Ok(s),
-            _ => Err(())
-        }
-    }
-
-    // /// Return the bytes of this message.
-    // pub fn as_bytes(&self) -> &[u8] {
-    //     match self.inner {
-    //         protocol::Message::Text(ref s) => s.as_bytes(),
-    //         protocol::Message::Binary(ref v) => v,
-    //         _ => unreachable!(),
-    //     }
-    // }
-}
-
-impl fmt::Debug for Message {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Debug::fmt(&self.inner, f)
     }
 }

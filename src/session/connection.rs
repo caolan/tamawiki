@@ -55,9 +55,9 @@ impl Stream for WebSocketConnection {
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         match self.websocket.poll() {
             Ok(Async::Ready(Some(data))) => {
-                match data.to_str() {
+                match data.into_text() {
                     Ok(raw) => {
-                        serde_json::from_str(raw)
+                        serde_json::from_str(&raw)
                             .map(Async::Ready)
                             .map_err(|err| ConnectionError::InvalidMessage {
                                 reason: format!("{}", err),
