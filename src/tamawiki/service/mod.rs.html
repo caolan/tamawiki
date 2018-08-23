@@ -256,6 +256,26 @@
 <span id="256">256</span>
 <span id="257">257</span>
 <span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! TamaWiki HTTP service suitable for serving via Hyper</span>
 <span class="doccomment">//!</span>
@@ -268,18 +288,14 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! use tamawiki::service::TamaWiki;</span>
 <span class="doccomment">//! use tamawiki::store::memory::MemoryStore;</span>
-<span class="doccomment">//! use tamawiki::session::DocumentSessionManager;</span>
 <span class="doccomment">//! use futures::future::Future;</span>
 <span class="doccomment">//! use hyper::Server;</span>
-<span class="doccomment">//! use std::path::PathBuf;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let addr = ([127, 0, 0, 1], 8080).into();</span>
 <span class="doccomment">//! let store = MemoryStore::default();</span>
-<span class="doccomment">//! let static_path = PathBuf::from(&quot;static&quot;);</span>
-<span class="doccomment">//! let document_sessions = DocumentSessionManager::default();</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let server = Server::bind(&amp;addr)</span>
-<span class="doccomment">//!     .serve(TamaWiki {store, static_path, document_sessions})</span>
+<span class="doccomment">//!     .serve(TamaWiki::new(store, &quot;static&quot;))</span>
 <span class="doccomment">//!     .map_err(|err| eprintln!(&quot;Server error: {}&quot;, err));</span>
 <span class="doccomment">//! ```</span>
 
@@ -295,8 +311,8 @@
 
 <span class="kw">use</span> <span class="ident">templates</span>::<span class="ident">TERA</span>;
 <span class="kw">use</span> <span class="ident">store</span>::{<span class="ident">Store</span>, <span class="ident">StoreError</span>};
-<span class="kw">use</span> <span class="ident">session</span>::<span class="ident">connection</span>::<span class="ident">WebSocketConnection</span>;
-<span class="kw">use</span> <span class="ident">session</span>::<span class="ident">message</span>::{<span class="ident">ServerMessage</span>, <span class="ident">ConnectedMessage</span>, <span class="ident">JoinMessage</span>, <span class="ident">EditMessage</span>};
+<span class="kw">use</span> <span class="ident">session</span>::<span class="ident">connection</span>::{<span class="ident">WebSocketConnection</span>, <span class="ident">ConnectionError</span>};
+<span class="kw">use</span> <span class="ident">session</span>::<span class="ident">message</span>::{<span class="ident">ServerMessage</span>, <span class="ident">ConnectedMessage</span>, <span class="ident">JoinMessage</span>, <span class="ident">LeaveMessage</span>, <span class="ident">EditMessage</span>};
 <span class="kw">use</span> <span class="ident">session</span>::<span class="ident">DocumentSessionManager</span>;
 
 <span class="kw">mod</span> <span class="ident">error</span>;
@@ -306,50 +322,32 @@
 <span class="kw">use</span> <span class="ident">service</span>::<span class="ident">error</span>::{<span class="ident">TamaWikiError</span>, <span class="ident">HttpError</span>};
 <span class="kw">use</span> <span class="ident">service</span>::<span class="ident">request</span>::<span class="ident">query_params</span>;
 <span class="kw">use</span> <span class="ident">service</span>::<span class="ident">upgrade</span>::{<span class="ident">websocket_upgrade</span>, <span class="ident">is_websocket_upgrade_request</span>};
-<span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">Event</span>, <span class="ident">Join</span>, <span class="ident">Edit</span>};
+<span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">Event</span>, <span class="ident">Join</span>, <span class="ident">Leave</span>, <span class="ident">Edit</span>};
+<span class="kw">use</span> <span class="ident">store</span>::<span class="ident">SequenceId</span>;
 
-
-<span class="doccomment">/// Constructs TamaWikiServices</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TamaWiki</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// A cloneable interface to the backing store used by TamaWiki to</span>
-    <span class="doccomment">/// persist document updates</span>
-    <span class="kw">pub</span> <span class="ident">store</span>: <span class="ident">T</span>,
-    <span class="doccomment">/// Path to serve static files from</span>
-    <span class="kw">pub</span> <span class="ident">static_path</span>: <span class="ident">PathBuf</span>,
-    <span class="doccomment">/// Co-ordinates document access for editors</span>
-    <span class="kw">pub</span> <span class="ident">document_sessions</span>: <span class="ident">DocumentSessionManager</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="ident">NewService</span> <span class="kw">for</span> <span class="ident">TamaWiki</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">ReqBody</span> <span class="op">=</span> <span class="ident">Body</span>;
-    <span class="kw">type</span> <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">Body</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">TamaWikiError</span>;
-    <span class="kw">type</span> <span class="ident">Service</span> <span class="op">=</span> <span class="ident">TamaWikiService</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">InitError</span> <span class="op">=</span> <span class="ident">TamaWikiError</span>;
-    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Service</span>, <span class="self">Self</span>::<span class="ident">InitError</span><span class="op">&gt;</span>;
-    
-    <span class="kw">fn</span> <span class="ident">new_service</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Future</span> {
-        <span class="ident">future</span>::<span class="ident">ok</span>(<span class="ident">TamaWikiService</span> {
-            <span class="ident">store</span>: <span class="self">self</span>.<span class="ident">store</span>.<span class="ident">clone</span>(),
-            <span class="ident">static_path</span>: <span class="self">self</span>.<span class="ident">static_path</span>.<span class="ident">clone</span>(),
-            <span class="ident">document_sessions</span>: <span class="self">self</span>.<span class="ident">document_sessions</span>.<span class="ident">clone</span>(),
-        })
-    }
-}
 
 <span class="doccomment">/// Handles a request and returns a response</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TamaWikiService</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// A cloneable interface to the backing store used by TamaWiki to</span>
-    <span class="doccomment">/// persist document updates</span>
-    <span class="kw">pub</span> <span class="ident">store</span>: <span class="ident">T</span>,
-    <span class="doccomment">/// Path to serve static files from</span>
-    <span class="kw">pub</span> <span class="ident">static_path</span>: <span class="ident">PathBuf</span>,
-    <span class="doccomment">/// Co-ordinates document access for editor</span>
-    <span class="kw">pub</span> <span class="ident">document_sessions</span>: <span class="ident">DocumentSessionManager</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TamaWiki</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> {
+    <span class="comment">// A cloneable interface to the backing store used by TamaWiki to</span>
+    <span class="comment">// persist document updates</span>
+    <span class="ident">store</span>: <span class="ident">T</span>,
+    <span class="comment">// Path to serve static files from</span>
+    <span class="ident">static_path</span>: <span class="ident">PathBuf</span>,
+    <span class="comment">// Co-ordinates document access for editors</span>
+    <span class="ident">document_sessions</span>: <span class="ident">DocumentSessionManager</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="ident">TamaWikiService</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="ident">TamaWiki</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Creates a new instace of TamaWiki</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;&gt;</span>(<span class="ident">store</span>: <span class="ident">T</span>, <span class="ident">static_path</span>: <span class="ident">P</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">document_sessions</span> <span class="op">=</span> <span class="ident">DocumentSessionManager</span>::<span class="ident">new</span>(<span class="ident">store</span>.<span class="ident">clone</span>());
+        <span class="self">Self</span> {
+            <span class="ident">static_path</span>: <span class="ident">static_path</span>.<span class="ident">into</span>(),
+            <span class="ident">document_sessions</span>,
+            <span class="ident">store</span>,
+        }
+    }
     
     <span class="kw">fn</span> <span class="ident">serve_static</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> 
         <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">HttpError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>
@@ -403,6 +401,7 @@
                         <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="macro">json</span><span class="macro">!</span>({
                             <span class="string">&quot;title&quot;</span>: <span class="string">&quot;Document&quot;</span>,
                             <span class="string">&quot;content&quot;</span>: <span class="ident">doc</span>.<span class="ident">content</span>,
+                            <span class="string">&quot;participants&quot;</span>: <span class="ident">doc</span>.<span class="ident">participants</span>,
                             <span class="string">&quot;seq&quot;</span>: <span class="ident">seq</span>
                         });
                         <span class="kw">let</span> <span class="ident">tmpl</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">edit</span> {
@@ -418,8 +417,9 @@
                     <span class="prelude-val">Err</span>(<span class="ident">StoreError</span>::<span class="ident">NotFound</span>) <span class="op">=&gt;</span> {
                         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">edit</span> {
                             <span class="ident">TERA</span>.<span class="ident">render</span>(<span class="string">&quot;editor.html&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">json</span><span class="macro">!</span>({
-                                <span class="string">&quot;title&quot;</span>: <span class="string">&quot;Document&quot;</span>,
+                                <span class="string">&quot;title&quot;</span>: <span class="string">&quot;Document (empty)&quot;</span>,
                                 <span class="string">&quot;content&quot;</span>: <span class="string">&quot;&quot;</span>,
+                                <span class="string">&quot;participants&quot;</span>: [],
                                 <span class="string">&quot;seq&quot;</span>: <span class="number">0</span>
                             })).<span class="ident">unwrap</span>()
                         } <span class="kw">else</span> {
@@ -444,6 +444,14 @@
         <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">HttpError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>
     {
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">path</span>()[<span class="number">1</span>..]);
+        <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">query_params</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>);
+        
+        <span class="kw">let</span> <span class="ident">since</span>: <span class="ident">SequenceId</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">q</span>.<span class="ident">get</span>(<span class="string">&quot;seq&quot;</span>) {
+            <span class="comment">// TODO: respond with http error message if seq parameter is invalid</span>
+            <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=&gt;</span> <span class="ident">x</span>.<span class="ident">parse</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>),
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="number">0</span>
+        };
+        
         <span class="kw">let</span> <span class="ident">document_sessions</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">document_sessions</span>.<span class="ident">clone</span>();
         
         <span class="ident">websocket_upgrade</span>(<span class="ident">req</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">websocket</span><span class="op">|</span> {
@@ -451,46 +459,78 @@
                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                     <span class="macro">eprintln</span><span class="macro">!</span>(<span class="string">&quot;Error joining document session: {:?}&quot;</span>, <span class="ident">e</span>);
                 })
-                .<span class="ident">and_then</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="ident">session</span>)<span class="op">|</span> {
-                    <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">_rx</span>) <span class="op">=</span> <span class="ident">WebSocketConnection</span>::<span class="ident">from</span>(<span class="ident">websocket</span>).<span class="ident">split</span>();
-                    <span class="kw">let</span> <span class="ident">events</span> <span class="op">=</span> <span class="ident">session</span>.<span class="ident">subscribe</span>(<span class="number">0</span>);
+                .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">id</span>, <span class="ident">session</span>)<span class="op">|</span> {
+                    <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">WebSocketConnection</span>::<span class="ident">from</span>(<span class="ident">websocket</span>).<span class="ident">split</span>();
+                    <span class="kw">let</span> <span class="ident">events</span> <span class="op">=</span> <span class="ident">session</span>.<span class="ident">subscribe</span>(<span class="ident">since</span>);
+
+                    <span class="kw">let</span> <span class="ident">send_server_messages</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">send</span>(
+                        <span class="ident">ServerMessage</span>::<span class="ident">Connected</span>(<span class="ident">ConnectedMessage</span> {<span class="ident">id</span>})
+                    ).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tx</span><span class="op">|</span> {
+                        <span class="ident">tx</span>.<span class="ident">send_all</span>(
+                            <span class="ident">events</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">seq</span>, <span class="ident">event</span>)<span class="op">|</span> {
+                                <span class="kw">match</span> <span class="ident">event</span> {
+                                    <span class="ident">Event</span>::<span class="ident">Join</span>(<span class="ident">Join</span> {<span class="ident">id</span>}) <span class="op">=&gt;</span> {
+                                        <span class="ident">ServerMessage</span>::<span class="ident">Join</span>(<span class="ident">JoinMessage</span> {
+                                            <span class="ident">seq</span>,
+                                            <span class="ident">id</span>,
+                                        })
+                                    },
+                                    <span class="ident">Event</span>::<span class="ident">Leave</span>(<span class="ident">Leave</span> {<span class="ident">id</span>}) <span class="op">=&gt;</span> {
+                                        <span class="ident">ServerMessage</span>::<span class="ident">Leave</span>(<span class="ident">LeaveMessage</span> {
+                                            <span class="ident">seq</span>,
+                                            <span class="ident">id</span>,
+                                        })
+                                    },
+                                    <span class="ident">Event</span>::<span class="ident">Edit</span>(<span class="ident">Edit</span> {<span class="ident">author</span>, <span class="ident">operations</span>}) <span class="op">=&gt;</span> {
+                                        <span class="ident">ServerMessage</span>::<span class="ident">Edit</span>(<span class="ident">EditMessage</span> {
+                                            <span class="ident">seq</span>,
+                                            <span class="ident">author</span>,
+                                            <span class="ident">operations</span>,
+                                        })
+                                    },
+                                }
+                            })
+                        ).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+                    });
+
+                    <span class="kw">let</span> <span class="ident">read_client_messages</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">for_each</span>(
+                        <span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="op">-&gt;</span> <span class="ident">FutureResult</span><span class="op">&lt;</span>(), <span class="ident">ConnectionError</span><span class="op">&gt;</span> {
+                            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;received: {:?}&quot;</span>, <span class="ident">msg</span>);
+                            <span class="ident">future</span>::<span class="ident">ok</span>(())
+                        }
+                    );
                     
-                    <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">ServerMessage</span>::<span class="ident">Connected</span>(<span class="ident">ConnectedMessage</span> {<span class="ident">id</span>}))
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tx</span><span class="op">|</span> <span class="ident">tx</span>.<span class="ident">flush</span>())
-                        .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">tx</span><span class="op">|</span> {
-                            <span class="ident">tx</span>.<span class="ident">send_all</span>(
-                                <span class="ident">events</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">seq</span>, <span class="ident">event</span>)<span class="op">|</span> {
-                                    <span class="kw">match</span> <span class="ident">event</span> {
-                                        <span class="ident">Event</span>::<span class="ident">Join</span>(<span class="ident">Join</span> {<span class="ident">id</span>}) <span class="op">=&gt;</span> {
-                                            <span class="ident">ServerMessage</span>::<span class="ident">Join</span>(<span class="ident">JoinMessage</span> {
-                                                <span class="ident">seq</span>,
-                                                <span class="ident">id</span>,
-                                            })
-                                        },
-                                        <span class="ident">Event</span>::<span class="ident">Edit</span>(<span class="ident">Edit</span> {<span class="ident">author</span>, <span class="ident">operations</span>}) <span class="op">=&gt;</span> {
-                                            <span class="ident">ServerMessage</span>::<span class="ident">Edit</span>(<span class="ident">EditMessage</span> {
-                                                <span class="ident">seq</span>,
-                                                <span class="ident">author</span>,
-                                                <span class="ident">operations</span>,
-                                            })
-                                        },
-                                    }
-                                })
-                            )
-                        })
-                        .<span class="ident">then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">result</span><span class="op">|</span> <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), ()<span class="op">&gt;</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">result</span> {
+                    <span class="ident">send_server_messages</span>
+                        .<span class="ident">select</span>(<span class="ident">read_client_messages</span>)
+                        .<span class="ident">then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">result</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span>, (<span class="ident">ConnectionError</span>, <span class="kw">_</span>)<span class="op">&gt;</span><span class="op">|</span> {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>((<span class="ident">err</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="ident">result</span> {
                                 <span class="macro">eprintln</span><span class="macro">!</span>(<span class="string">&quot;WebSocket error: {:?}&quot;</span>, <span class="ident">err</span>);
                             }
-                            <span class="ident">session</span>.<span class="ident">leave</span>(<span class="ident">id</span>);
-                            <span class="prelude-val">Ok</span>(())
+                            <span class="ident">session</span>.<span class="ident">leave</span>(<span class="ident">id</span>)
+                                .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())
+                                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                                    <span class="macro">eprintln</span><span class="macro">!</span>(<span class="string">&quot;Error leaving document session: {:?}&quot;</span>, <span class="ident">err</span>);
+                                })
                         })
                 })
         })
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="ident">Service</span> <span class="kw">for</span> <span class="ident">TamaWikiService</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="ident">NewService</span> <span class="kw">for</span> <span class="ident">TamaWiki</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">ReqBody</span> <span class="op">=</span> <span class="ident">Body</span>;
+    <span class="kw">type</span> <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">Body</span>;
+    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">TamaWikiError</span>;
+    <span class="kw">type</span> <span class="ident">Service</span> <span class="op">=</span> <span class="ident">TamaWiki</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">InitError</span> <span class="op">=</span> <span class="ident">TamaWikiError</span>;
+    <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">FutureResult</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Service</span>, <span class="self">Self</span>::<span class="ident">InitError</span><span class="op">&gt;</span>;
+    
+    <span class="kw">fn</span> <span class="ident">new_service</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">Future</span> {
+        <span class="ident">future</span>::<span class="ident">ok</span>(<span class="self">self</span>.<span class="ident">clone</span>())
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="ident">Service</span> <span class="kw">for</span> <span class="ident">TamaWiki</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">ReqBody</span> <span class="op">=</span> <span class="ident">Body</span>;
     <span class="kw">type</span> <span class="ident">ResBody</span> <span class="op">=</span> <span class="ident">Body</span>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">TamaWikiError</span>;

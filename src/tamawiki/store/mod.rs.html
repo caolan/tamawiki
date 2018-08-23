@@ -123,7 +123,7 @@
 <span class="doccomment">//! store implementation may checkpoint or cache these edit event</span>
 <span class="doccomment">//! applications in order to speed up this process.</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>, <span class="ident">Debug</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">PathBuf</span>, <span class="ident">Path</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">stream</span>::<span class="ident">Stream</span>;
@@ -143,7 +143,7 @@
 <span class="doccomment">/// using the Store trait. This client interface will be cloned for</span>
 <span class="doccomment">/// multiple requests and orchestrating concurrent access (e.g. via</span>
 <span class="doccomment">/// locking and a connection pool) is left to the implementation.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Store</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Store</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
     
     <span class="doccomment">/// Type for the stream of Events returned by `since()` calls</span>
     <span class="kw">type</span> <span class="ident">Stream</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(<span class="ident">SequenceId</span>, <span class="ident">Event</span>), <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>;
