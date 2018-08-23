@@ -7,7 +7,7 @@
 //! store implementation may checkpoint or cache these edit event
 //! applications in order to speed up this process.
 
-use std::fmt::{self, Display};
+use std::fmt::{self, Display, Debug};
 use std::error::Error;
 use std::path::{PathBuf, Path};
 use futures::stream::Stream;
@@ -27,7 +27,7 @@ pub type SequenceId = u64;
 /// using the Store trait. This client interface will be cloned for
 /// multiple requests and orchestrating concurrent access (e.g. via
 /// locking and a connection pool) is left to the implementation.
-pub trait Store: Clone + Send + 'static {
+pub trait Store: Clone + Debug + Send + 'static {
     
     /// Type for the stream of Events returned by `since()` calls
     type Stream: Stream<Item=(SequenceId, Event), Error=StoreError> + Send;

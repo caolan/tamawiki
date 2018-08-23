@@ -1,3 +1,11 @@
 html {
     font-family: sans-serif;
 }
+
+#participants {
+    float: right;
+}
+
+#participants .you {
+    background-color: #cfc;
+}

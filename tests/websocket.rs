@@ -15,12 +15,10 @@ use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::tungstenite::Message;
 use tokio::net::TcpStream;
 use tokio_tls::TlsStream;
-use std::path::PathBuf;
 use url::Url;
 
 use tamawiki::TamaWiki;
 use tamawiki::store::memory::MemoryStore;
-use tamawiki::session::DocumentSessionManager;
 
 type WsStream = WebSocketStream<
     tokio_tungstenite::stream::Stream<TcpStream, TlsStream<TcpStream>>>;
@@ -49,18 +47,11 @@ fn connect_via_websocket() {
 
     // bind to port 0 to get random port assigned by OS
     let addr = ([127, 0, 0, 1], 0).into();
-    
-    let static_path = PathBuf::from("public");
     let store = memorystore! {
         "index.html" => "Welcome to TamaWiki.\n"
     };
-    
     let server = Server::bind(&addr)
-        .serve(TamaWiki {
-            document_sessions: DocumentSessionManager::default(),
-            static_path,
-            store
-        });
+        .serve(TamaWiki::new(store, "public"));
 
     // find out which port number we got
     let port = server.local_addr().port();
@@ -85,18 +76,11 @@ fn websocket_connections_get_different_ids() {
 
     // bind to port 0 to get random port assigned by OS
     let addr = ([127, 0, 0, 1], 0).into();
-    
-    let static_path = PathBuf::from("public");
     let store = memorystore! {
         "index.html" => "Welcome to TamaWiki.\n"
     };
-    
     let server = Server::bind(&addr)
-        .serve(TamaWiki {
-            document_sessions: DocumentSessionManager::default(),
-            static_path,
-            store
-        });
+        .serve(TamaWiki::new(store, "public"));
 
     // find out which port number we got
     let port = server.local_addr().port();
@@ -106,71 +90,66 @@ fn websocket_connections_get_different_ids() {
     
     let client1 = connect_websocket(&url1)
         .and_then(read_message)
-        .map(|(msg, _ws)| {
+        .map(|(msg, ws)| {
             assert_eq!(
                 msg.unwrap().into_text().unwrap(),
                 "{\"Connected\":{\"id\":1}}"
-            )
+            );
+            ws
         });
 
     let client2 = connect_websocket(&url1)
         .and_then(read_message)
-        .map(|(msg, _ws)| {
+        .map(|(msg, ws)| {
             assert_eq!(
                 msg.unwrap().into_text().unwrap(),
                 "{\"Connected\":{\"id\":2}}"
-            )
+            );
+            ws
         });
 
     // client 3 connects to a different page and should also get id=1
     let client3 = connect_websocket(&url2)
         .and_then(read_message)
-        .map(|(msg, _ws)| {
+        .map(|(msg, ws)| {
             assert_eq!(
                 msg.unwrap().into_text().unwrap(),
                 "{\"Connected\":{\"id\":1}}"
-            )
+            );
+            ws
         });
 
     rt.spawn(server.map_err(|err| {
         panic!("Server error: {}", err)
     }));
-    
+
     rt.block_on(
         client1
-            .and_then(|_| client2)
+            // thread through the `ws` streams so they don't get dropped
+            // (and therefore close the websocket) before all three
+            // clients are connected.
+            .and_then(|ws1| client2.map(move |ws2| (ws1, ws2)))
             .join(client3)
             .map(|_| ())
     ).unwrap();
 }
 
 #[test]
-fn websocket_join_notifications() {
+fn websocket_join_and_leave_notifications() {
     let mut rt = Runtime::new().expect("new test runtime");
 
     // bind to port 0 to get random port assigned by OS
     let addr = ([127, 0, 0, 1], 0).into();
-    
-    let static_path = PathBuf::from("public");
-    let store = memorystore! {
-        "index.html" => "Welcome to TamaWiki.\n"
-    };
-    
+    let store = MemoryStore::default();
     let server = Server::bind(&addr)
-        .serve(TamaWiki {
-            document_sessions: DocumentSessionManager::default(),
-            static_path,
-            store
-        });
+        .serve(TamaWiki::new(store, "public"));
 
     // find out which port number we got
     let port = server.local_addr().port();
 
-    let url = format!("ws://127.0.0.1:{}/index.html", port);
-    
-    let client1 = connect_websocket(&url);
-    let client2 = connect_websocket(&url);
-    let client3 = connect_websocket(&url);
+    let client1 = connect_websocket(&format!("ws://127.0.0.1:{}/index.html?seq=0", port));
+    let client2 = connect_websocket(&format!("ws://127.0.0.1:{}/index.html?seq=1", port));
+    let client3 = connect_websocket(&format!("ws://127.0.0.1:{}/index.html?seq=2", port));
 
     rt.spawn(server.map_err(|err| {
         panic!("Server error: {}", err)
@@ -191,11 +170,16 @@ fn websocket_join_notifications() {
                 let msgs1 = ws1.map(Message::into_text).map(Result::unwrap);
                 let msgs2 = ws2.map(Message::into_text).map(Result::unwrap);
                 let msgs3 = ws3.map(Message::into_text).map(Result::unwrap);
+
+                // the disconnect order is dictated by the order the underlying stream is dropped
+                // client2 reads only 3 messages then disconnects first
+                // client3 waits for leave messages from client 2 then disconnects second
+                // client1 waits for leave messages from clients 2 and 3, then disconnects last
                 
                 // read desired messages from all streams
-                msgs1.take(4).collect()
-                    .join3(msgs2.take(4).collect(),
-                           msgs3.take(4).collect())
+                msgs1.take(6).collect()
+                    .join3(msgs2.take(3).collect(),
+                           msgs3.take(3).collect())
             })
             .map(|(msgs1, msgs2, msgs3)| {
                 assert_eq!(msgs1, vec![
@@ -203,18 +187,18 @@ fn websocket_join_notifications() {
                     "{\"Join\":{\"seq\":1,\"id\":1}}",
                     "{\"Join\":{\"seq\":2,\"id\":2}}",
                     "{\"Join\":{\"seq\":3,\"id\":3}}",
+                    "{\"Leave\":{\"seq\":4,\"id\":2}}",
+                    "{\"Leave\":{\"seq\":5,\"id\":3}}",
                 ]);
                 assert_eq!(msgs2, vec![
                     "{\"Connected\":{\"id\":2}}",
-                    "{\"Join\":{\"seq\":1,\"id\":1}}",
                     "{\"Join\":{\"seq\":2,\"id\":2}}",
                     "{\"Join\":{\"seq\":3,\"id\":3}}",
                 ]);
                 assert_eq!(msgs3, vec![
                     "{\"Connected\":{\"id\":3}}",
-                    "{\"Join\":{\"seq\":1,\"id\":1}}",
-                    "{\"Join\":{\"seq\":2,\"id\":2}}",
                     "{\"Join\":{\"seq\":3,\"id\":3}}",
+                    "{\"Leave\":{\"seq\":4,\"id\":2}}",
                 ]);
             })
             .map(|_| ())

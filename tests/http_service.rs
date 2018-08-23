@@ -8,22 +8,15 @@ use hyper::Body;
 use http::{Request, StatusCode};
 use futures::future::Future;
 use futures::stream::Stream;
-use std::path::PathBuf;
 
-use tamawiki::service::TamaWikiService;
+use tamawiki::TamaWiki;
 use tamawiki::store::memory::MemoryStore;
-use tamawiki::session::DocumentSessionManager;
 
 
 #[test]
 fn get_missing_page() {
     let store = MemoryStore::default();
-    let static_path = PathBuf::from("public");
-    let mut service = TamaWikiService {
-        document_sessions: DocumentSessionManager::default(),
-        static_path,
-        store,
-    };
+    let mut service = TamaWiki::new(store, "public");
 
     let request = Request::get("/missing.html")
         .body(Body::from(""))
@@ -38,12 +31,7 @@ fn get_page_content_from_store() {
     let store = memorystore! {
         "test.html" => "Testing 123"
     };
-    let static_path = PathBuf::from("public");
-    let mut service = TamaWikiService {
-        document_sessions: DocumentSessionManager::default(),
-        store: store.clone(),
-        static_path,
-    };
+    let mut service = TamaWiki::new(store, "public");
 
     let request = Request::get("/test.html")
         .body(Body::from(""))
@@ -72,12 +60,7 @@ fn get_page_content_from_store() {
 
 fn get_static_file() {
     let store = MemoryStore::default();
-    let static_path = PathBuf::from("public");
-    let mut service = TamaWikiService {
-        document_sessions: DocumentSessionManager::default(),
-        static_path,
-        store,
-    };
+    let mut service = TamaWiki::new(store, "public");
 
     let request = Request::get("/_static/css/style.css")
         .body(Body::from(""))
@@ -93,12 +76,7 @@ fn get_static_file() {
 #[test]
 fn request_missing_page_with_edit_action() {
     let store = MemoryStore::default();
-    let static_path = PathBuf::from("public");
-    let mut service = TamaWikiService {
-        document_sessions: DocumentSessionManager::default(),
-        static_path,
-        store,
-    };
+    let mut service = TamaWiki::new(store, "public");
 
     let request = Request::get("/missing.html?action=edit")
         .body(Body::from(""))
@@ -127,12 +105,7 @@ fn request_existing_page_with_edit_action() {
     let store = memorystore! {
         "example.html" => "test"
     };
-    let static_path = PathBuf::from("public");
-    let mut service = TamaWikiService {
-        document_sessions: DocumentSessionManager::default(),
-        static_path,
-        store,
-    };
+    let mut service = TamaWiki::new(store, "public");
 
     let request = Request::get("/example.html?action=edit")
         .body(Body::from(""))

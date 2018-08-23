@@ -9,18 +9,14 @@
 //!
 //! use tamawiki::service::TamaWiki;
 //! use tamawiki::store::memory::MemoryStore;
-//! use tamawiki::session::DocumentSessionManager;
 //! use futures::future::Future;
 //! use hyper::Server;
-//! use std::path::PathBuf;
 //!
 //! let addr = ([127, 0, 0, 1], 8080).into();
 //! let store = MemoryStore::default();
-//! let static_path = PathBuf::from("static");
-//! let document_sessions = DocumentSessionManager::default();
 //!
 //! let server = Server::bind(&addr)
-//!     .serve(TamaWiki {store, static_path, document_sessions})
+//!     .serve(TamaWiki::new(store, "static"))
 //!     .map_err(|err| eprintln!("Server error: {}", err));
 //! ```
 
@@ -36,8 +32,8 @@ use futures::sink::Sink;
 
 use templates::TERA;
 use store::{Store, StoreError};
-use session::connection::WebSocketConnection;
-use session::message::{ServerMessage, ConnectedMessage, JoinMessage, EditMessage};
+use session::connection::{WebSocketConnection, ConnectionError};
+use session::message::{ServerMessage, ConnectedMessage, JoinMessage, LeaveMessage, EditMessage};
 use session::DocumentSessionManager;
 
 mod error;
@@ -47,50 +43,32 @@ mod upgrade;
 use service::error::{TamaWikiError, HttpError};
 use service::request::query_params;
 use service::upgrade::{websocket_upgrade, is_websocket_upgrade_request};
-use document::{Event, Join, Edit};
+use document::{Event, Join, Leave, Edit};
+use store::SequenceId;
 
-
-/// Constructs TamaWikiServices
-#[derive(Default)]
-pub struct TamaWiki<T: Store + Sync> {
-    /// A cloneable interface to the backing store used by TamaWiki to
-    /// persist document updates
-    pub store: T,
-    /// Path to serve static files from
-    pub static_path: PathBuf,
-    /// Co-ordinates document access for editors
-    pub document_sessions: DocumentSessionManager<T>,
-}
-
-impl<T: Store + Sync> NewService for TamaWiki<T> {
-    type ReqBody = Body;
-    type ResBody = Body;
-    type Error = TamaWikiError;
-    type Service = TamaWikiService<T>;
-    type InitError = TamaWikiError;
-    type Future = FutureResult<Self::Service, Self::InitError>;
-    
-    fn new_service(&self) -> Self::Future {
-        future::ok(TamaWikiService {
-            store: self.store.clone(),
-            static_path: self.static_path.clone(),
-            document_sessions: self.document_sessions.clone(),
-        })
-    }
-}
 
 /// Handles a request and returns a response
-pub struct TamaWikiService<T: Store + Sync> {
-    /// A cloneable interface to the backing store used by TamaWiki to
-    /// persist document updates
-    pub store: T,
-    /// Path to serve static files from
-    pub static_path: PathBuf,
-    /// Co-ordinates document access for editor
-    pub document_sessions: DocumentSessionManager<T>,
+#[derive(Clone)]
+pub struct TamaWiki<T: Store + Sync> {
+    // A cloneable interface to the backing store used by TamaWiki to
+    // persist document updates
+    store: T,
+    // Path to serve static files from
+    static_path: PathBuf,
+    // Co-ordinates document access for editors
+    document_sessions: DocumentSessionManager<T>,
 }
 
-impl<T: Store + Sync> TamaWikiService<T> {
+impl<T: Store + Sync> TamaWiki<T> {
+    /// Creates a new instace of TamaWiki
+    pub fn new<P: Into<PathBuf>>(store: T, static_path: P) -> Self {
+        let document_sessions = DocumentSessionManager::new(store.clone());
+        Self {
+            static_path: static_path.into(),
+            document_sessions,
+            store,
+        }
+    }
     
     fn serve_static(&mut self, req: Request<Body>) -> 
         Box<Future<Item=Response<Body>, Error=HttpError> + Send>
@@ -144,6 +122,7 @@ impl<T: Store + Sync> TamaWikiService<T> {
                         let ctx = json!({
                             "title": "Document",
                             "content": doc.content,
+                            "participants": doc.participants,
                             "seq": seq
                         });
                         let tmpl = if edit {
@@ -159,8 +138,9 @@ impl<T: Store + Sync> TamaWikiService<T> {
                     Err(StoreError::NotFound) => {
                         let text = if edit {
                             TERA.render("editor.html", &json!({
-                                "title": "Document",
+                                "title": "Document (empty)",
                                 "content": "",
+                                "participants": [],
                                 "seq": 0
                             })).unwrap()
                         } else {
@@ -185,6 +165,14 @@ impl<T: Store + Sync> TamaWikiService<T> {
         Box<Future<Item=Response<Body>, Error=HttpError> + Send>
     {
         let path = PathBuf::from(&req.uri().path()[1..]);
+        let q = query_params(&req);
+        
+        let since: SequenceId = match q.get("seq") {
+            // TODO: respond with http error message if seq parameter is invalid
+            Some(x) => x.parse().unwrap_or(0),
+            None => 0
+        };
+        
         let document_sessions = self.document_sessions.clone();
         
         websocket_upgrade(req, move |websocket| {
@@ -192,46 +180,78 @@ impl<T: Store + Sync> TamaWikiService<T> {
                 .map_err(|e| {
                     eprintln!("Error joining document session: {:?}", e);
                 })
-                .and_then(|(id, session)| {
-                    let (tx, _rx) = WebSocketConnection::from(websocket).split();
-                    let events = session.subscribe(0);
+                .and_then(move |(id, session)| {
+                    let (tx, rx) = WebSocketConnection::from(websocket).split();
+                    let events = session.subscribe(since);
+
+                    let send_server_messages = tx.send(
+                        ServerMessage::Connected(ConnectedMessage {id})
+                    ).and_then(|tx| {
+                        tx.send_all(
+                            events.map(|(seq, event)| {
+                                match event {
+                                    Event::Join(Join {id}) => {
+                                        ServerMessage::Join(JoinMessage {
+                                            seq,
+                                            id,
+                                        })
+                                    },
+                                    Event::Leave(Leave {id}) => {
+                                        ServerMessage::Leave(LeaveMessage {
+                                            seq,
+                                            id,
+                                        })
+                                    },
+                                    Event::Edit(Edit {author, operations}) => {
+                                        ServerMessage::Edit(EditMessage {
+                                            seq,
+                                            author,
+                                            operations,
+                                        })
+                                    },
+                                }
+                            })
+                        ).map(|_| ())
+                    });
+
+                    let read_client_messages = rx.for_each(
+                        |msg| -> FutureResult<(), ConnectionError> {
+                            println!("received: {:?}", msg);
+                            future::ok(())
+                        }
+                    );
                     
-                    tx.send(ServerMessage::Connected(ConnectedMessage {id}))
-                        .and_then(|tx| tx.flush())
-                        .and_then(move |tx| {
-                            tx.send_all(
-                                events.map(|(seq, event)| {
-                                    match event {
-                                        Event::Join(Join {id}) => {
-                                            ServerMessage::Join(JoinMessage {
-                                                seq,
-                                                id,
-                                            })
-                                        },
-                                        Event::Edit(Edit {author, operations}) => {
-                                            ServerMessage::Edit(EditMessage {
-                                                seq,
-                                                author,
-                                                operations,
-                                            })
-                                        },
-                                    }
-                                })
-                            )
-                        })
-                        .then(move |result| -> Result<(), ()> {
-                            if let Err(err) = result {
+                    send_server_messages
+                        .select(read_client_messages)
+                        .then(move |result: Result<_, (ConnectionError, _)>| {
+                            if let Err((err, _)) = result {
                                 eprintln!("WebSocket error: {:?}", err);
                             }
-                            session.leave(id);
-                            Ok(())
+                            session.leave(id)
+                                .map(|_| ())
+                                .map_err(|err| {
+                                    eprintln!("Error leaving document session: {:?}", err);
+                                })
                         })
                 })
         })
     }
 }
 
-impl<T: Store + Sync> Service for TamaWikiService<T> {
+impl<T: Store + Sync> NewService for TamaWiki<T> {
+    type ReqBody = Body;
+    type ResBody = Body;
+    type Error = TamaWikiError;
+    type Service = TamaWiki<T>;
+    type InitError = TamaWikiError;
+    type Future = FutureResult<Self::Service, Self::InitError>;
+    
+    fn new_service(&self) -> Self::Future {
+        future::ok(self.clone())
+    }
+}
+
+impl<T: Store + Sync> Service for TamaWiki<T> {
     type ReqBody = Body;
     type ResBody = Body;
     type Error = TamaWikiError;

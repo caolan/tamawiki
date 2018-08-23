@@ -8,7 +8,7 @@ use std::sync::{Weak, Arc, Mutex};
 use std::path::{Path, PathBuf};
 
 use store::{Store, StoreError, SequenceId};
-use document::{Event, Join, ParticipantId};
+use document::{Event, Join, Leave, ParticipantId};
 
 pub mod connection;
 pub mod message;
@@ -16,19 +16,33 @@ pub mod message;
 
 /// Provides access to DocumentSessions.
 // This struct is a cloneable interface to DocumentSessionData.
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct DocumentSessionManager<T: Store + Sync> {
     data: Arc<Mutex<DocumentSessionManagerData<T>>>,
 }
 
 // Holds all active DocumentSessions
-#[derive(Default)]
 struct DocumentSessionManagerData<T: Store + Sync> {
     sessions: HashMap<PathBuf, WeakDocumentSession<T>>,
     store: T
 }
 
+impl<T: Store + Sync> DocumentSessionManagerData<T> {
+    fn new(store: T) -> Self {
+        Self { sessions: Default::default(), store }
+    }
+}
+
 impl<T: Store + Sync> DocumentSessionManager<T> {
+    /// Creates a new DocumentSessionManager using the provided Store
+    pub fn new(store: T) -> Self {
+        Self {
+            data: Arc::new(Mutex::new(
+                DocumentSessionManagerData::new(store)
+            ))
+        }
+    }
+    
     /// Join an existing or new DocumentSession for the given path. A new
     /// DocumentSession is created automatically when the path has no
     /// active participants.
@@ -107,9 +121,16 @@ impl<T: Store + Sync> DocumentSession<T> {
 
     /// Remove a participant id from the active session and notify the
     /// other clients.
-    pub fn leave(&self, id: ParticipantId) {
-        let data = self.data.lock().unwrap();
+    pub fn leave(&self, id: ParticipantId) -> impl Future<Item=ParticipantId, Error=StoreError> {
+        let mut data = self.data.lock().unwrap();
         println!("Participant {} left {:?}", id, data.path);
+        let event = Event::Leave(Leave { id });
+        let path = data.path.clone();
+        let s2 = self.clone();
+        data.store.push(path, event).map(move |seq| {
+            s2.update_seq(seq);
+            id
+        })
     }
 
     fn update_seq(&self, seq: SequenceId) {

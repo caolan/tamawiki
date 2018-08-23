@@ -2,6 +2,7 @@
 use std::error;
 use std::fmt;
 use std::cmp;
+use std::collections::HashSet;
 
 
 /// Connection identifier, which must be unique between concurrent events
@@ -11,18 +12,30 @@ pub type ParticipantId = usize;
 #[derive(Debug, PartialEq, Default, Clone)]
 pub struct Document {
     /// Current document content
-    pub content: String
+    pub content: String,
+    /// Current active editors
+    pub participants: HashSet<ParticipantId>,
 }
 
 impl Document {
     /// Applies an Edit event to the Document's content. Either all
     /// Operations contained in the Edit are applied, or no
     /// Operations are applied and an EditError is returned.
-    pub fn apply(&mut self, edit: &Edit) -> Result<(), EditError> {
-        self.can_apply(&edit)?;
-        
-        for op in &edit.operations {
-            self.perform_operation(op);
+    pub fn apply(&mut self, event: &Event) -> Result<(), EditError> {
+        self.can_apply(&event)?;
+
+        match event {
+            Event::Edit(edit) => {
+                for op in &edit.operations {
+                    self.perform_operation(op);
+                }
+            },
+            Event::Join(Join {id}) => {
+                self.participants.insert(*id);
+            },
+            Event::Leave(Leave {id}) => {
+                self.participants.remove(&id);
+            },
         }
         Ok(())
     }
@@ -30,32 +43,37 @@ impl Document {
     /// Checks that every operation inside the edit can be cleanly
     /// applied to the document, without making any changes to the
     /// document content.
-    pub fn can_apply(&self, edit: &Edit) -> Result<(), EditError> {
-        let mut length = self.content.chars().count();
-
-        for op in &edit.operations {
-            if !op.is_valid() {
-                return Err(EditError::InvalidOperation);
-            }
-            match *op {
-                Operation::Insert(Insert {pos, ref content}) => {
-                    if pos > length {
-                        return Err(EditError::OutsideDocument);
-                    } else {
-                        length += content.chars().count();
+    pub fn can_apply(&self, event: &Event) -> Result<(), EditError> {
+        match event {
+            Event::Edit(edit) => {
+                let mut length = self.content.chars().count();
+                
+                for op in &edit.operations {
+                    if !op.is_valid() {
+                        return Err(EditError::InvalidOperation);
                     }
-                },
-                Operation::Delete(Delete {start, end}) => {
-                    if start >= length || end > length {
-                        return Err(EditError::OutsideDocument);
-                    } else {
-                        length -= end - start;
+                    match *op {
+                        Operation::Insert(Insert {pos, ref content}) => {
+                            if pos > length {
+                                return Err(EditError::OutsideDocument);
+                            } else {
+                                length += content.chars().count();
+                            }
+                        },
+                        Operation::Delete(Delete {start, end}) => {
+                            if start >= length || end > length {
+                                return Err(EditError::OutsideDocument);
+                            } else {
+                                length -= end - start;
+                            }
+                        },
                     }
-                },
-            }
+                }
+                Ok(())
+            },
+            Event::Join(_) => Ok(()),
+            Event::Leave(_) => Ok(()),
         }
-        
-        Ok(())
     }
     
     // Applies an Operation to the Document's content, updating the
@@ -104,7 +122,8 @@ impl Document {
 impl<'a> From<&'a str> for Document {
     fn from(content: &'a str) -> Self {
         Document {
-            content: String::from(content)
+            content: String::from(content),
+            participants: Default::default(),
         }
     }
 }
@@ -208,14 +227,33 @@ impl error::Error for EditError {
 pub enum Event {
     /// A new participant has joined
     Join (Join),
+    /// A participant has left
+    Leave (Leave),
     /// An update was made to the document
     Edit (Edit),
+}
+
+impl Event {
+    /// Modifies the Event struct to accommodate a concurrent Event
+    /// which has already been applied locally.
+    pub fn transform(&mut self, concurrent: &Event) {
+        if let (&mut Event::Edit(ref mut a), &Event::Edit(ref b)) = (self, concurrent) {
+            a.transform(b)
+        }
+    }
 }
 
 /// A new participant has joined the DocumentSession
 #[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
 pub struct Join {
     /// The id of the newly joined participant
+    pub id: ParticipantId
+}
+
+/// A participant has left the DocumentSession
+#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+pub struct Leave {
+    /// The id of the now departed participant
     pub id: ParticipantId
 }
 
@@ -240,7 +278,7 @@ impl Edit {
     /// Modifies the `operations` inside the Edit struct to
     /// accommodate a concurrent Edit entry whose operations have
     /// already been applied locally.
-    pub fn transform(&mut self, concurrent: &Edit) {
+    fn transform(&mut self, concurrent: &Edit) {
         use self::Operation as Op;
         let mut new_operations = vec![];
 
@@ -322,17 +360,14 @@ mod tests {
     use proptest::prelude::*;
     
     fn operation_test(initial: &'static str, op: Operation, expected: &'static str) {
-        let mut doc = Document {
-            content: String::from(initial),
-        };
-        doc.apply(&Edit {
+        let mut doc = Document::from(initial);
+        
+        doc.apply(&Event::Edit(Edit {
             author: 1,
             operations: vec![op]
-        }).unwrap();
+        })).unwrap();
         
-        assert_eq!(doc, Document {
-            content: String::from(expected),
-        });
+        assert_eq!(doc, Document::from(expected));
     }
     
     #[test]
@@ -472,11 +507,9 @@ mod tests {
 
     #[test]
     fn delete_outside_of_bounds() {
-        let mut doc = Document {
-            content: String::from("foobar"),
-        };
+        let mut doc = Document::from("foobar");
         assert_eq!(
-            doc.apply(&Edit {
+            doc.apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete(Delete {
@@ -484,15 +517,13 @@ mod tests {
                         end: 7
                     })
                 ],
-            }),
+            })),
             Err(EditError::OutsideDocument)
         );
         // document should remain unchanged
-        assert_eq!(doc, Document {
-            content: String::from("foobar")
-        });
+        assert_eq!(doc, Document::from("foobar"));
         assert_eq!(
-            doc.apply(&Edit {
+            doc.apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete(Delete {
@@ -500,23 +531,19 @@ mod tests {
                         end: 10
                     })
                 ],
-            }),
+            })),
             Err(EditError::OutsideDocument)
         );
         // document should remain unchanged
-        assert_eq!(doc, Document {
-            content: String::from("foobar")
-        });
+        assert_eq!(doc, Document::from("foobar"));
     }
 
     
     #[test]
     fn insert_outside_of_bounds() {
-        let mut doc = Document {
-            content: String::from("foobar"),
-        };
+        let mut doc = Document::from("foobar");
         assert_eq!(
-            doc.apply(&Edit {
+            doc.apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -524,21 +551,17 @@ mod tests {
                         content: String::from("test")
                     })
                 ],
-            }),
+            })),
             Err(EditError::OutsideDocument)
         );
         // document should be unchanged
-        assert_eq!(doc, Document {
-            content: String::from("foobar")
-        });
+        assert_eq!(doc, Document::from("foobar"));
     }
 
     #[test]
     fn apply_multiple_operations_in_single_edit() {
-        let mut doc = Document {
-            content: String::from("Hello"),
-        };
-        doc.apply(&Edit {
+        let mut doc = Document::from("Hello");
+        doc.apply(&Event::Edit(Edit {
             author: 1,
             operations: vec![
                 Operation::Insert(Insert {
@@ -554,20 +577,15 @@ mod tests {
                     end: 14
                 })
             ],
-        }).unwrap();
-        
-        assert_eq!(doc, Document {
-            content: String::from("Hello, world!")
-        });
+        })).unwrap();
+        assert_eq!(doc, Document::from("Hello, world!"));
     }
 
     #[test]
     fn apply_edit_with_single_failing_operation() {
-        let mut doc = Document {
-            content: String::from("a"),
-        };
+        let mut doc = Document::from("a");
         assert_eq!(
-            doc.apply(&Edit {
+            doc.apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -583,23 +601,19 @@ mod tests {
                         end: 25
                     })
                 ],
-            }),
+            })),
             Err(EditError::OutsideDocument)
         );
         
         // document should remain unchanged
-        assert_eq!(doc, Document {
-            content: String::from("a")
-        });
+        assert_eq!(doc, Document::from("a"));
     }
 
     
     #[test]
     fn apply_previous_operation_makes_later_operation_valid() {
-        let mut doc = Document {
-            content: String::from("Hello"),
-        };
-        doc.apply(&Edit {
+        let mut doc = Document::from("Hello");
+        doc.apply(&Event::Edit(Edit {
             author: 1,
             operations: vec![
                 Operation::Insert(Insert {
@@ -615,20 +629,15 @@ mod tests {
                     content: String::from("galaxy")
                 }),
             ],
-        }).unwrap();
-        
-        assert_eq!(doc, Document {
-            content: String::from("Hello, galaxy!")
-        });
+        })).unwrap();
+        assert_eq!(doc, Document::from("Hello, galaxy!"));
     }
 
     #[test]
     fn apply_previous_operation_makes_later_operation_invalid() {
-        let mut doc = Document {
-            content: String::from("Hello"),
-        };
+        let mut doc = Document::from("Hello");
         assert_eq!(
-            doc.apply(&Edit {
+            doc.apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete(Delete {
@@ -640,23 +649,18 @@ mod tests {
                         content: String::from(", world!")
                     })
                 ],
-            }),
+            })),
             Err(EditError::OutsideDocument)
         );
-
         // document should remain unchanged
-        assert_eq!(doc, Document {
-            content: String::from("Hello")
-        });
+        assert_eq!(doc, Document::from("Hello"));
     }
 
     #[test]
     fn apply_operations_that_have_no_effect() {
-        let mut doc = Document {
-            content: String::from("Hello"),
-        };
+        let mut doc = Document::from("Hello");
         assert_eq!(
-            doc.apply(&Edit {
+            doc.apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete(Delete {
@@ -664,17 +668,13 @@ mod tests {
                         end: 2
                     })
                 ],
-            }),
+            })),
             Err(EditError::InvalidOperation)
         );
-
         // document should remain unchanged
-        assert_eq!(doc, Document {
-            content: String::from("Hello")
-        });
-
+        assert_eq!(doc, Document::from("Hello"));
         assert_eq!(
-            doc.apply(&Edit {
+            doc.apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -682,23 +682,50 @@ mod tests {
                         content: String::new()
                     })
                 ],
-            }),
+            })),
             Err(EditError::InvalidOperation)
         );
-        
         // document should remain unchanged
+        assert_eq!(doc, Document::from("Hello"));
+    }
+
+    #[test]
+    fn apply_join_leave_events() {
+        let mut doc = Document {
+            content: String::from("foobar"),
+            participants: vec![].into_iter().collect(),
+        };
+        assert_eq!(
+            doc.apply(&Event::Join(Join {id: 1})),
+            Ok(())
+        );
         assert_eq!(doc, Document {
-            content: String::from("Hello")
+            content: String::from("foobar"),
+            participants: vec![1].into_iter().collect(),
+        });
+        assert_eq!(
+            doc.apply(&Event::Join(Join {id: 2})),
+            Ok(())
+        );
+        assert_eq!(doc, Document {
+            content: String::from("foobar"),
+            participants: vec![1, 2].into_iter().collect(),
+        });
+        assert_eq!(
+            doc.apply(&Event::Leave(Leave {id: 1})),
+            Ok(())
+        );
+        assert_eq!(doc, Document {
+            content: String::from("foobar"),
+            participants: vec![2].into_iter().collect(),
         });
     }
 
     #[test]
     fn can_apply() {
-        let doc = Document {
-            content: String::from("Hello"),
-        };
+        let doc = Document::from("Hello");
         assert_eq!(
-            doc.can_apply(&Edit {
+            doc.can_apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert (Insert {
@@ -706,11 +733,11 @@ mod tests {
                         content: String::from("test")
                     })
                 ]
-            }),
+            })),
             Ok(())
         );
         assert_eq!(
-            doc.can_apply(&Edit {
+            doc.can_apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert (Insert {
@@ -718,11 +745,11 @@ mod tests {
                         content: String::from("test")
                     })
                 ]
-            }),
+            })),
             Err(EditError::OutsideDocument)
         );
         assert_eq!(
-            doc.can_apply(&Edit {
+            doc.can_apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert (Insert {
@@ -730,11 +757,11 @@ mod tests {
                         content: String::from("")
                     })
                 ]
-            }),
+            })),
             Err(EditError::InvalidOperation)
         );
         assert_eq!(
-            doc.can_apply(&Edit {
+            doc.can_apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete (Delete {
@@ -742,11 +769,11 @@ mod tests {
                         end: 2,
                     })
                 ]
-            }),
+            })),
             Ok(())
         );
         assert_eq!(
-            doc.can_apply(&Edit {
+            doc.can_apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete (Delete {
@@ -754,11 +781,11 @@ mod tests {
                         end: 102,
                     })
                 ]
-            }),
+            })),
             Err(EditError::OutsideDocument)
         );
         assert_eq!(
-            doc.can_apply(&Edit {
+            doc.can_apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete (Delete {
@@ -766,11 +793,11 @@ mod tests {
                         end: 6,
                     })
                 ]
-            }),
+            })),
             Err(EditError::OutsideDocument)
         );
         assert_eq!(
-            doc.can_apply(&Edit {
+            doc.can_apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete (Delete {
@@ -778,11 +805,11 @@ mod tests {
                         end: 1,
                     })
                 ]
-            }),
+            })),
             Err(EditError::InvalidOperation)
         );
         assert_eq!(
-            doc.can_apply(&Edit {
+            doc.can_apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete (Delete {
@@ -790,7 +817,7 @@ mod tests {
                         end: 1,
                     })
                 ]
-            }),
+            })),
             Err(EditError::InvalidOperation)
         );
     }
@@ -1535,14 +1562,14 @@ mod tests {
     // helper function for proptest! block below
     fn check_order_of_application(initial: &str, op1: &Operation, op2: &Operation) {
         let doc = Document::from(initial);
-        let mut a1 = Edit {
+        let mut a1 = Event::Edit(Edit {
             author: 1,
             operations: vec![op1.clone()]
-        };
-        let b1 = Edit {
+        });
+        let b1 = Event::Edit(Edit {
             author: 2,
             operations: vec![op2.clone()]
-        };
+        });
         let a2 = a1.clone();
         let mut b2 = b1.clone();
         let mut doc1 = doc.clone();

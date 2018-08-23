@@ -4,27 +4,17 @@ extern crate hyper;
 
 use tamawiki::TamaWiki;
 use tamawiki::store::memory::MemoryStore;
-use tamawiki::session::DocumentSessionManager;
 use futures::future::Future;
 use hyper::Server;
-use std::path::PathBuf;
 
 
 fn main() {
     let addr = ([127, 0, 0, 1], 8080).into();
-
     let store = memorystore! {
         "index.html" => "Welcome to TamaWiki.\n"
     };
-    
-    let static_path = PathBuf::from("public");
-    
     let server = Server::bind(&addr)
-        .serve(TamaWiki {
-            document_sessions: DocumentSessionManager::default(),
-            static_path,
-            store
-        })
+        .serve(TamaWiki::new(store, "public"))
         .map_err(|err| eprintln!("Server error: {}", err));
     
     hyper::rt::run(server);

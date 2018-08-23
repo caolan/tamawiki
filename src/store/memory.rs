@@ -14,7 +14,7 @@ type Events = Arc<RwLock<Vec<Event>>>;
 type Documents = HashMap<PathBuf, Events>;
 
 /// Holds document data in shared memory location
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct MemoryStore {
     documents: Arc<RwLock<Documents>>
 }
@@ -106,13 +106,10 @@ impl Store for MemoryStore {
             self.since(path, 0).and_then(|stream| {
                 stream.fold(
                     (0, Document::default()),
-                    |(_seq, mut doc), (seq, event)| {
-                        match event {
-                            Event::Edit(ref edit) => match doc.apply(edit) {
-                                Err(_) => future::err(StoreError::InvalidDocument),
-                                Ok(_) => future::ok((seq, doc)),
-                            },
-                            _ => future::ok((seq, doc)),
+                    |(_seq, mut doc), (seq, ref event)| {
+                        match doc.apply(event) {
+                            Err(_) => future::err(StoreError::InvalidDocument),
+                            Ok(_) => future::ok((seq, doc)),
                         }
                     }
                 )
@@ -133,13 +130,10 @@ impl Store for MemoryStore {
         let doc = self.since(path, 0).and_then(move |stream| {
             stream.take(seq).fold(
                 Document::default(),
-                |mut doc, (_seq, event)| {
-                    match event {
-                        Event::Edit(ref edit) => match doc.apply(edit) {
-                            Err(_) => future::err(StoreError::InvalidDocument),
-                            Ok(_) => future::ok(doc),
-                        },
-                        _ => future::ok(doc)
+                |mut doc, (_seq, ref event)| {
+                    match doc.apply(event) {
+                        Err(_) => future::err(StoreError::InvalidDocument),
+                        Ok(_) => future::ok(doc),
                     }
                 }
             )
@@ -234,7 +228,8 @@ impl Stream for MemoryStoreStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use document::{Operation, Insert};
+    use document::{Operation, Insert, Join};
+    use std::collections::HashSet;
     
     #[test]
     fn memory_store_push() {
@@ -503,8 +498,15 @@ mod tests {
     #[test]
     fn memory_store_content() {
         let mut store = MemoryStore::default();
+        // later we'll test that the cloned store has the same data
+        let store_clone = store.clone();
 
         let push1 = store.push(
+            PathBuf::from("/asdf"),
+            Event::Join(Join {id: 1})
+        );
+
+        let push2 = store.push(
             PathBuf::from("/asdf"),
             Event::Edit(Edit {
                 author: 1,
@@ -517,7 +519,7 @@ mod tests {
             })
         );
 
-        let push2 = store.push(
+        let push3 = store.push(
             PathBuf::from("/asdf"),
             Event::Edit(Edit {
                 author: 1,
@@ -533,8 +535,11 @@ mod tests {
         let content1 = store.content(
             &PathBuf::from("/asdf").as_path()
         ).map(|(seq, doc)| {
-            assert_eq!(seq, 2);
-            assert_eq!(doc, Document::from("Hello, world"));
+            assert_eq!(seq, 3);
+            assert_eq!(doc, Document {
+                content: String::from("Hello, world"),
+                participants: vec![1].into_iter().collect(),
+            });
         });
 
         let content2 = store.content(
@@ -548,9 +553,21 @@ mod tests {
             }
         });
 
+        // check cloned store has same data
+        let content3 = store_clone.content(
+            &PathBuf::from("/asdf").as_path()
+        ).map(|(seq, doc)| {
+            assert_eq!(seq, 3);
+            assert_eq!(doc, Document {
+                content: String::from("Hello, world"),
+                participants: vec![1].into_iter().collect(),
+            });
+        });
+
         push1
             .and_then(|_| push2)
-            .and_then(|_| content1.join(content2))
+            .and_then(|_| push3)
+            .and_then(|_| content1.join3(content2, content3))
             .map_err(|err| {
                 panic!("{}", err);
             })
@@ -563,6 +580,11 @@ mod tests {
 
         let push1 = store.push(
             PathBuf::from("/asdf"),
+            Event::Join(Join {id: 1})
+        );
+
+        let push2 = store.push(
+            PathBuf::from("/asdf"),
             Event::Edit(Edit {
                 author: 1,
                 operations: vec![
@@ -574,7 +596,7 @@ mod tests {
             })
         );
 
-        let push2 = store.push(
+        let push3 = store.push(
             PathBuf::from("/asdf"),
             Event::Edit(Edit {
                 author: 1,
@@ -591,26 +613,45 @@ mod tests {
             &PathBuf::from("/asdf").as_path(),
             0
         ).map(|doc| {
-            assert_eq!(doc, Document::from(""));
+            assert_eq!(doc, Document {
+                content: String::from(""),
+                participants: HashSet::new(),
+            });
         });
-
+        
         let content1 = store.content_at(
             &PathBuf::from("/asdf").as_path(),
             1
         ).map(|doc| {
-            assert_eq!(doc, Document::from("Hello"));
+            assert_eq!(doc, Document {
+                content: String::from(""),
+                participants: vec![1].into_iter().collect(),
+            });
         });
 
         let content2 = store.content_at(
             &PathBuf::from("/asdf").as_path(),
             2
         ).map(|doc| {
-            assert_eq!(doc, Document::from("Hello, world"));
+            assert_eq!(doc, Document {
+                content: String::from("Hello"),
+                participants: vec![1].into_iter().collect(),
+            });
         });
-        
+
         let content3 = store.content_at(
             &PathBuf::from("/asdf").as_path(),
             3
+        ).map(|doc| {
+            assert_eq!(doc, Document {
+                content: String::from("Hello, world"),
+                participants: vec![1].into_iter().collect(),
+            });
+        });
+        
+        let content4 = store.content_at(
+            &PathBuf::from("/asdf").as_path(),
+            4
         ).map(|_| {
             // requesting a sequence number higher than the number of
             // events return error
@@ -622,7 +663,7 @@ mod tests {
             }
         });
 
-        let content4 = store.content_at(
+        let content5 = store.content_at(
             &PathBuf::from("/missing").as_path(),
             0
         ).map(|_| {
@@ -637,12 +678,14 @@ mod tests {
 
         push1
             .and_then(|_| push2)
+            .and_then(|_| push3)
             .and_then(|_| {
                 content0
                     .join(content1)
                     .join(content2)
                     .join(content3)
                     .join(content4)
+                    .join(content5)
             })
             .map_err(|err| {
                 panic!("{}", err);

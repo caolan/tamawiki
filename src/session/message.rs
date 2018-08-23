@@ -14,6 +14,8 @@ pub enum ServerMessage {
     Edit (EditMessage),
     /// A new participant joined the DocumentSession
     Join (JoinMessage),
+    /// A participant has left the DocumentSession
+    Leave (LeaveMessage),
 }
 
 /// Client successfully connected
@@ -40,6 +42,15 @@ pub struct JoinMessage {
     /// The SequenceId of the join Event in the Store
     pub seq: SequenceId,
     /// The id of the newly joined participant
+    pub id: ParticipantId,
+}
+
+/// A participant has left the DocumentSession
+#[derive(Serialize, Debug)]
+pub struct LeaveMessage {
+    /// The SequenceId of the leave Event in the Store
+    pub seq: SequenceId,
+    /// The id of the now departed participant
     pub id: ParticipantId,
 }
 
