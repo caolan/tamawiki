@@ -7,11 +7,11 @@ use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 
 use super::{Store, StoreError, SequenceId};
-use document::{Document, Update, Operation, Insert};
+use document::{Document, Event, Edit, Operation, Insert};
 
 
-type Updates = Arc<RwLock<Vec<Update>>>;
-type Documents = HashMap<PathBuf, Updates>;
+type Events = Arc<RwLock<Vec<Event>>>;
+type Documents = HashMap<PathBuf, Events>;
 
 /// Holds document data in shared memory location
 #[derive(Default, Clone)]
@@ -21,8 +21,9 @@ pub struct MemoryStore {
 
 impl Store for MemoryStore {
     type Stream = MemoryStoreStream;
+    type SinceFuture = Box<Future<Item=Self::Stream, Error=StoreError> + Send>;
     
-    fn push(&mut self, path: PathBuf, update: Update) ->
+    fn push(&mut self, path: PathBuf, event: Event) ->
         Box<Future<Item=SequenceId, Error=StoreError> + Send>
     {
         let mut documents = match self.documents.write() {
@@ -31,18 +32,18 @@ impl Store for MemoryStore {
                 future::err(StoreError::ConnectionError)),
         };
 
-        let updates = documents.entry(path)
+        let events = documents.entry(path)
             .or_insert_with(|| Arc::new(RwLock::new(Vec::new())));
         
-        let mut updates = match updates.write() {
-            Ok(updates) => updates,
+        let mut events = match events.write() {
+            Ok(events) => events,
             Err(_) => return Box::new(
                 future::err(StoreError::ConnectionError)),
         };
         
-        updates.push(update);
+        events.push(event);
         Box::new(
-            future::ok(updates.len() as u64)
+            future::ok(events.len() as u64)
         )
     }
 
@@ -55,9 +56,9 @@ impl Store for MemoryStore {
                 future::err(StoreError::ConnectionError)),
         };
         
-        let updates = match documents.get(path) {
-            Some(updates) => match updates.read() {
-                Ok(updates) => updates,
+        let events = match documents.get(path) {
+            Some(events) => match events.read() {
+                Ok(events) => events,
                 Err(_) => return Box::new(
                     future::err(StoreError::ConnectionError)),
             },
@@ -66,28 +67,26 @@ impl Store for MemoryStore {
         };
         
         Box::new(
-            future::ok(updates.len() as u64)
+            future::ok(events.len() as u64)
         )
     }
 
-    fn since(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Self::Stream, Error=StoreError> + Send>
-    {
+    fn since(&self, path: &Path, seq: SequenceId) -> Self::SinceFuture {
         let documents = match self.documents.read() {
             Ok(documents) => documents,
             Err(_) => return Box::new(
                 future::err(StoreError::ConnectionError)),
         };
         
-        let updates = match documents.get(path) {
-            Some(updates) => updates.clone(),
+        let events = match documents.get(path) {
+            Some(events) => events.clone(),
             None => return Box::new(
                 future::err(StoreError::NotFound)),
         };
 
         // check sequence id is valid
-        match updates.read() {
-            Ok(updates) => if seq > updates.len() as u64 {
+        match events.read() {
+            Ok(events) => if seq > events.len() as u64 {
                 return Box::new(
                     future::err(StoreError::InvalidSequenceId))
             },
@@ -96,7 +95,7 @@ impl Store for MemoryStore {
         }
         
         Box::new(
-            future::ok(Self::Stream { updates, seq })
+            future::ok(Self::Stream { events, seq })
         )
     }
 
@@ -107,10 +106,13 @@ impl Store for MemoryStore {
             self.since(path, 0).and_then(|stream| {
                 stream.fold(
                     (0, Document::default()),
-                    |(_seq, mut doc), (seq, update)| {
-                        match doc.apply(&update) {
-                            Err(_) => future::err(StoreError::InvalidDocument),
-                            Ok(_) => future::ok((seq, doc)),
+                    |(_seq, mut doc), (seq, event)| {
+                        match event {
+                            Event::Edit(ref edit) => match doc.apply(edit) {
+                                Err(_) => future::err(StoreError::InvalidDocument),
+                                Ok(_) => future::ok((seq, doc)),
+                            },
+                            _ => future::ok((seq, doc)),
                         }
                     }
                 )
@@ -131,10 +133,13 @@ impl Store for MemoryStore {
         let doc = self.since(path, 0).and_then(move |stream| {
             stream.take(seq).fold(
                 Document::default(),
-                |mut doc, (_seq, update)| {
-                    match doc.apply(&update) {
-                        Err(_) => future::err(StoreError::InvalidDocument),
-                        Ok(_) => future::ok(doc),
+                |mut doc, (_seq, event)| {
+                    match event {
+                        Event::Edit(ref edit) => match doc.apply(edit) {
+                            Err(_) => future::err(StoreError::InvalidDocument),
+                            Ok(_) => future::ok(doc),
+                        },
+                        _ => future::ok(doc)
                     }
                 }
             )
@@ -151,7 +156,7 @@ impl From<HashMap<String, String>> for MemoryStore {
         for (k, v) in data {
             documents.insert(
                 PathBuf::from(k),
-                Arc::new(RwLock::new(vec![Update {
+                Arc::new(RwLock::new(vec![Event::Edit(Edit {
                     author: 1,
                     operations: vec![
                         Operation::Insert(Insert {
@@ -159,7 +164,7 @@ impl From<HashMap<String, String>> for MemoryStore {
                             content: v
                         })
                     ]
-                }]))
+                })]))
             );
         }
         MemoryStore {
@@ -198,23 +203,23 @@ macro_rules! memorystore {
     };
 }
 
-/// An asynchronous stream of Update objects cloned from memory
+/// An asynchronous stream of Event objects cloned from memory
 pub struct MemoryStoreStream {
-    updates: Updates,
+    events: Events,
     seq: SequenceId,
 }
 
 impl Stream for MemoryStoreStream {
-    type Item = (SequenceId, Update);
+    type Item = (SequenceId, Event);
     type Error = StoreError;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        match self.updates.read() {
-            Ok(updates) => {
+        match self.events.read() {
+            Ok(events) => {
                 self.seq += 1;
-                if self.seq <= updates.len() as u64 {
+                if self.seq <= events.len() as u64 {
                     Ok(Async::Ready(Some(
-                        (self.seq, updates[(self.seq - 1) as usize].clone())
+                        (self.seq, events[(self.seq - 1) as usize].clone())
                     )))
                 } else {
                     Ok(Async::Ready(None))
@@ -237,7 +242,7 @@ mod tests {
 
         let push1 = store.push(
             PathBuf::from("/foo/bar"),
-            Update {
+            Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -245,12 +250,12 @@ mod tests {
                         content: String::from("Hello")
                     })
                 ]
-            }
+            })
         );
 
         let push2 = store.push(
             PathBuf::from("/asdf"),
-            Update {
+            Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -258,12 +263,12 @@ mod tests {
                         content: String::from("Hello")
                     })
                 ]
-            }
+            })
         );
 
         let push3 = store.push(
             PathBuf::from("/asdf"),
-            Update {
+            Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -271,7 +276,7 @@ mod tests {
                         content: String::from(", world")
                     })
                 ]
-            }
+            })
         );
 
         push1
@@ -288,7 +293,7 @@ mod tests {
     fn memory_store_since() {
         let mut store = MemoryStore::default();
 
-        let a = Update {
+        let a = Event::Edit(Edit {
             author: 1,
             operations: vec![
                 Operation::Insert(Insert {
@@ -296,9 +301,9 @@ mod tests {
                     content: String::from("Hello")
                 })
             ]
-        };
+        });
 
-        let b = Update {
+        let b = Event::Edit(Edit {
             author: 1,
             operations: vec![
                 Operation::Insert(Insert {
@@ -306,9 +311,9 @@ mod tests {
                     content: String::from(", world")
                 })
             ]
-        };
+        });
 
-        let c = Update {
+        let c = Event::Edit(Edit {
             author: 1,
             operations: vec![
                 Operation::Insert(Insert {
@@ -316,7 +321,7 @@ mod tests {
                     content: String::from("!")
                 })
             ]
-        };
+        });
         
         let push1 = store.push(
             PathBuf::from("/foo/bar"),
@@ -343,8 +348,8 @@ mod tests {
             stream.collect().map_err(|err| {
                 panic!("{}", err);
             })
-        }).map(|updates| {
-            assert_eq!(updates, vec![(1, a0), (2, b0), (3, c0)]);
+        }).map(|events| {
+            assert_eq!(events, vec![(1, a0), (2, b0), (3, c0)]);
         });
 
         let b1 = b.clone();
@@ -356,8 +361,8 @@ mod tests {
             stream.collect().map_err(|err| {
                 panic!("{}", err);
             })
-        }).map(|updates| {
-            assert_eq!(updates, vec![(2, b1), (3, c1)]);
+        }).map(|events| {
+            assert_eq!(events, vec![(2, b1), (3, c1)]);
         });
             
         let c2 = c.clone();
@@ -368,8 +373,8 @@ mod tests {
             stream.collect().map_err(|err| {
                 panic!("{}", err);
             })
-        }).map(|updates| {
-            assert_eq!(updates, vec![(3, c2)]);
+        }).map(|events| {
+            assert_eq!(events, vec![(3, c2)]);
         });
 
         let since3 = store.since(
@@ -379,17 +384,17 @@ mod tests {
             stream.collect().map_err(|err| {
                 panic!("{}", err);
             })
-        }).map(|updates| {
+        }).map(|events| {
             // requesting the last sequence number is valid, but would
             // return an empty result
-            assert_eq!(updates, vec![]);
+            assert_eq!(events, vec![]);
         });
 
         let since4 = store.since(
             &PathBuf::from("/foo/bar").as_path(),
             4
         ).map(|_| {
-            // requesting updates since a sequence id not in the store
+            // requesting events since a sequence id not in the store
             // is invalid, however
             assert!(false)
         }).or_else(|err| {
@@ -421,7 +426,7 @@ mod tests {
 
         let push1 = store.push(
             PathBuf::from("/foo/bar"),
-            Update {
+            Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -429,12 +434,12 @@ mod tests {
                         content: String::from("Hello")
                     })
                 ]
-            }
+            })
         );
 
         let push2 = store.push(
             PathBuf::from("/asdf"),
-            Update {
+            Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -442,12 +447,12 @@ mod tests {
                         content: String::from("Hello")
                     })
                 ]
-            }
+            })
         );
 
         let push3 = store.push(
             PathBuf::from("/asdf"),
-            Update {
+            Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -455,7 +460,7 @@ mod tests {
                         content: String::from(", world")
                     })
                 ]
-            }
+            })
         );
 
         let seq1 = store.seq(
@@ -501,7 +506,7 @@ mod tests {
 
         let push1 = store.push(
             PathBuf::from("/asdf"),
-            Update {
+            Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -509,12 +514,12 @@ mod tests {
                         content: String::from("Hello")
                     })
                 ]
-            }
+            })
         );
 
         let push2 = store.push(
             PathBuf::from("/asdf"),
-            Update {
+            Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -522,7 +527,7 @@ mod tests {
                         content: String::from(", world")
                     })
                 ]
-            }
+            })
         );
 
         let content1 = store.content(
@@ -558,7 +563,7 @@ mod tests {
 
         let push1 = store.push(
             PathBuf::from("/asdf"),
-            Update {
+            Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -566,12 +571,12 @@ mod tests {
                         content: String::from("Hello")
                     })
                 ]
-            }
+            })
         );
 
         let push2 = store.push(
             PathBuf::from("/asdf"),
-            Update {
+            Event::Edit(Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -579,7 +584,7 @@ mod tests {
                         content: String::from(", world")
                     })
                 ]
-            }
+            })
         );
 
         let content0 = store.content_at(
@@ -608,7 +613,7 @@ mod tests {
             3
         ).map(|_| {
             // requesting a sequence number higher than the number of
-            // updates return error
+            // events return error
             assert!(false);
         }).or_else(|err| {
             match err {

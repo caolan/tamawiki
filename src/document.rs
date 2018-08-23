@@ -4,7 +4,7 @@ use std::fmt;
 use std::cmp;
 
 
-/// Connection identifier, which must be unique between concurrent updates
+/// Connection identifier, which must be unique between concurrent events
 pub type ParticipantId = usize;
 
 /// Represents some String content at a point in time
@@ -15,39 +15,39 @@ pub struct Document {
 }
 
 impl Document {
-    /// Applies an Update to the Document's content. Either all
-    /// Operations contained in the Update are applied, or no
-    /// Operations are applied and an UpdateError is returned.
-    pub fn apply(&mut self, update: &Update) -> Result<(), UpdateError> {
-        self.can_apply(&update)?;
+    /// Applies an Edit event to the Document's content. Either all
+    /// Operations contained in the Edit are applied, or no
+    /// Operations are applied and an EditError is returned.
+    pub fn apply(&mut self, edit: &Edit) -> Result<(), EditError> {
+        self.can_apply(&edit)?;
         
-        for op in &update.operations {
+        for op in &edit.operations {
             self.perform_operation(op);
         }
         Ok(())
     }
 
-    /// Checks that every operation inside the update can be cleanly
+    /// Checks that every operation inside the edit can be cleanly
     /// applied to the document, without making any changes to the
     /// document content.
-    pub fn can_apply(&self, update: &Update) -> Result<(), UpdateError> {
+    pub fn can_apply(&self, edit: &Edit) -> Result<(), EditError> {
         let mut length = self.content.chars().count();
 
-        for op in &update.operations {
+        for op in &edit.operations {
             if !op.is_valid() {
-                return Err(UpdateError::InvalidOperation);
+                return Err(EditError::InvalidOperation);
             }
             match *op {
                 Operation::Insert(Insert {pos, ref content}) => {
                     if pos > length {
-                        return Err(UpdateError::OutsideDocument);
+                        return Err(EditError::OutsideDocument);
                     } else {
                         length += content.chars().count();
                     }
                 },
                 Operation::Delete(Delete {start, end}) => {
                     if start >= length || end > length {
-                        return Err(UpdateError::OutsideDocument);
+                        return Err(EditError::OutsideDocument);
                     } else {
                         length -= end - start;
                     }
@@ -159,7 +159,7 @@ impl Operation {
     /// invalid.
     ///
     /// Note that an Operation for which is_valid() returns true might
-    /// still raise an UpdateError when applied to a specific Document
+    /// still raise an EditError when applied to a specific Document
     /// (e.g. it references an index outside the target document's
     /// content size).
     
@@ -177,7 +177,7 @@ impl Operation {
 /// Error conditions which may occur when applying an Operation to a
 /// Document.
 #[derive(Debug, PartialEq)]
-pub enum UpdateError {
+pub enum EditError {
     /// The Operation's position or range falls outside the current
     /// Document.
     OutsideDocument,
@@ -186,45 +186,61 @@ pub enum UpdateError {
     InvalidOperation,
 }
 
-impl fmt::Display for UpdateError {
+impl fmt::Display for EditError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            UpdateError::OutsideDocument =>
+            EditError::OutsideDocument =>
                 write!(f, "The operation's area of effect falls outside the document"),
-            UpdateError::InvalidOperation =>
+            EditError::InvalidOperation =>
                 write!(f, "The operation is invalid"),
         }
     }
 }
 
-impl error::Error for UpdateError {
+impl error::Error for EditError {
     fn cause(&self) -> Option<&error::Error> {
         None
     }
 }
 
-/// An Update combines multiple operations into a single Document
+/// Describes an event corresponding to a single Document.
+#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+pub enum Event {
+    /// A new participant has joined
+    Join (Join),
+    /// An update was made to the document
+    Edit (Edit),
+}
+
+/// A new participant has joined the DocumentSession
+#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+pub struct Join {
+    /// The id of the newly joined participant
+    pub id: ParticipantId
+}
+
+/// An Edit combines multiple operations into a single Document
 /// change (i.e. all the operations are applied together, or not at
 /// all).
 #[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
-pub struct Update {
-    /// The ParticipantId for the original author of this update
+pub struct Edit {
+    /// The ParticipantId for the original author of this edit
     pub author: ParticipantId,
-    /// The Operations which describe this Update
+    /// The Operations which describe this Edit
     pub operations: Vec<Operation>,
 }
 
-impl Update {
-    // Does the Update from ParticipantId 'a' take precedence over the
-    // Update from ParticipantId 'b' if operations conflict?
+impl Edit {
+    // Does the Edit from ParticipantId 'a' take precedence over the
+    // Edit from ParticipantId 'b' if operations conflict?
     fn has_priority(a: ParticipantId, b: ParticipantId) -> bool {
         a > b
     }
     
-    /// Modifies the `operations` inside the Update struct to
-    /// accommodate a concurrent Update entry whose operations have
+    /// Modifies the `operations` inside the Edit struct to
+    /// accommodate a concurrent Edit entry whose operations have
     /// already been applied locally.
-    pub fn transform(&mut self, concurrent: &Update) {
+    pub fn transform(&mut self, concurrent: &Edit) {
         use self::Operation as Op;
         let mut new_operations = vec![];
 
@@ -234,7 +250,7 @@ impl Update {
                     (Op::Insert(ref mut this), &Op::Insert(ref other)) => {
                         if other.pos < this.pos ||
                             (other.pos == this.pos &&
-                             Update::has_priority(concurrent.author, self.author)) {
+                             Edit::has_priority(concurrent.author, self.author)) {
                                 this.pos += other.content.chars().count();
                             }
                     },
@@ -309,7 +325,7 @@ mod tests {
         let mut doc = Document {
             content: String::from(initial),
         };
-        doc.apply(&Update {
+        doc.apply(&Edit {
             author: 1,
             operations: vec![op]
         }).unwrap();
@@ -460,7 +476,7 @@ mod tests {
             content: String::from("foobar"),
         };
         assert_eq!(
-            doc.apply(&Update {
+            doc.apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete(Delete {
@@ -469,14 +485,14 @@ mod tests {
                     })
                 ],
             }),
-            Err(UpdateError::OutsideDocument)
+            Err(EditError::OutsideDocument)
         );
         // document should remain unchanged
         assert_eq!(doc, Document {
             content: String::from("foobar")
         });
         assert_eq!(
-            doc.apply(&Update {
+            doc.apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete(Delete {
@@ -485,7 +501,7 @@ mod tests {
                     })
                 ],
             }),
-            Err(UpdateError::OutsideDocument)
+            Err(EditError::OutsideDocument)
         );
         // document should remain unchanged
         assert_eq!(doc, Document {
@@ -500,7 +516,7 @@ mod tests {
             content: String::from("foobar"),
         };
         assert_eq!(
-            doc.apply(&Update {
+            doc.apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -509,7 +525,7 @@ mod tests {
                     })
                 ],
             }),
-            Err(UpdateError::OutsideDocument)
+            Err(EditError::OutsideDocument)
         );
         // document should be unchanged
         assert_eq!(doc, Document {
@@ -518,11 +534,11 @@ mod tests {
     }
 
     #[test]
-    fn apply_multiple_operations_in_single_update() {
+    fn apply_multiple_operations_in_single_edit() {
         let mut doc = Document {
             content: String::from("Hello"),
         };
-        doc.apply(&Update {
+        doc.apply(&Edit {
             author: 1,
             operations: vec![
                 Operation::Insert(Insert {
@@ -546,12 +562,12 @@ mod tests {
     }
 
     #[test]
-    fn apply_update_with_single_failing_operation() {
+    fn apply_edit_with_single_failing_operation() {
         let mut doc = Document {
             content: String::from("a"),
         };
         assert_eq!(
-            doc.apply(&Update {
+            doc.apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -568,7 +584,7 @@ mod tests {
                     })
                 ],
             }),
-            Err(UpdateError::OutsideDocument)
+            Err(EditError::OutsideDocument)
         );
         
         // document should remain unchanged
@@ -583,7 +599,7 @@ mod tests {
         let mut doc = Document {
             content: String::from("Hello"),
         };
-        doc.apply(&Update {
+        doc.apply(&Edit {
             author: 1,
             operations: vec![
                 Operation::Insert(Insert {
@@ -612,7 +628,7 @@ mod tests {
             content: String::from("Hello"),
         };
         assert_eq!(
-            doc.apply(&Update {
+            doc.apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete(Delete {
@@ -625,7 +641,7 @@ mod tests {
                     })
                 ],
             }),
-            Err(UpdateError::OutsideDocument)
+            Err(EditError::OutsideDocument)
         );
 
         // document should remain unchanged
@@ -640,7 +656,7 @@ mod tests {
             content: String::from("Hello"),
         };
         assert_eq!(
-            doc.apply(&Update {
+            doc.apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete(Delete {
@@ -649,7 +665,7 @@ mod tests {
                     })
                 ],
             }),
-            Err(UpdateError::InvalidOperation)
+            Err(EditError::InvalidOperation)
         );
 
         // document should remain unchanged
@@ -658,7 +674,7 @@ mod tests {
         });
 
         assert_eq!(
-            doc.apply(&Update {
+            doc.apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert(Insert {
@@ -667,7 +683,7 @@ mod tests {
                     })
                 ],
             }),
-            Err(UpdateError::InvalidOperation)
+            Err(EditError::InvalidOperation)
         );
         
         // document should remain unchanged
@@ -682,7 +698,7 @@ mod tests {
             content: String::from("Hello"),
         };
         assert_eq!(
-            doc.can_apply(&Update {
+            doc.can_apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert (Insert {
@@ -694,7 +710,7 @@ mod tests {
             Ok(())
         );
         assert_eq!(
-            doc.can_apply(&Update {
+            doc.can_apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert (Insert {
@@ -703,10 +719,10 @@ mod tests {
                     })
                 ]
             }),
-            Err(UpdateError::OutsideDocument)
+            Err(EditError::OutsideDocument)
         );
         assert_eq!(
-            doc.can_apply(&Update {
+            doc.can_apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Insert (Insert {
@@ -715,10 +731,10 @@ mod tests {
                     })
                 ]
             }),
-            Err(UpdateError::InvalidOperation)
+            Err(EditError::InvalidOperation)
         );
         assert_eq!(
-            doc.can_apply(&Update {
+            doc.can_apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete (Delete {
@@ -730,7 +746,7 @@ mod tests {
             Ok(())
         );
         assert_eq!(
-            doc.can_apply(&Update {
+            doc.can_apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete (Delete {
@@ -739,10 +755,10 @@ mod tests {
                     })
                 ]
             }),
-            Err(UpdateError::OutsideDocument)
+            Err(EditError::OutsideDocument)
         );
         assert_eq!(
-            doc.can_apply(&Update {
+            doc.can_apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete (Delete {
@@ -751,10 +767,10 @@ mod tests {
                     })
                 ]
             }),
-            Err(UpdateError::OutsideDocument)
+            Err(EditError::OutsideDocument)
         );
         assert_eq!(
-            doc.can_apply(&Update {
+            doc.can_apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete (Delete {
@@ -763,10 +779,10 @@ mod tests {
                     })
                 ]
             }),
-            Err(UpdateError::InvalidOperation)
+            Err(EditError::InvalidOperation)
         );
         assert_eq!(
-            doc.can_apply(&Update {
+            doc.can_apply(&Edit {
                 author: 1,
                 operations: vec![
                     Operation::Delete (Delete {
@@ -775,7 +791,7 @@ mod tests {
                     })
                 ]
             }),
-            Err(UpdateError::InvalidOperation)
+            Err(EditError::InvalidOperation)
         );
     }
 
@@ -799,14 +815,14 @@ mod tests {
     
     #[test]
     fn transform_insert_before_insert() {
-        let mut h = Update {
+        let mut h = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
                 content: String::from("Test")
             })]
         };
-        h.transform(&Update {
+        h.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 10,
@@ -821,14 +837,14 @@ mod tests {
     
     #[test]
     fn transform_insert_after_insert() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 10,
                 content: String::from("Test")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 2,
@@ -843,14 +859,14 @@ mod tests {
     
     #[test]
     fn transform_inserts_at_same_point_checks_priority() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
                 content: String::from("Test")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
@@ -862,14 +878,14 @@ mod tests {
             content: String::from("Test")
         })]);
         
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
                 content: String::from("Test")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
@@ -884,14 +900,14 @@ mod tests {
 
     #[test]
     fn transform_insert_uses_char_index_not_byte_index() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
                 content: String::from("Test")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
@@ -908,14 +924,14 @@ mod tests {
 
     #[test]
     fn transform_delete_delete_non_overlapping_after() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 5
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 10,
@@ -930,14 +946,14 @@ mod tests {
      
     #[test]
     fn transform_delete_delete_non_overlapping_before() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 10
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
@@ -952,14 +968,14 @@ mod tests {
 
     #[test]
     fn transform_delete_delete_adjacent_before() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 2,
                 end: 4
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
             start: 0,
@@ -974,14 +990,14 @@ mod tests {
     
     #[test]
     fn transform_delete_delete_adjacent_after() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 3
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
             start: 3,
@@ -996,14 +1012,14 @@ mod tests {
     
     #[test]
     fn transform_delete_delete_overlapping_start() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 15
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
@@ -1018,14 +1034,14 @@ mod tests {
 
     #[test]
     fn transform_delete_delete_overlapping_end() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 4
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 2,
@@ -1040,14 +1056,14 @@ mod tests {
  
     #[test]
     fn transform_delete_delete_subset() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 10
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 1,
@@ -1059,14 +1075,14 @@ mod tests {
 
     #[test]
     fn transform_delete_delete_superset() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 17
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 5,
@@ -1081,14 +1097,14 @@ mod tests {
 
     #[test]
     fn transform_insert_delete_non_overlapping_after() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
                 content: String::from("12345")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 10,
@@ -1103,14 +1119,14 @@ mod tests {
     
     #[test]
     fn transform_insert_delete_non_overlapping_before() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
                 content: String::from("foo")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
@@ -1125,14 +1141,14 @@ mod tests {
 
     #[test]
     fn transform_insert_delete_adjacent_before() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 2,
                 content: String::from("ab")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
@@ -1147,14 +1163,14 @@ mod tests {
     
     #[test]
     fn transform_insert_delete_adjacent_after() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
                 content: String::from("foo")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 3,
@@ -1169,14 +1185,14 @@ mod tests {
     
     #[test]
     fn transform_insert_delete_overlapping_start() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
                 content: String::from("1234567890")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
@@ -1191,14 +1207,14 @@ mod tests {
 
     #[test]
     fn transform_insert_delete_overlapping_end() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
                 content: String::from("abcd")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 2,
@@ -1213,14 +1229,14 @@ mod tests {
 
     #[test]
     fn transform_insert_delete_subset() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
                 content: String::from("12345")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 1,
@@ -1235,14 +1251,14 @@ mod tests {
 
     #[test]
     fn transform_insert_delete_superset() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
                 content: String::from("12345678901234567")
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Delete(Delete {
                 start: 5,
@@ -1257,14 +1273,14 @@ mod tests {
 
     #[test]
     fn transform_delete_insert_non_overlapping_after() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 5
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 10,
@@ -1279,14 +1295,14 @@ mod tests {
     
     #[test]
     fn transform_delete_insert_non_overlapping_before() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 8
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
@@ -1301,14 +1317,14 @@ mod tests {
 
     #[test]
     fn transform_delete_insert_adjacent_before() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 2,
                 end: 4
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
@@ -1323,14 +1339,14 @@ mod tests {
     
     #[test]
     fn transform_delete_insert_adjacent_after() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 3
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 3,
@@ -1345,14 +1361,14 @@ mod tests {
     
     #[test]
     fn transform_delete_insert_same_start_position() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 2,
                 end: 4
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 2,
@@ -1367,14 +1383,14 @@ mod tests {
     
     #[test]
     fn transform_delete_insert_overlapping_start() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 15
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
@@ -1389,14 +1405,14 @@ mod tests {
 
     #[test]
     fn transform_delete_insert_overlapping_end() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 4
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 2,
@@ -1419,14 +1435,14 @@ mod tests {
 
     #[test]
     fn transform_delete_insert_subset() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 10
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 1,
@@ -1441,14 +1457,14 @@ mod tests {
 
     #[test]
     fn transform_delete_insert_superset() {
-        let mut msg = Update {
+        let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 17
             })]
         };
-        msg.transform(&Update {
+        msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
@@ -1519,11 +1535,11 @@ mod tests {
     // helper function for proptest! block below
     fn check_order_of_application(initial: &str, op1: &Operation, op2: &Operation) {
         let doc = Document::from(initial);
-        let mut a1 = Update {
+        let mut a1 = Edit {
             author: 1,
             operations: vec![op1.clone()]
         };
-        let b1 = Update {
+        let b1 = Edit {
             author: 2,
             operations: vec![op2.clone()]
         };

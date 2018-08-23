@@ -1,6 +1,7 @@
 //! handles message serialization / deserialization for an underlying
 //! WebSocket
 
+use store::StoreError;
 use session::message::{ServerMessage, ClientMessage};
 use websocket::{self, WebSocket};
 use futures::stream::Stream;
@@ -23,15 +24,28 @@ pub enum ConnectionError {
     },
     /// Errors from underlying protocol
     Communication {
-        /// The original protocol error
-        error: Box<Error>
+        /// The original error
+        error: Box<Error + Send>
     },
+    /// Errors accessing store data
+    Store {
+        /// The original error
+        error: StoreError
+    }
 }
 
 impl From<tungstenite::Error> for ConnectionError {
     fn from(err: tungstenite::Error) -> Self {
         ConnectionError::Communication {
             error: Box::new(err)
+        }
+    }
+}
+
+impl From<StoreError> for ConnectionError {
+    fn from(err: StoreError) -> Self {
+        ConnectionError::Store {
+            error: err
         }
     }
 }

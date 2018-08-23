@@ -9,19 +9,18 @@
 //!
 //! use tamawiki::service::TamaWiki;
 //! use tamawiki::store::memory::MemoryStore;
-//! use tamawiki::session::EditSessionManager;
+//! use tamawiki::session::DocumentSessionManager;
 //! use futures::future::Future;
 //! use hyper::Server;
 //! use std::path::PathBuf;
-//! use std::sync::{Arc, Mutex};
 //!
 //! let addr = ([127, 0, 0, 1], 8080).into();
 //! let store = MemoryStore::default();
 //! let static_path = PathBuf::from("static");
-//! let edit_sessions = Arc::new(Mutex::new(EditSessionManager::default()));
+//! let document_sessions = DocumentSessionManager::default();
 //!
 //! let server = Server::bind(&addr)
-//!     .serve(TamaWiki {store, static_path, edit_sessions})
+//!     .serve(TamaWiki {store, static_path, document_sessions})
 //!     .map_err(|err| eprintln!("Server error: {}", err));
 //! ```
 
@@ -32,15 +31,14 @@ use futures::future::{self, Future, FutureResult};
 use http::StatusCode;
 use hyper_staticfile::{self, resolve};
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
 use futures::stream::Stream;
 use futures::sink::Sink;
 
 use templates::TERA;
 use store::{Store, StoreError};
 use session::connection::WebSocketConnection;
-use session::message::{ServerMessage, Connected};
-use session::EditSessionManager;
+use session::message::{ServerMessage, ConnectedMessage, JoinMessage, EditMessage};
+use session::DocumentSessionManager;
 
 mod error;
 mod request;
@@ -49,21 +47,22 @@ mod upgrade;
 use service::error::{TamaWikiError, HttpError};
 use service::request::query_params;
 use service::upgrade::{websocket_upgrade, is_websocket_upgrade_request};
+use document::{Event, Join, Edit};
 
 
 /// Constructs TamaWikiServices
 #[derive(Default)]
-pub struct TamaWiki<T: Store> {
+pub struct TamaWiki<T: Store + Sync> {
     /// A cloneable interface to the backing store used by TamaWiki to
     /// persist document updates
     pub store: T,
     /// Path to serve static files from
     pub static_path: PathBuf,
-    /// Co-ordinates edit session access
-    pub edit_sessions: Arc<Mutex<EditSessionManager>>,
+    /// Co-ordinates document access for editors
+    pub document_sessions: DocumentSessionManager<T>,
 }
 
-impl<T: Store> NewService for TamaWiki<T> {
+impl<T: Store + Sync> NewService for TamaWiki<T> {
     type ReqBody = Body;
     type ResBody = Body;
     type Error = TamaWikiError;
@@ -75,30 +74,30 @@ impl<T: Store> NewService for TamaWiki<T> {
         future::ok(TamaWikiService {
             store: self.store.clone(),
             static_path: self.static_path.clone(),
-            edit_sessions: self.edit_sessions.clone(),
+            document_sessions: self.document_sessions.clone(),
         })
     }
 }
 
 /// Handles a request and returns a response
-pub struct TamaWikiService<T: Store> {
+pub struct TamaWikiService<T: Store + Sync> {
     /// A cloneable interface to the backing store used by TamaWiki to
     /// persist document updates
     pub store: T,
     /// Path to serve static files from
     pub static_path: PathBuf,
-    /// Co-ordinates edit session access
-    pub edit_sessions: Arc<Mutex<EditSessionManager>>,
+    /// Co-ordinates document access for editor
+    pub document_sessions: DocumentSessionManager<T>,
 }
 
-impl<T: Store> TamaWikiService<T> {
+impl<T: Store + Sync> TamaWikiService<T> {
     
     fn serve_static(&mut self, req: Request<Body>) -> 
         Box<Future<Item=Response<Body>, Error=HttpError> + Send>
     {
         // First, resolve the request. Returns a `ResolveFuture` for a `ResolveResult`.
         let result = resolve(&self.static_path.as_path(), &req).map_err(|err| {
-            println!("{}", err);
+            eprintln!("Error serving static file: {}", err);
             HttpError::InternalServerError(format!("{}", err))
         }).and_then(|res| {
             use hyper_staticfile::ResolveResult::*;
@@ -186,22 +185,53 @@ impl<T: Store> TamaWikiService<T> {
         Box<Future<Item=Response<Body>, Error=HttpError> + Send>
     {
         let path = PathBuf::from(&req.uri().path()[1..]);
-        let edit_sessions = self.edit_sessions.clone();
+        let document_sessions = self.document_sessions.clone();
         
         websocket_upgrade(req, move |websocket| {
-            let (tx, _rx) = WebSocketConnection::from(websocket).split();
-            let id = edit_sessions.lock().unwrap().join(&path.as_path());
-            
-            tx.send(ServerMessage::Connected(Connected {id}))
-                .map(|_| ())
+            document_sessions.join(&path.as_path())
                 .map_err(|e| {
-                    eprintln!("websocket error: {:?}", e);
+                    eprintln!("Error joining document session: {:?}", e);
+                })
+                .and_then(|(id, session)| {
+                    let (tx, _rx) = WebSocketConnection::from(websocket).split();
+                    let events = session.subscribe(0);
+                    
+                    tx.send(ServerMessage::Connected(ConnectedMessage {id}))
+                        .and_then(|tx| tx.flush())
+                        .and_then(move |tx| {
+                            tx.send_all(
+                                events.map(|(seq, event)| {
+                                    match event {
+                                        Event::Join(Join {id}) => {
+                                            ServerMessage::Join(JoinMessage {
+                                                seq,
+                                                id,
+                                            })
+                                        },
+                                        Event::Edit(Edit {author, operations}) => {
+                                            ServerMessage::Edit(EditMessage {
+                                                seq,
+                                                author,
+                                                operations,
+                                            })
+                                        },
+                                    }
+                                })
+                            )
+                        })
+                        .then(move |result| -> Result<(), ()> {
+                            if let Err(err) = result {
+                                eprintln!("WebSocket error: {:?}", err);
+                            }
+                            session.leave(id);
+                            Ok(())
+                        })
                 })
         })
     }
 }
 
-impl<T: Store> Service for TamaWikiService<T> {
+impl<T: Store + Sync> Service for TamaWikiService<T> {
     type ReqBody = Body;
     type ResBody = Body;
     type Error = TamaWikiError;

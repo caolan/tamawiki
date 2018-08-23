@@ -1,10 +1,10 @@
-//! Persists document updates using paths as keys.
+//! Persists document events using paths as keys.
 //!
 //! Every store backend must implement the Store trait.
 //!
-//! A document's content is obtained by the accumulated application
-//! of updates within the store up until a given point in time. A
-//! store implementation may checkpoint or cache these update
+//! A document's content is obtained by the accumulated application of
+//! edit events within the store up until a given point in time. A
+//! store implementation may checkpoint or cache these edit event
 //! applications in order to speed up this process.
 
 use std::fmt::{self, Display};
@@ -13,29 +13,31 @@ use std::path::{PathBuf, Path};
 use futures::stream::Stream;
 use futures::future::Future;
 
-use document::{Document, Update};
+use document::{Document, Event};
 
 pub mod memory;
 
 
-/// The sequence number for an Update. The first Update for a Document
-/// is SequenceId=1 (not 0). This is so requesting updates since
-/// SequenceId=0 will return *all* Updates for a Document.
+/// The sequence number for an Event. The first Event for a Document
+/// is SequenceId=1 (not 0). This is so requesting events since
+/// SequenceId=0 will return *all* Events for a Document.
 pub type SequenceId = u64;
 
 /// Every store backend must provide a client interface to the store
 /// using the Store trait. This client interface will be cloned for
 /// multiple requests and orchestrating concurrent access (e.g. via
 /// locking and a connection pool) is left to the implementation.
-pub trait Store: Clone {
+pub trait Store: Clone + Send + 'static {
     
-    /// Type for the stream of Updates returned by `since()` calls
-    type Stream: Stream<Item=(SequenceId, Update), Error=StoreError>;
+    /// Type for the stream of Events returned by `since()` calls
+    type Stream: Stream<Item=(SequenceId, Event), Error=StoreError> + Send;
+    /// The Future returned by `since()` calls
+    type SinceFuture: Future<Item=Self::Stream, Error=StoreError> + Send;
     
-    /// Adds a new Update to the document at 'path' and returns the
+    /// Adds a new Event to the document at 'path' and returns the
     /// new SequenceId. If the document does not exist, the act of
-    /// pushing an Update creates it.
-    fn push(&mut self, path: PathBuf, update: Update) ->
+    /// pushing an Event creates it.
+    fn push(&mut self, path: PathBuf, event: Event) ->
         Box<Future<Item=SequenceId, Error=StoreError> + Send>;
 
     /// Requests the current SequenceId for the document at 'path',
@@ -43,22 +45,21 @@ pub trait Store: Clone {
     fn seq(&self, path: &Path) ->
         Box<Future<Item=SequenceId, Error=StoreError> + Send>;
 
-    /// Requests a stream of Updates starting *after* the provided
+    /// Requests a stream of Events starting *after* the provided
     /// SequenceId. Requesting the current (head) SequenceId is not an
-    /// error, but will return an empty stream. Requesting Updates
+    /// error, but will return an empty stream. Requesting Events
     /// since a SequenceId that does not exist yet is a
     /// StoreError::InvalidSequenceId.
-    fn since(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Self::Stream, Error=StoreError> + Send>;
+    fn since(&self, path: &Path, seq: SequenceId) -> Self::SinceFuture;
 
     /// Requests the current SequenceId and content for the document
-    /// at 'path' (with all updates applied), or StoreError::NotFound
+    /// at 'path' (with all events applied), or StoreError::NotFound
     /// if the document does not exist.
     fn content(&self, path: &Path) ->
         Box<Future<Item=(SequenceId, Document), Error=StoreError> + Send>;
 
     /// Requests a snapshot of the document's content at a specific
-    /// SequenceId. All updates from SequenceId=1 (inclusive) to
+    /// SequenceId. All events from SequenceId=1 (inclusive) to
     /// SequenceId=seq will be applied. Results in a
     /// StoreError::NotFound if the document does not exist, and
     /// StoreError::InvalidSequenceId if the SequenceId does not
@@ -77,7 +78,7 @@ pub enum StoreError {
     /// A non-existant SequenceId was requested for the document
     InvalidSequenceId,
     /// When requesting content, the store failed to build a
-    /// representation of the document from the updates in the store
+    /// representation of the document from the events in the store
     InvalidDocument,
     /// There is a problem communicating with the storage backend
     ConnectionError,
@@ -104,7 +105,7 @@ impl Error for StoreError {
             StoreError::NotFound =>
                 "StoreError: the document path is missing",
             StoreError::InvalidSequenceId =>
-                "StoreError: sequence id has no matching update",
+                "StoreError: sequence id has no matching event",
             StoreError::InvalidDocument =>
                 "StoreError: failed to build document content",
             StoreError::ConnectionError =>

@@ -9,11 +9,10 @@ use http::{Request, StatusCode};
 use futures::future::Future;
 use futures::stream::Stream;
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
 
 use tamawiki::service::TamaWikiService;
 use tamawiki::store::memory::MemoryStore;
-use tamawiki::session::EditSessionManager;
+use tamawiki::session::DocumentSessionManager;
 
 
 #[test]
@@ -21,7 +20,7 @@ fn get_missing_page() {
     let store = MemoryStore::default();
     let static_path = PathBuf::from("public");
     let mut service = TamaWikiService {
-        edit_sessions: Arc::new(Mutex::new(EditSessionManager::default())),
+        document_sessions: DocumentSessionManager::default(),
         static_path,
         store,
     };
@@ -41,7 +40,7 @@ fn get_page_content_from_store() {
     };
     let static_path = PathBuf::from("public");
     let mut service = TamaWikiService {
-        edit_sessions: Arc::new(Mutex::new(EditSessionManager::default())),
+        document_sessions: DocumentSessionManager::default(),
         store: store.clone(),
         static_path,
     };
@@ -75,7 +74,7 @@ fn get_static_file() {
     let store = MemoryStore::default();
     let static_path = PathBuf::from("public");
     let mut service = TamaWikiService {
-        edit_sessions: Arc::new(Mutex::new(EditSessionManager::default())),
+        document_sessions: DocumentSessionManager::default(),
         static_path,
         store,
     };
@@ -96,7 +95,7 @@ fn request_missing_page_with_edit_action() {
     let store = MemoryStore::default();
     let static_path = PathBuf::from("public");
     let mut service = TamaWikiService {
-        edit_sessions: Arc::new(Mutex::new(EditSessionManager::default())),
+        document_sessions: DocumentSessionManager::default(),
         static_path,
         store,
     };
@@ -130,7 +129,7 @@ fn request_existing_page_with_edit_action() {
     };
     let static_path = PathBuf::from("public");
     let mut service = TamaWikiService {
-        edit_sessions: Arc::new(Mutex::new(EditSessionManager::default())),
+        document_sessions: DocumentSessionManager::default(),
         static_path,
         store,
     };
