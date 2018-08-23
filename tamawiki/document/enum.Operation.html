@@ -19,7 +19,7 @@ meaningful change for any given Document. Operations which
 have no effect according to has_effect() are also considered
 invalid.</p>
 <p>Note that an Operation for which is_valid() returns true might
-still raise an UpdateError when applied to a specific Document
+still raise an EditError when applied to a specific Document
 (e.g. it references an index outside the target document's
 content size).</p>
 </div></div>

@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ClientMessage","Message sent from the client to the server"],["ServerMessage","Message sent from the server to the client"]],"struct":[["Connected","Client successfully connected"]]});
+initSidebarItems({"enum":[["ClientMessage","Message sent from the client to the server"],["ServerMessage","Message sent from the server to the client"]],"struct":[["ConnectedMessage","Client successfully connected"],["EditMessage","An update was made to the Document"],["JoinMessage","A new participant has joined the DocumentSession"]]});

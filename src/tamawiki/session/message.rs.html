@@ -19,23 +19,77 @@
 <span id="19">19</span>
 <span id="20">20</span>
 <span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Defines messages for client/server communication during an EditSession</span>
 
-<span class="kw">use</span> <span class="ident">document</span>::<span class="ident">ParticipantId</span>;
+<span class="kw">use</span> <span class="ident">store</span>::<span class="ident">SequenceId</span>;
+<span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">ParticipantId</span>, <span class="ident">Operation</span>};
+
 
 <span class="doccomment">/// Message sent from the server to the client</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ServerMessage</span> {
-    <span class="doccomment">/// Client successfully connected</span>
-    <span class="ident">Connected</span> (<span class="ident">Connected</span>)
+    <span class="doccomment">/// Client successfully connected - always the first message sent</span>
+    <span class="doccomment">/// to a client</span>
+    <span class="ident">Connected</span> (<span class="ident">ConnectedMessage</span>),
+    <span class="doccomment">/// An update was made to the Document</span>
+    <span class="ident">Edit</span> (<span class="ident">EditMessage</span>),
+    <span class="doccomment">/// A new participant joined the DocumentSession</span>
+    <span class="ident">Join</span> (<span class="ident">JoinMessage</span>),
 }
 
 <span class="doccomment">/// Client successfully connected</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Connected</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConnectedMessage</span> {
     <span class="doccomment">/// The new client&#39;s participant ID</span>
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ParticipantId</span>
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ParticipantId</span>,
+}
+
+<span class="doccomment">/// An update was made to the Document</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EditMessage</span> {
+    <span class="doccomment">/// The SequenceId of the edit Event in the Store</span>
+    <span class="kw">pub</span> <span class="ident">seq</span>: <span class="ident">SequenceId</span>,
+    <span class="doccomment">/// The id of the participant responsible for making this change</span>
+    <span class="kw">pub</span> <span class="ident">author</span>: <span class="ident">ParticipantId</span>,
+    <span class="doccomment">/// The individual Operations which describe the edit</span>
+    <span class="kw">pub</span> <span class="ident">operations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Operation</span><span class="op">&gt;</span>,
+}
+
+<span class="doccomment">/// A new participant has joined the DocumentSession</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JoinMessage</span> {
+    <span class="doccomment">/// The SequenceId of the join Event in the Store</span>
+    <span class="kw">pub</span> <span class="ident">seq</span>: <span class="ident">SequenceId</span>,
+    <span class="doccomment">/// The id of the newly joined participant</span>
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ParticipantId</span>,
 }
 
 <span class="doccomment">/// Message sent from the client to the server</span>

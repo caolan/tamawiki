@@ -1572,6 +1572,22 @@
 <span id="1572">1572</span>
 <span id="1573">1573</span>
 <span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Documents and Operations on their content.</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>;
@@ -1579,7 +1595,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>;
 
 
-<span class="doccomment">/// Connection identifier, which must be unique between concurrent updates</span>
+<span class="doccomment">/// Connection identifier, which must be unique between concurrent events</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParticipantId</span> <span class="op">=</span> <span class="ident">usize</span>;
 
 <span class="doccomment">/// Represents some String content at a point in time</span>
@@ -1590,39 +1606,39 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Document</span> {
-    <span class="doccomment">/// Applies an Update to the Document&#39;s content. Either all</span>
-    <span class="doccomment">/// Operations contained in the Update are applied, or no</span>
-    <span class="doccomment">/// Operations are applied and an UpdateError is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">update</span>: <span class="kw-2">&amp;</span><span class="ident">Update</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UpdateError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">update</span>)<span class="question-mark">?</span>;
+    <span class="doccomment">/// Applies an Edit event to the Document&#39;s content. Either all</span>
+    <span class="doccomment">/// Operations contained in the Edit are applied, or no</span>
+    <span class="doccomment">/// Operations are applied and an EditError is returned.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">edit</span>: <span class="kw-2">&amp;</span><span class="ident">Edit</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">EditError</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">edit</span>)<span class="question-mark">?</span>;
         
-        <span class="kw">for</span> <span class="ident">op</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">update</span>.<span class="ident">operations</span> {
+        <span class="kw">for</span> <span class="ident">op</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">edit</span>.<span class="ident">operations</span> {
             <span class="self">self</span>.<span class="ident">perform_operation</span>(<span class="ident">op</span>);
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="doccomment">/// Checks that every operation inside the update can be cleanly</span>
+    <span class="doccomment">/// Checks that every operation inside the edit can be cleanly</span>
     <span class="doccomment">/// applied to the document, without making any changes to the</span>
     <span class="doccomment">/// document content.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">update</span>: <span class="kw-2">&amp;</span><span class="ident">Update</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">UpdateError</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">edit</span>: <span class="kw-2">&amp;</span><span class="ident">Edit</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">EditError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">content</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
 
-        <span class="kw">for</span> <span class="ident">op</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">update</span>.<span class="ident">operations</span> {
+        <span class="kw">for</span> <span class="ident">op</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">edit</span>.<span class="ident">operations</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">op</span>.<span class="ident">is_valid</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">InvalidOperation</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">InvalidOperation</span>);
             }
             <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">op</span> {
                 <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {<span class="ident">pos</span>, <span class="kw-2">ref</span> <span class="ident">content</span>}) <span class="op">=&gt;</span> {
                     <span class="kw">if</span> <span class="ident">pos</span> <span class="op">&gt;</span> <span class="ident">length</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">OutsideDocument</span>);
                     } <span class="kw">else</span> {
                         <span class="ident">length</span> <span class="op">+=</span> <span class="ident">content</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
                     }
                 },
                 <span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {<span class="ident">start</span>, <span class="ident">end</span>}) <span class="op">=&gt;</span> {
                     <span class="kw">if</span> <span class="ident">start</span> <span class="op">&gt;=</span> <span class="ident">length</span> <span class="op">||</span> <span class="ident">end</span> <span class="op">&gt;</span> <span class="ident">length</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">OutsideDocument</span>);
                     } <span class="kw">else</span> {
                         <span class="ident">length</span> <span class="op">-=</span> <span class="ident">end</span> <span class="op">-</span> <span class="ident">start</span>;
                     }
@@ -1734,7 +1750,7 @@
     <span class="doccomment">/// invalid.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that an Operation for which is_valid() returns true might</span>
-    <span class="doccomment">/// still raise an UpdateError when applied to a specific Document</span>
+    <span class="doccomment">/// still raise an EditError when applied to a specific Document</span>
     <span class="doccomment">/// (e.g. it references an index outside the target document&#39;s</span>
     <span class="doccomment">/// content size).</span>
     
@@ -1752,7 +1768,7 @@
 <span class="doccomment">/// Error conditions which may occur when applying an Operation to a</span>
 <span class="doccomment">/// Document.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UpdateError</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EditError</span> {
     <span class="doccomment">/// The Operation&#39;s position or range falls outside the current</span>
     <span class="doccomment">/// Document.</span>
     <span class="ident">OutsideDocument</span>,
@@ -1761,45 +1777,61 @@
     <span class="ident">InvalidOperation</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">UpdateError</span> {
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">EditError</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span> <span class="op">=&gt;</span>
+            <span class="ident">EditError</span>::<span class="ident">OutsideDocument</span> <span class="op">=&gt;</span>
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;The operation&#39;s area of effect falls outside the document&quot;</span>),
-            <span class="ident">UpdateError</span>::<span class="ident">InvalidOperation</span> <span class="op">=&gt;</span>
+            <span class="ident">EditError</span>::<span class="ident">InvalidOperation</span> <span class="op">=&gt;</span>
                 <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;The operation is invalid&quot;</span>),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">UpdateError</span> {
+<span class="kw">impl</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">EditError</span> {
     <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">error</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 }
 
-<span class="doccomment">/// An Update combines multiple operations into a single Document</span>
+<span class="doccomment">/// Describes an event corresponding to a single Document.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span> {
+    <span class="doccomment">/// A new participant has joined</span>
+    <span class="ident">Join</span> (<span class="ident">Join</span>),
+    <span class="doccomment">/// An update was made to the document</span>
+    <span class="ident">Edit</span> (<span class="ident">Edit</span>),
+}
+
+<span class="doccomment">/// A new participant has joined the DocumentSession</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Join</span> {
+    <span class="doccomment">/// The id of the newly joined participant</span>
+    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ParticipantId</span>
+}
+
+<span class="doccomment">/// An Edit combines multiple operations into a single Document</span>
 <span class="doccomment">/// change (i.e. all the operations are applied together, or not at</span>
 <span class="doccomment">/// all).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Update</span> {
-    <span class="doccomment">/// The ParticipantId for the original author of this update</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Edit</span> {
+    <span class="doccomment">/// The ParticipantId for the original author of this edit</span>
     <span class="kw">pub</span> <span class="ident">author</span>: <span class="ident">ParticipantId</span>,
-    <span class="doccomment">/// The Operations which describe this Update</span>
+    <span class="doccomment">/// The Operations which describe this Edit</span>
     <span class="kw">pub</span> <span class="ident">operations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Operation</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">Update</span> {
-    <span class="comment">// Does the Update from ParticipantId &#39;a&#39; take precedence over the</span>
-    <span class="comment">// Update from ParticipantId &#39;b&#39; if operations conflict?</span>
+<span class="kw">impl</span> <span class="ident">Edit</span> {
+    <span class="comment">// Does the Edit from ParticipantId &#39;a&#39; take precedence over the</span>
+    <span class="comment">// Edit from ParticipantId &#39;b&#39; if operations conflict?</span>
     <span class="kw">fn</span> <span class="ident">has_priority</span>(<span class="ident">a</span>: <span class="ident">ParticipantId</span>, <span class="ident">b</span>: <span class="ident">ParticipantId</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="ident">a</span> <span class="op">&gt;</span> <span class="ident">b</span>
     }
     
-    <span class="doccomment">/// Modifies the `operations` inside the Update struct to</span>
-    <span class="doccomment">/// accommodate a concurrent Update entry whose operations have</span>
+    <span class="doccomment">/// Modifies the `operations` inside the Edit struct to</span>
+    <span class="doccomment">/// accommodate a concurrent Edit entry whose operations have</span>
     <span class="doccomment">/// already been applied locally.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">concurrent</span>: <span class="kw-2">&amp;</span><span class="ident">Update</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">concurrent</span>: <span class="kw-2">&amp;</span><span class="ident">Edit</span>) {
         <span class="kw">use</span> <span class="self">self</span>::<span class="ident">Operation</span> <span class="kw">as</span> <span class="ident">Op</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_operations</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
 
@@ -1809,7 +1841,7 @@
                     (<span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">this</span>), <span class="kw-2">&amp;</span><span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="kw-2">ref</span> <span class="ident">other</span>)) <span class="op">=&gt;</span> {
                         <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">pos</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">pos</span> <span class="op">||</span>
                             (<span class="ident">other</span>.<span class="ident">pos</span> <span class="op">==</span> <span class="ident">this</span>.<span class="ident">pos</span> <span class="op">&amp;&amp;</span>
-                             <span class="ident">Update</span>::<span class="ident">has_priority</span>(<span class="ident">concurrent</span>.<span class="ident">author</span>, <span class="self">self</span>.<span class="ident">author</span>)) {
+                             <span class="ident">Edit</span>::<span class="ident">has_priority</span>(<span class="ident">concurrent</span>.<span class="ident">author</span>, <span class="self">self</span>.<span class="ident">author</span>)) {
                                 <span class="ident">this</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="ident">other</span>.<span class="ident">content</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
                             }
                     },
@@ -1884,7 +1916,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">doc</span> <span class="op">=</span> <span class="ident">Document</span> {
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="ident">initial</span>),
         };
-        <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">op</span>]
         }).<span class="ident">unwrap</span>();
@@ -2035,7 +2067,7 @@
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;foobar&quot;</span>),
         };
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
@@ -2044,14 +2076,14 @@
                     })
                 ],
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">OutsideDocument</span>)
         );
         <span class="comment">// document should remain unchanged</span>
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">doc</span>, <span class="ident">Document</span> {
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;foobar&quot;</span>)
         });
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
@@ -2060,7 +2092,7 @@
                     })
                 ],
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">OutsideDocument</span>)
         );
         <span class="comment">// document should remain unchanged</span>
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">doc</span>, <span class="ident">Document</span> {
@@ -2075,7 +2107,7 @@
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;foobar&quot;</span>),
         };
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
@@ -2084,7 +2116,7 @@
                     })
                 ],
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">OutsideDocument</span>)
         );
         <span class="comment">// document should be unchanged</span>
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">doc</span>, <span class="ident">Document</span> {
@@ -2093,11 +2125,11 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">apply_multiple_operations_in_single_update</span>() {
+    <span class="kw">fn</span> <span class="ident">apply_multiple_operations_in_single_edit</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">doc</span> <span class="op">=</span> <span class="ident">Document</span> {
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>),
         };
-        <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                 <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
@@ -2121,12 +2153,12 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">apply_update_with_single_failing_operation</span>() {
+    <span class="kw">fn</span> <span class="ident">apply_edit_with_single_failing_operation</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">doc</span> <span class="op">=</span> <span class="ident">Document</span> {
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;a&quot;</span>),
         };
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
@@ -2143,7 +2175,7 @@
                     })
                 ],
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">OutsideDocument</span>)
         );
         
         <span class="comment">// document should remain unchanged</span>
@@ -2158,7 +2190,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">doc</span> <span class="op">=</span> <span class="ident">Document</span> {
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>),
         };
-        <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                 <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
@@ -2187,7 +2219,7 @@
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>),
         };
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
@@ -2200,7 +2232,7 @@
                     })
                 ],
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">OutsideDocument</span>)
         );
 
         <span class="comment">// document should remain unchanged</span>
@@ -2215,7 +2247,7 @@
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>),
         };
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
@@ -2224,7 +2256,7 @@
                     })
                 ],
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">InvalidOperation</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">InvalidOperation</span>)
         );
 
         <span class="comment">// document should remain unchanged</span>
@@ -2233,7 +2265,7 @@
         });
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
@@ -2242,7 +2274,7 @@
                     })
                 ],
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">InvalidOperation</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">InvalidOperation</span>)
         );
         
         <span class="comment">// document should remain unchanged</span>
@@ -2257,7 +2289,7 @@
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>),
         };
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Insert</span> (<span class="ident">Insert</span> {
@@ -2269,7 +2301,7 @@
             <span class="prelude-val">Ok</span>(())
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Insert</span> (<span class="ident">Insert</span> {
@@ -2278,10 +2310,10 @@
                     })
                 ]
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">OutsideDocument</span>)
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Insert</span> (<span class="ident">Insert</span> {
@@ -2290,10 +2322,10 @@
                     })
                 ]
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">InvalidOperation</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">InvalidOperation</span>)
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Delete</span> (<span class="ident">Delete</span> {
@@ -2305,7 +2337,7 @@
             <span class="prelude-val">Ok</span>(())
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Delete</span> (<span class="ident">Delete</span> {
@@ -2314,10 +2346,10 @@
                     })
                 ]
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">OutsideDocument</span>)
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Delete</span> (<span class="ident">Delete</span> {
@@ -2326,10 +2358,10 @@
                     })
                 ]
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">OutsideDocument</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">OutsideDocument</span>)
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Delete</span> (<span class="ident">Delete</span> {
@@ -2338,10 +2370,10 @@
                     })
                 ]
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">InvalidOperation</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">InvalidOperation</span>)
         );
         <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+            <span class="ident">doc</span>.<span class="ident">can_apply</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
                 <span class="ident">author</span>: <span class="number">1</span>,
                 <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[
                     <span class="ident">Operation</span>::<span class="ident">Delete</span> (<span class="ident">Delete</span> {
@@ -2350,7 +2382,7 @@
                     })
                 ]
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">UpdateError</span>::<span class="ident">InvalidOperation</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">EditError</span>::<span class="ident">InvalidOperation</span>)
         );
     }
 
@@ -2374,14 +2406,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_before_insert</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">h</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">h</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">0</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Test&quot;</span>)
             })]
         };
-        <span class="ident">h</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">h</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">10</span>,
@@ -2396,14 +2428,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_after_insert</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">10</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Test&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">2</span>,
@@ -2418,14 +2450,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_inserts_at_same_point_checks_priority</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">5</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Test&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">5</span>,
@@ -2437,14 +2469,14 @@
             <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Test&quot;</span>)
         })]);
         
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">5</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Test&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">5</span>,
@@ -2459,14 +2491,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_uses_char_index_not_byte_index</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">5</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Test&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">0</span>,
@@ -2483,14 +2515,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_delete_non_overlapping_after</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
                 <span class="ident">end</span>: <span class="number">5</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">10</span>,
@@ -2505,14 +2537,14 @@
      
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_delete_non_overlapping_before</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">5</span>,
                 <span class="ident">end</span>: <span class="number">10</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
@@ -2527,14 +2559,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_delete_adjacent_before</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">2</span>,
                 <span class="ident">end</span>: <span class="number">4</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
             <span class="ident">start</span>: <span class="number">0</span>,
@@ -2549,14 +2581,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_delete_adjacent_after</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
                 <span class="ident">end</span>: <span class="number">3</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
             <span class="ident">start</span>: <span class="number">3</span>,
@@ -2571,14 +2603,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_delete_overlapping_start</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">5</span>,
                 <span class="ident">end</span>: <span class="number">15</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
@@ -2593,14 +2625,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_delete_overlapping_end</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
                 <span class="ident">end</span>: <span class="number">4</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">2</span>,
@@ -2615,14 +2647,14 @@
  
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_delete_subset</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">5</span>,
                 <span class="ident">end</span>: <span class="number">10</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">1</span>,
@@ -2634,14 +2666,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_delete_superset</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
                 <span class="ident">end</span>: <span class="number">17</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">5</span>,
@@ -2656,14 +2688,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_delete_non_overlapping_after</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">0</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;12345&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">10</span>,
@@ -2678,14 +2710,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_delete_non_overlapping_before</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">5</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;foo&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
@@ -2700,14 +2732,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_delete_adjacent_before</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">2</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;ab&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
@@ -2722,14 +2754,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_delete_adjacent_after</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">0</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;foo&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">3</span>,
@@ -2744,14 +2776,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_delete_overlapping_start</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">5</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;1234567890&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
@@ -2766,14 +2798,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_delete_overlapping_end</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">0</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;abcd&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">2</span>,
@@ -2788,14 +2820,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_delete_subset</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">5</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;12345&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">1</span>,
@@ -2810,14 +2842,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_insert_delete_superset</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">0</span>,
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;12345678901234567&quot;</span>)
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">5</span>,
@@ -2832,14 +2864,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_insert_non_overlapping_after</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
                 <span class="ident">end</span>: <span class="number">5</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">10</span>,
@@ -2854,14 +2886,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_insert_non_overlapping_before</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">5</span>,
                 <span class="ident">end</span>: <span class="number">8</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">0</span>,
@@ -2876,14 +2908,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_insert_adjacent_before</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">2</span>,
                 <span class="ident">end</span>: <span class="number">4</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">0</span>,
@@ -2898,14 +2930,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_insert_adjacent_after</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
                 <span class="ident">end</span>: <span class="number">3</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">3</span>,
@@ -2920,14 +2952,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_insert_same_start_position</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">2</span>,
                 <span class="ident">end</span>: <span class="number">4</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">2</span>,
@@ -2942,14 +2974,14 @@
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_insert_overlapping_start</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">5</span>,
                 <span class="ident">end</span>: <span class="number">15</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">0</span>,
@@ -2964,14 +2996,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_insert_overlapping_end</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
                 <span class="ident">end</span>: <span class="number">4</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">2</span>,
@@ -2994,14 +3026,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_insert_subset</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">5</span>,
                 <span class="ident">end</span>: <span class="number">10</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">1</span>,
@@ -3016,14 +3048,14 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">transform_delete_insert_superset</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
                 <span class="ident">start</span>: <span class="number">0</span>,
                 <span class="ident">end</span>: <span class="number">17</span>
             })]
         };
-        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Update</span> {
+        <span class="ident">msg</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Operation</span>::<span class="ident">Insert</span>(<span class="ident">Insert</span> {
                 <span class="ident">pos</span>: <span class="number">5</span>,
@@ -3094,11 +3126,11 @@
     <span class="comment">// helper function for proptest! block below</span>
     <span class="kw">fn</span> <span class="ident">check_order_of_application</span>(<span class="ident">initial</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">op1</span>: <span class="kw-2">&amp;</span><span class="ident">Operation</span>, <span class="ident">op2</span>: <span class="kw-2">&amp;</span><span class="ident">Operation</span>) {
         <span class="kw">let</span> <span class="ident">doc</span> <span class="op">=</span> <span class="ident">Document</span>::<span class="ident">from</span>(<span class="ident">initial</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a1</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a1</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">1</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">op1</span>.<span class="ident">clone</span>()]
         };
-        <span class="kw">let</span> <span class="ident">b1</span> <span class="op">=</span> <span class="ident">Update</span> {
+        <span class="kw">let</span> <span class="ident">b1</span> <span class="op">=</span> <span class="ident">Edit</span> {
             <span class="ident">author</span>: <span class="number">2</span>,
             <span class="ident">operations</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">op2</span>.<span class="ident">clone</span>()]
         };
