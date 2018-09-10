@@ -117,3 +117,10 @@ impl fmt::Debug for WebSocket {
             .finish()
     }
 }
+
+pub fn websocket_text(ws: WebSocket) ->
+impl Stream<Item=String, Error=::tungstenite::Error>
+    + Sink<SinkItem=String, SinkError=::tungstenite::Error>
+{
+    ws.and_then(|msg| msg.into_text()).with(|text| Ok(Message::Text(text)))
+}

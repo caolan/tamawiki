@@ -1,17 +1,18 @@
 //! Co-ordinates store updates and notifications
-use futures::{Async, Poll};
-use futures::future::Future;
-use futures::stream::{self, Stream};
-use futures::task::{self, Task};
+use futures::future::{self, Future};
+use futures::stream::Stream;
+use futures::task::Task;
 use std::collections::HashMap;
 use std::sync::{Weak, Arc, Mutex};
 use std::path::{Path, PathBuf};
 
 use store::{Store, StoreError, SequenceId};
-use document::{Event, Join, Leave, ParticipantId};
+use document::{Event, Edit, Join, Leave, ParticipantId};
 
-pub mod connection;
+pub mod participant;
 pub mod message;
+
+use self::participant::Participant;
 
 
 /// Provides access to DocumentSessions.
@@ -46,8 +47,8 @@ impl<T: Store + Sync> DocumentSessionManager<T> {
     /// Join an existing or new DocumentSession for the given path. A new
     /// DocumentSession is created automatically when the path has no
     /// active participants.
-    pub fn join(&self, path: &Path) ->
-    impl Future<Item=(ParticipantId, DocumentSession<T>), Error=StoreError>
+    pub fn join(&self, path: &Path, start_seq: SequenceId) ->
+    impl Future<Item=Participant<T>, Error=StoreError>
     {
         let mut session = {
             let mut data = self.data.lock().unwrap();
@@ -71,15 +72,14 @@ impl<T: Store + Sync> DocumentSessionManager<T> {
                 })
                 .unwrap()
         };
-        let fut = session.join();
-        fut.map(move |id| (id, session))
+        session.join(start_seq)
     }
 }
 
 /// Co-ordinates store updates and notifications for (potentially)
 /// multiple clients editing a single document.
 // This is a cloneable interface to DocumentSessionData.
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct DocumentSession<T: Store + Sync> {
     data: Arc<Mutex<DocumentSessionData<T>>>
 }
@@ -92,7 +92,6 @@ struct WeakDocumentSession<T: Store + Sync> {
 }
 
 /// Holds information about the active session.
-#[derive(Default)]
 struct DocumentSessionData<T: Store + Sync> {
     store: T,
     path: PathBuf,
@@ -100,39 +99,57 @@ struct DocumentSessionData<T: Store + Sync> {
     // The sequence id of the last event received during this session,
     // or None if no events have been received yet.
     last_seq: Option<SequenceId>,
-    // Subscriber streams parked until a new sequence ID is ready.
+    // Participant event streams parked until a new sequence ID is ready.
     waiting_tasks: Vec<Task>,
 }
 
 impl<T: Store + Sync> DocumentSession<T> {
-    fn join(&mut self) -> impl Future<Item=ParticipantId, Error=StoreError> {
-        let mut data = self.data.lock().unwrap();
-        data.next_id += 1;
-        let id = data.next_id;
-        println!("Participant {} joined {:?}", id, data.path);
+    // this must only be called via DocumentSessionManager
+    fn join(&mut self, start_seq: SequenceId) ->
+    impl Future<Item=Participant<T>, Error=StoreError>
+    {
+        let id = {
+            let mut data = self.data.lock().unwrap();
+            data.next_id += 1;
+            println!("Participant {} joined {:?}", data.next_id, data.path);
+            data.next_id
+        };
+        let s2 = self.clone();
         let event = Event::Join(Join { id });
-        let path = data.path.clone();
-        let s2 = self.clone();
-        data.store.push(path, event).map(move |seq| {
-            s2.update_seq(seq);
-            id
+        
+        self.write(event).map(move |_seq| {
+            Participant::new(s2, id, start_seq)
         })
     }
 
-    /// Remove a participant id from the active session and notify the
-    /// other clients.
-    pub fn leave(&self, id: ParticipantId) -> impl Future<Item=ParticipantId, Error=StoreError> {
-        let mut data = self.data.lock().unwrap();
-        println!("Participant {} left {:?}", id, data.path);
+    // Notifies the other clients that a participant has left
+    fn leave(&self, id: ParticipantId) ->
+    impl Future<Item=SequenceId, Error=StoreError>
+    {
+        {
+            let data = self.data.lock().unwrap();
+            println!("Participant {} left {:?}", id, data.path);
+        };
         let event = Event::Leave(Leave { id });
-        let path = data.path.clone();
-        let s2 = self.clone();
-        data.store.push(path, event).map(move |seq| {
-            s2.update_seq(seq);
-            id
-        })
+        self.write(event)
     }
 
+    // Wakes up the task once a new sequence id is available.
+    fn notify_on_event(&self, task: Task) {
+        let mut data = self.data.lock().unwrap();
+        data.waiting_tasks.push(task);
+    }
+
+    // Returns a weak reference to the session data. Used by
+    // DocumentSessionManager to reference active sessions without
+    // preventing them from being dropped.
+    fn downgrade(&self) -> WeakDocumentSession<T> {
+        WeakDocumentSession {
+            data: Arc::downgrade(&self.data)
+        }
+    }
+
+    // Updates last_seq and notifies Participants waiting for events
     fn update_seq(&self, seq: SequenceId) {
         let mut data = self.data.lock().unwrap();
         data.last_seq = Some(seq);
@@ -141,95 +158,45 @@ impl<T: Store + Sync> DocumentSession<T> {
         }
     }
 
-    fn notify_on_event(&self, task: Task) {
+    // Writes an event to the store.
+    fn write(&self, event: Event) -> impl Future<Item=SequenceId, Error=StoreError> {
         let mut data = self.data.lock().unwrap();
-        data.waiting_tasks.push(task);
+        let path = data.path.clone();
+        let s2 = self.clone();
+        data.store.push(path, event).inspect(move |seq| {
+            s2.update_seq(*seq);
+        })
     }
 
-    /// Returns an infinite stream of Events starting *after* the
-    /// provided SequenceId. When the current head SequenceId is
-    /// reached it will wait for new Events to arrive.
-    pub fn subscribe(&self, since: SequenceId) -> EventStream<T> {
-        let catchup = {
-            let data = self.data.lock().unwrap();
-            data.store.since(&data.path.as_path(), since)
+    // First, transforms an event to accomodate concurrent events
+    // already in the store, then, writes the resulting transformed
+    // event to the store.
+    fn write_transformed(&self, sender: ParticipantId, parent_seq: SequenceId, event: Event) ->
+    impl Future<Item=SequenceId, Error=StoreError> {
+        let concurrent_events = {
+            let mut data = self.data.lock().unwrap();
+            data.store.since(&data.path.as_path(), parent_seq)
         };
-        EventStream {
-            session: self.clone(),
-            seq: since,
-            state: EventStreamState::ReadingStream,
-            inner: stream::futures_unordered(vec![catchup]).flatten(),
-        }
-    }
-
-    fn downgrade(&self) -> WeakDocumentSession<T> {
-        WeakDocumentSession {
-            data: Arc::downgrade(&self.data)
-        }
+        let transformed = concurrent_events.and_then(move |stream| {
+            stream.fold(event, move |mut event, (_seq, concurrent)| {
+                let from = match concurrent {
+                    Event::Edit(Edit {author, ..}) => author,
+                    Event::Join(Join {id}) => id,
+                    Event::Leave(Leave {id}) => id,
+                };
+                if from != sender {
+                    event.transform(&concurrent);
+                }
+                future::ok(event)
+            })
+        });
+        let s2 = self.clone();
+        transformed.and_then(move |event| s2.write(event))
     }
 }
 
 impl<T: Store + Sync> WeakDocumentSession<T> {
     fn upgrade(&self) -> Option<DocumentSession<T>> {
         self.data.upgrade().map(|data| DocumentSession { data })
-    }
-}
-
-/// A stream of SequenceIds and their corresponding Events.
-pub struct EventStream<T: Store + Sync> {
-    inner: stream::Flatten<stream::FuturesUnordered<T::SinceFuture>>,
-    session: DocumentSession<T>,
-    state: EventStreamState,
-    seq: SequenceId,
-}
-
-#[derive(Debug)]
-enum EventStreamState {
-    ReadingStream,
-    WaitingForEvent,
-}
-
-impl<T: Store + Sync> Stream for EventStream<T> {
-    type Item = (SequenceId, Event);
-    type Error = StoreError;
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        match self.state {
-            EventStreamState::ReadingStream => {
-                match self.inner.poll() {
-                    Ok(Async::Ready(None)) => {
-                        self.state = EventStreamState::WaitingForEvent;
-                        self.poll()
-                    },
-                    Ok(Async::Ready(Some((seq, event)))) => {
-                        self.seq = seq;
-                        Ok(Async::Ready(Some((seq, event))))
-                    },
-                    other => other
-                }
-            },
-            EventStreamState::WaitingForEvent => {
-                let last_seq = {
-                    let data = self.session.data.lock().unwrap();
-                    data.last_seq
-                };
-                match last_seq {
-                    Some(last_seq) if last_seq > self.seq => {
-                        self.inner = {
-                            let data = self.session.data.lock().unwrap();
-                            stream::futures_unordered(vec![
-                                data.store.since(&data.path.as_path(), self.seq)
-                            ]).flatten()
-                        };
-                        self.state = EventStreamState::ReadingStream;
-                        self.poll()
-                    },
-                    _ => {
-                        self.session.notify_on_event(task::current());
-                        Ok(Async::NotReady)
-                    }
-                }
-            },
-        }
     }
 }

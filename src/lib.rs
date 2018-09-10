@@ -18,6 +18,7 @@ extern crate hyper_staticfile;
 extern crate tungstenite;
 extern crate base64;
 extern crate sha1;
+extern crate tokio;
 
 pub mod service;
 pub mod document;

@@ -32,9 +32,9 @@ use futures::sink::Sink;
 
 use templates::TERA;
 use store::{Store, StoreError};
-use session::connection::{WebSocketConnection, ConnectionError};
-use session::message::{ServerMessage, ConnectedMessage, JoinMessage, LeaveMessage, EditMessage};
+use session::message::{message_stream, ServerMessage, ConnectedMessage, MessageStreamError};
 use session::DocumentSessionManager;
+use websocket::websocket_text;
 
 mod error;
 mod request;
@@ -43,7 +43,6 @@ mod upgrade;
 use service::error::{TamaWikiError, HttpError};
 use service::request::query_params;
 use service::upgrade::{websocket_upgrade, is_websocket_upgrade_request};
-use document::{Event, Join, Leave, Edit};
 use store::SequenceId;
 
 
@@ -176,62 +175,30 @@ impl<T: Store + Sync> TamaWiki<T> {
         let document_sessions = self.document_sessions.clone();
         
         websocket_upgrade(req, move |websocket| {
-            document_sessions.join(&path.as_path())
+            document_sessions.join(&path.as_path(), since)
                 .map_err(|e| {
                     eprintln!("Error joining document session: {:?}", e);
                 })
-                .and_then(move |(id, session)| {
-                    let (tx, rx) = WebSocketConnection::from(websocket).split();
-                    let events = session.subscribe(since);
+                .and_then(move |participant| {
+                    let id = participant.get_id();
+                    let ws = message_stream(websocket_text(websocket));
+                    let (wtx, wrx) = ws.split();
+                    let (ptx, prx) = participant.split();
 
-                    let send_server_messages = tx.send(
+                    let send_client_msgs = wrx.forward(ptx).map(|_| ());
+                    let send_server_msgs = wtx.send(
                         ServerMessage::Connected(ConnectedMessage {id})
-                    ).and_then(|tx| {
-                        tx.send_all(
-                            events.map(|(seq, event)| {
-                                match event {
-                                    Event::Join(Join {id}) => {
-                                        ServerMessage::Join(JoinMessage {
-                                            seq,
-                                            id,
-                                        })
-                                    },
-                                    Event::Leave(Leave {id}) => {
-                                        ServerMessage::Leave(LeaveMessage {
-                                            seq,
-                                            id,
-                                        })
-                                    },
-                                    Event::Edit(Edit {author, operations}) => {
-                                        ServerMessage::Edit(EditMessage {
-                                            seq,
-                                            author,
-                                            operations,
-                                        })
-                                    },
-                                }
-                            })
-                        ).map(|_| ())
+                    ).and_then(|wtx| {
+                        wtx.send_all(prx).map(|_| ())
                     });
-
-                    let read_client_messages = rx.for_each(
-                        |msg| -> FutureResult<(), ConnectionError> {
-                            println!("received: {:?}", msg);
-                            future::ok(())
-                        }
-                    );
                     
-                    send_server_messages
-                        .select(read_client_messages)
-                        .then(move |result: Result<_, (ConnectionError, _)>| {
+                    send_client_msgs
+                        .select(send_server_msgs)
+                        .then(move |result: Result<_, (MessageStreamError, _)>| {
                             if let Err((err, _)) = result {
                                 eprintln!("WebSocket error: {:?}", err);
                             }
-                            session.leave(id)
-                                .map(|_| ())
-                                .map_err(|err| {
-                                    eprintln!("Error leaving document session: {:?}", err);
-                                })
+                            Ok(())
                         })
                 })
         })

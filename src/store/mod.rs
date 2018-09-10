@@ -33,12 +33,13 @@ pub trait Store: Clone + Debug + Send + 'static {
     type Stream: Stream<Item=(SequenceId, Event), Error=StoreError> + Send;
     /// The Future returned by `since()` calls
     type SinceFuture: Future<Item=Self::Stream, Error=StoreError> + Send;
+    /// The Future returned by `push()` calls
+    type PushFuture: Future<Item=SequenceId, Error=StoreError> + Send;
     
     /// Adds a new Event to the document at 'path' and returns the
     /// new SequenceId. If the document does not exist, the act of
     /// pushing an Event creates it.
-    fn push(&mut self, path: PathBuf, event: Event) ->
-        Box<Future<Item=SequenceId, Error=StoreError> + Send>;
+    fn push(&mut self, path: PathBuf, event: Event) -> Self::PushFuture;
 
     /// Requests the current SequenceId for the document at 'path',
     /// or StoreError::NotFound if it does not exist.

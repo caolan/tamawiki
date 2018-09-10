@@ -1,13 +1,16 @@
 #[macro_use] extern crate tamawiki;
+#[macro_use] extern crate serde_json;
 extern crate tokio_tungstenite;
 extern crate tokio_tls;
 extern crate futures;
 extern crate hyper;
 extern crate tokio;
+extern crate serde;
 extern crate url;
 
 use futures::future::Future;
 use futures::stream::Stream;
+use futures::sink::Sink;
 use hyper::server::Server;
 use tokio::runtime::current_thread::Runtime;
 use tokio_tungstenite::tungstenite::error::Error;
@@ -15,6 +18,7 @@ use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::tungstenite::Message;
 use tokio::net::TcpStream;
 use tokio_tls::TlsStream;
+use serde_json::Value;
 use url::Url;
 
 use tamawiki::TamaWiki;
@@ -28,6 +32,7 @@ fn read_message(ws: WsStream) ->
 impl Future<Item=(Option<Message>, WsStream), Error=Error>
 {
     ws.into_future().map(|(msg, rest)| {
+        println!("client received: {:?}", msg);
         (msg, rest)
     }).map_err(|err| panic!(err))
 }
@@ -177,30 +182,153 @@ fn websocket_join_and_leave_notifications() {
                 // client1 waits for leave messages from clients 2 and 3, then disconnects last
                 
                 // read desired messages from all streams
-                msgs1.take(6).collect()
-                    .join3(msgs2.take(3).collect(),
-                           msgs3.take(3).collect())
+                msgs1.take(5).collect()
+                    .join3(msgs2.take(2).collect(),
+                           msgs3.take(2).collect())
             })
             .map(|(msgs1, msgs2, msgs3)| {
                 assert_eq!(msgs1, vec![
                     "{\"Connected\":{\"id\":1}}",
-                    "{\"Join\":{\"seq\":1,\"id\":1}}",
-                    "{\"Join\":{\"seq\":2,\"id\":2}}",
-                    "{\"Join\":{\"seq\":3,\"id\":3}}",
-                    "{\"Leave\":{\"seq\":4,\"id\":2}}",
-                    "{\"Leave\":{\"seq\":5,\"id\":3}}",
+                    "{\"Join\":{\"client_seq\":0,\"seq\":2,\"id\":2}}",
+                    "{\"Join\":{\"client_seq\":0,\"seq\":3,\"id\":3}}",
+                    "{\"Leave\":{\"client_seq\":0,\"seq\":4,\"id\":2}}",
+                    "{\"Leave\":{\"client_seq\":0,\"seq\":5,\"id\":3}}",
                 ]);
                 assert_eq!(msgs2, vec![
                     "{\"Connected\":{\"id\":2}}",
-                    "{\"Join\":{\"seq\":2,\"id\":2}}",
-                    "{\"Join\":{\"seq\":3,\"id\":3}}",
+                    "{\"Join\":{\"client_seq\":0,\"seq\":3,\"id\":3}}",
                 ]);
                 assert_eq!(msgs3, vec![
                     "{\"Connected\":{\"id\":3}}",
-                    "{\"Join\":{\"seq\":3,\"id\":3}}",
-                    "{\"Leave\":{\"seq\":4,\"id\":2}}",
+                    "{\"Leave\":{\"client_seq\":0,\"seq\":4,\"id\":2}}",
                 ]);
             })
+            .map(|_| ())
+    ).unwrap();
+}
+
+#[test]
+fn websocket_edits() {
+    let mut rt = Runtime::new().expect("new test runtime");
+
+    // bind to port 0 to get random port assigned by OS
+    let addr = ([127, 0, 0, 1], 0).into();
+    let store = MemoryStore::default();
+    let server = Server::bind(&addr)
+        .serve(TamaWiki::new(store, "public"));
+
+    // find out which port number we got
+    let port = server.local_addr().port();
+
+    let client1 = connect_websocket(&format!("ws://127.0.0.1:{}/index.html?seq=0", port));
+    let client2 = connect_websocket(&format!("ws://127.0.0.1:{}/index.html?seq=1", port));
+
+    rt.spawn(server.map_err(|err| {
+        panic!("Server error: {}", err)
+    }));
+
+    let client1_receives = |expected: Value| {
+        |(ws1, ws2)| {
+            read_message(ws1).map(move |(msg, ws1)| {
+                let msg: Value = serde_json::from_str(
+                    &msg.unwrap().into_text().unwrap()
+                ).unwrap();
+                assert_eq!(msg, expected);
+                (ws1, ws2)
+            })
+        }
+    };
+
+    let client2_receives = |expected: Value| {
+        let expected = expected.to_owned();
+        |(ws1, ws2)| {
+            read_message(ws2).map(move |(msg, ws2)| {
+                let msg: Value = serde_json::from_str(
+                    &msg.unwrap().into_text().unwrap()
+                ).unwrap();
+                assert_eq!(msg, expected);
+                (ws1, ws2)
+            })
+        }
+    };
+
+    let client1_sends = |msg: Value| {
+        move |(ws1, ws2): (WsStream, WsStream)| {
+            ws1.send(Message::text(msg.to_string())).map(move |ws1| {
+                (ws1, ws2)
+            })
+        }
+    };
+
+    let client2_sends = |msg: Value| {
+        move |(ws1, ws2): (WsStream, WsStream)| {
+            ws2.send(Message::text(msg.to_string())).map(move |ws2| {
+                (ws1, ws2)
+            })
+        }
+    };
+            
+    rt.block_on(
+        // connect client 1
+        client1
+            .and_then(|ws1| {
+                // then connect client 2
+                client2.map(|ws2| (ws1, ws2))
+            })
+            .and_then(client1_receives(json!({"Connected": {"id": 1}})))
+            .and_then(client1_receives(json!({"Join": {"client_seq": 0, "seq": 2, "id": 2}})))
+            .and_then(client2_receives(json!({"Connected": {"id": 2}})))
+            .and_then(client1_sends(json!({
+                "ClientEdit": {
+                    "client_seq": 1,
+                    "parent_seq": 2,
+                    "operations": [{"Insert":{"pos":0,"content":"Hello"}}]
+                }
+            })))
+            .and_then(client2_receives(json!({
+                "Edit": {
+                    "seq": 3,
+                    "client_seq": 0,
+                    "author": 1,
+                    "operations": [
+                        {"Insert": {"pos":0, "content": "Hello"}}
+                    ]
+                }
+            })))
+            .and_then(client1_sends(json!({
+                "ClientEdit": {
+                    "client_seq": 2,
+                    "parent_seq": 3,
+                    "operations": [{"Insert":{"pos":0,"content":"="}}]
+                }
+            })))
+            .and_then(client2_receives(json!({
+                "Edit": {
+                    "seq": 4,
+                    "client_seq": 0,
+                    "author": 1,
+                    "operations": [
+                        {"Insert": {"pos":0, "content": "="}}
+                    ]
+                }
+            })))
+            .and_then(client2_sends(json!({
+                "ClientEdit": {
+                    "client_seq": 1,
+                    "parent_seq": 3,
+                    "operations": [{"Insert":{"pos":5,"content":", world"}}]
+                }
+            })))
+            .and_then(client1_receives(json!({
+                "Edit": {
+                    "seq": 5,
+                    "client_seq": 2,
+                    "author": 2,
+                    "operations": [
+                        {"Insert": {"pos":6, "content": ", world"}}
+                    ]
+                }
+            })))
             .map(|_| ())
     ).unwrap();
 }

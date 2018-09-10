@@ -22,10 +22,9 @@ pub struct MemoryStore {
 impl Store for MemoryStore {
     type Stream = MemoryStoreStream;
     type SinceFuture = Box<Future<Item=Self::Stream, Error=StoreError> + Send>;
+    type PushFuture = Box<Future<Item=SequenceId, Error=StoreError> + Send>;
     
-    fn push(&mut self, path: PathBuf, event: Event) ->
-        Box<Future<Item=SequenceId, Error=StoreError> + Send>
-    {
+    fn push(&mut self, path: PathBuf, event: Event) -> Self::PushFuture {
         let mut documents = match self.documents.write() {
             Ok(documents) => documents,
             Err(_) => return Box::new(
