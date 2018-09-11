@@ -693,7 +693,6 @@
 <span id="693">693</span>
 <span id="694">694</span>
 <span id="695">695</span>
-<span id="696">696</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! An in-memory store, useful for testing.</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">RwLock</span>};
@@ -719,10 +718,9 @@
 <span class="kw">impl</span> <span class="ident">Store</span> <span class="kw">for</span> <span class="ident">MemoryStore</span> {
     <span class="kw">type</span> <span class="ident">Stream</span> <span class="op">=</span> <span class="ident">MemoryStoreStream</span>;
     <span class="kw">type</span> <span class="ident">SinceFuture</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="self">Self</span>::<span class="ident">Stream</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">PushFuture</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">SequenceId</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>;
     
-    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">PathBuf</span>, <span class="ident">event</span>: <span class="ident">Event</span>) <span class="op">-&gt;</span>
-        <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">SequenceId</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>
-    {
+    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">PathBuf</span>, <span class="ident">event</span>: <span class="ident">Event</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">PushFuture</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">documents</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">documents</span>.<span class="ident">write</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">documents</span>) <span class="op">=&gt;</span> <span class="ident">documents</span>,
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="ident">Box</span>::<span class="ident">new</span>(

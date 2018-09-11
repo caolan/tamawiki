@@ -113,6 +113,7 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
+<span id="116">116</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Persists document events using paths as keys.</span>
 <span class="doccomment">//!</span>
@@ -149,12 +150,13 @@
     <span class="kw">type</span> <span class="ident">Stream</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(<span class="ident">SequenceId</span>, <span class="ident">Event</span>), <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>;
     <span class="doccomment">/// The Future returned by `since()` calls</span>
     <span class="kw">type</span> <span class="ident">SinceFuture</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="self">Self</span>::<span class="ident">Stream</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>;
+    <span class="doccomment">/// The Future returned by `push()` calls</span>
+    <span class="kw">type</span> <span class="ident">PushFuture</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">SequenceId</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>;
     
     <span class="doccomment">/// Adds a new Event to the document at &#39;path&#39; and returns the</span>
     <span class="doccomment">/// new SequenceId. If the document does not exist, the act of</span>
     <span class="doccomment">/// pushing an Event creates it.</span>
-    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">PathBuf</span>, <span class="ident">event</span>: <span class="ident">Event</span>) <span class="op">-&gt;</span>
-        <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">SequenceId</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">PathBuf</span>, <span class="ident">event</span>: <span class="ident">Event</span>) <span class="op">-&gt;</span> <span class="self">Self</span>::<span class="ident">PushFuture</span>;
 
     <span class="doccomment">/// Requests the current SequenceId for the document at &#39;path&#39;,</span>
     <span class="doccomment">/// or StoreError::NotFound if it does not exist.</span>

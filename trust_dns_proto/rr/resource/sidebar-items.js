@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Record","Resource records are storage value in DNS, into which all key/value pair data is stored."]]});

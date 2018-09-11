@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["render_response","Attempts to render the body of the provided response using the given template name and data. If the rendering fails, the response will be replaced with an internal server error response."]]});

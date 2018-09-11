@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["ConnectionError","Errors reading or writing edit session messages"]],"struct":[["WebSocketConnection","Wraps a WebSocket connection and handles serialization/deserialization so that ServerMessages can be directly written to it and ClientMessages can be directly read from it."]]});

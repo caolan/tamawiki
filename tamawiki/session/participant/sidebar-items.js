@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Participant","A client connected to a DocumentSession. This struct can be used as a Stream, to read ServerMessages applicable to the participant, and a Sink, for the participant to send ClientMessages to the DocumentSession."]]});

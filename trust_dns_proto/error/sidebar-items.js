@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["ProtoErrorKind",""]],"mod":[["not_openssl",""],["not_ring",""]],"struct":[["ProtoError",""]],"trait":[["FromProtoError",""],["ProtoChainErr",""]],"type":[["ProtoResult",""]]});
