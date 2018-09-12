@@ -91,6 +91,16 @@ function flushOperations() {
     return flushed;
 }
 
+function isBefore(a, b) {
+    if (a.line < b.line) {
+        return true;
+    }
+    if (a.line == b.line) {
+        return a.ch < b.ch;
+    }
+    return false;
+}
+
 function processChange(change) {
     var start = editor.doc.indexFromPos(change.from);
     var data = change.text.join('\n');
@@ -101,6 +111,20 @@ function processChange(change) {
     }
     if (data) {
         pushOperation(new Insert(start, data));
+        var doc = editor.doc;
+        var from = change.from;
+        var to = doc.posFromIndex(start + data.length);
+        var markers = doc.findMarks(from, to);
+        markers.forEach(function (mark) {
+            var range = mark.find();
+            mark.clear();
+            if (isBefore(range.from, from)) {
+                doc.markText(range.from, from, {className: 'edit'});
+            }
+            if (isBefore(to, range.to)) {
+                doc.markText(to, range.to, {className: 'edit'});
+            }
+        });
     }
 }
 
@@ -114,10 +138,10 @@ function applyOperation(op) {
     var doc = editor.doc;
     
     if (op.Insert) {
-        doc.replaceRange(
-            op.Insert.content,
-            doc.posFromIndex(op.Insert.pos)
-        );
+        var start = doc.posFromIndex(op.Insert.pos);
+        doc.replaceRange(op.Insert.content, start);
+        var end = doc.posFromIndex(op.Insert.pos + op.Insert.content.length);
+        var marker = doc.markText(start, end, {className: 'edit'});
     }
     else if (op.Delete) {
         doc.replaceRange(
@@ -146,7 +170,6 @@ ws.onmessage = function (event) {
         connection_id = msg.Connected.id;
         participants.push(msg.Connected.id);
         displayParticipants();
-        // send edits every 1s
         setInterval(function () {
             if (operations.length) {
                 send({
@@ -157,7 +180,7 @@ ws.onmessage = function (event) {
                     }
                 });
             }
-        }, 1000);
+        }, 500);
     }
     else if (msg.Join) {
         participants.push(msg.Join.id);

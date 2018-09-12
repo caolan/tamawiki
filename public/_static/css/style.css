@@ -9,3 +9,7 @@ html {
 #participants .you {
     background-color: #cfc;
 }
+
+.edit {
+    box-shadow: inset 0 -1px 0 0 blue;
+}

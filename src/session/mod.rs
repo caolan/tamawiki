@@ -184,6 +184,8 @@ impl<T: Store + Sync> DocumentSession<T> {
                     Event::Join(Join {id}) => id,
                     Event::Leave(Leave {id}) => id,
                 };
+                // TODO: update store.since query to exclude events
+                // from sender at source instead of filtering here
                 if from != sender {
                     event.transform(&concurrent);
                 }
