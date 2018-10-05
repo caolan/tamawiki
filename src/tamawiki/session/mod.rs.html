@@ -200,6 +200,8 @@
 <span id="200">200</span>
 <span id="201">201</span>
 <span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Co-ordinates store updates and notifications</span>
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::{<span class="self">self</span>, <span class="ident">Future</span>};
@@ -387,6 +389,8 @@
                     <span class="ident">Event</span>::<span class="ident">Join</span>(<span class="ident">Join</span> {<span class="ident">id</span>}) <span class="op">=&gt;</span> <span class="ident">id</span>,
                     <span class="ident">Event</span>::<span class="ident">Leave</span>(<span class="ident">Leave</span> {<span class="ident">id</span>}) <span class="op">=&gt;</span> <span class="ident">id</span>,
                 };
+                <span class="comment">// TODO: update store.since query to exclude events</span>
+                <span class="comment">// from sender at source instead of filtering here</span>
                 <span class="kw">if</span> <span class="ident">from</span> <span class="op">!=</span> <span class="ident">sender</span> {
                     <span class="ident">event</span>.<span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="ident">concurrent</span>);
                 }
