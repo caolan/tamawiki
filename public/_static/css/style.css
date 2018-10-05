@@ -11,5 +11,6 @@ html {
 }
 
 .edit {
-    box-shadow: inset 0 -1px 0 0 blue;
+    /* box-shadow: inset 0 -1px 0 0 blue; */
+    border-bottom: 1px solid blue;
 }
