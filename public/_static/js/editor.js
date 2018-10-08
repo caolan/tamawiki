@@ -58,27 +58,56 @@ function send(msg) {
  Delete.prototype.toJSON = function () {
      return {'Delete': {start: this.start, end: this.end}};
  };
- 
+
+ function MoveCursor(pos) {
+     this.pos = pos;
+ }
+ MoveCursor.prototype.toJSON = function () {
+     return {'MoveCursor': {pos: this.pos}};
+ };
+
  var operations = [];
 
 function pushOperation(op) {
+    // remove any previous cursor moves as they will be superceded by the new operation
+    operations = operations.filter(function (op) {
+        return !(op instanceof MoveCursor);
+    });
+    // attempt to combine/squash consecutive events before they're sent
     var last = operations.length && operations[operations.length - 1];
-    if (last && last instanceof op.constructor) {
+    if (last) {
         if (op instanceof Insert) {
-            if (last.pos + last.content.length == op.pos) {
-                last.content += op.content;
-                return;
+            if (last instanceof Insert) {
+                if (last.pos + last.content.length === op.pos) {
+                    last.content += op.content;
+                    return;
+                }
             }
         }
-        else {
-            // otherwise it's a delete
-            if (last.start == op.start) {
-                last.end += (op.end - op.start);
-                return;
+        else if (op instanceof Delete) {
+            if (last instanceof Delete) {
+                if (last.start === op.start) {
+                    last.end += (op.end - op.start);
+                    return;
+                }
+                else if (last.start === op.end) {
+                    last.start = op.start;
+                    return;
+                }
             }
-            else if (last.start == op.end) {
-                last.start = op.start;
-                return;
+        }
+        if (op instanceof MoveCursor) {
+            // do not push move operation if it's already inferred by
+            // pervious Insert/Delete operation
+            if (last instanceof Insert) {
+                if (last.pos + last.content.length === op.pos) {
+                    return;
+                }
+            }
+            else if (last instanceof Delete) {
+                if (last.start === op.pos) {
+                    return;
+                }
             }
         }
     }
@@ -133,6 +162,13 @@ editor.on('changes', function (instance, changes) {
     if (!applying_server_edits) {
         changes.forEach(processChange);
     }
+});
+
+// fired when the cursor or selection moves, or any change is made to the editor content
+editor.on('cursorActivity', function (...args) {
+    var doc = editor.doc;
+    var pos = doc.indexFromPos(doc.getCursor('head'));
+    pushOperation(new MoveCursor(pos));
 });
 
 function getParticipant(participants, id) {
