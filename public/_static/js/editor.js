@@ -101,44 +101,6 @@ function isBefore(a, b) {
     return false;
 }
 
-var edit_highlight_counter = 0;
-var edit_highlights = [];
-var fade_delay = 10 * 1000; // 10 seconds
-
-function findEditHighlights(ms) {
-    edit_highlights.forEach(function (hl) {
-        hl.nodes = document.body.querySelectorAll('.' + hl.name);
-    });
-}
-
-function animateEditHighlights(ms) {
-    var remove = false;
-    edit_highlights.forEach(function (hl) {
-        if (!hl.started) {
-            hl.started = ms;
-            hl.opacity = 1;
-        } else {
-            hl.opacity = 1 - (Math.max(1, ms - hl.started) / fade_delay);
-            if (hl.opacity <= 0) {
-                hl.opacity = 0;
-                remove = true;
-            }
-        }
-        hl.nodes.forEach(function (el) {
-            // el.style.boxShadow = 'inset 0 -1px 0 0 rgba(0, 0, 200, ' + hl.opacity + ')';
-            el.style.borderBottomColor = 'rgba(0, 0, 200, ' + hl.opacity + ')';
-        });
-    });
-    if (remove) {
-        edit_highlights = edit_highlights.filter(function (hl) {
-            return hl.opacity > 0;
-        });
-    }
-    if (edit_highlights.length) {
-        window.requestAnimationFrame(animateEditHighlights);
-    }
-}
-
 function processChange(change) {
     var start = editor.doc.indexFromPos(change.from);
     var data = change.text.join('\n');
@@ -153,20 +115,16 @@ function processChange(change) {
         var from = change.from;
         var to = doc.posFromIndex(start + data.length);
         var markers = doc.findMarks(from, to);
-        var edit_name = 'edit' + (++edit_highlight_counter);
         markers.forEach(function (mark) {
             var range = mark.find();
             mark.clear();
             if (isBefore(range.from, from)) {
-                doc.markText(range.from, from, {className: 'edit ' + edit_name});
+                doc.markText(range.from, from, {className: 'edit'});
             }
             if (isBefore(to, range.to)) {
-                doc.markText(to, range.to, {className: 'edit ' + edit_name});
+                doc.markText(to, range.to, {className: 'edit'});
             }
         });
-        edit_highlights.push({name: edit_name});
-        findEditHighlights();
-        window.requestAnimationFrame(animateEditHighlights);
     }
 }
 
@@ -177,9 +135,6 @@ editor.on('changes', function (instance, changes) {
     }
 });
 
-// fired when codemirror updates it's DOM display
-editor.on('update', findEditHighlights);
-
 function applyOperation(op) {
     var doc = editor.doc;
     
@@ -187,11 +142,7 @@ function applyOperation(op) {
         var start = doc.posFromIndex(op.Insert.pos);
         doc.replaceRange(op.Insert.content, start);
         var end = doc.posFromIndex(op.Insert.pos + op.Insert.content.length);
-        var edit_name = 'edit' + (++edit_highlight_counter);
-        var marker = doc.markText(start, end, {className: 'edit ' + edit_name});
-        edit_highlights.push({name: edit_name});
-        findEditHighlights();
-        window.requestAnimationFrame(animateEditHighlights);
+        var marker = doc.markText(start, end, {className: 'edit'});
     }
     else if (op.Delete) {
         doc.replaceRange(
