@@ -26,10 +26,10 @@ var participants_el = document.getElementById('participants');
 
 function displayParticipants() {
     var ul = document.createElement('ul');
-    participants.forEach(function (id) {
+    participants.forEach(function (p) {
         var li = document.createElement('li');
-        li.textContent = 'Guest ' + id;
-        if (id == connection_id) {
+        li.textContent = 'Guest ' + p.id;
+        if (p.id == connection_id) {
             li.className = 'you';
         }
         ul.appendChild(li);
@@ -135,7 +135,28 @@ editor.on('changes', function (instance, changes) {
     }
 });
 
-function applyOperation(op) {
+function getParticipant(participants, id) {
+    for (var i = 0, len = participants.length; i < len; i++) {
+        if (participants[i].id === id) {
+            return participants[i];
+        }
+    }
+    return null;
+}
+
+function setParticipantCursor(id, pos) {
+    var participant = getParticipant(participants, id);
+    if (participant.cursor) {
+        participant.cursor.clear();
+    }
+    var cursorCoords = editor.cursorCoords(pos);
+    var el = document.createElement('span');
+    el.className = 'participant-cursor';
+    el.style.top = `${cursorCoords.bottom}px`;
+    participant.cursor = editor.doc.setBookmark(pos, { widget: el });
+}
+
+function applyOperation(author, op) {
     var doc = editor.doc;
     
     if (op.Insert) {
@@ -143,19 +164,21 @@ function applyOperation(op) {
         doc.replaceRange(op.Insert.content, start);
         var end = doc.posFromIndex(op.Insert.pos + op.Insert.content.length);
         var marker = doc.markText(start, end, {className: 'edit'});
+        setParticipantCursor(author, end);
     }
     else if (op.Delete) {
-        doc.replaceRange(
-            "",
-            doc.posFromIndex(op.Delete.start),
-            doc.posFromIndex(op.Delete.end)
-        );
+        var start = doc.posFromIndex(op.Delete.start);
+        var end = doc.posFromIndex(op.Delete.end);
+        doc.replaceRange("", start, end);
+        setParticipantCursor(author, start);
     }
 }
 
 function applyEdit(edit) {
     applying_server_edits = true;
-    edit.operations.forEach(applyOperation);
+    edit.operations.forEach(function (op) {
+        applyOperation(edit.author, op);
+    });
     seq = edit.seq;
     applying_server_edits = false;
 }
@@ -169,7 +192,9 @@ ws.onmessage = function (event) {
     console.log('RECEIVED: ' + JSON.stringify(msg));
     if (msg.Connected) {
         connection_id = msg.Connected.id;
-        participants.push(msg.Connected.id);
+        participants.push({
+            id: msg.Connected.id
+        });
         displayParticipants();
         setInterval(function () {
             if (operations.length) {
@@ -184,12 +209,12 @@ ws.onmessage = function (event) {
         }, 500);
     }
     else if (msg.Join) {
-        participants.push(msg.Join.id);
+        participants.push({id: msg.Join.id});
         displayParticipants();
     }
     else if (msg.Leave) {
-        participants = participants.filter(function (id) {
-            return id != msg.Leave.id;
+        participants = participants.filter(function (p) {
+            return p.id != msg.Leave.id;
         });
         displayParticipants();
     }

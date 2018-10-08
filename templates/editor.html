@@ -12,7 +12,7 @@
 <div id="participants">
 </div>
 
-<div id="editor" data-initial-seq="{{ seq }}" data-participants="{{ participants|json_encode() }}">{{ content }}</div>
+<div id="editor" data-initial-seq="{{ seq }}" data-participants="{{ participants | json_encode() | escape }}">{{ content }}</div>
 {% endblock content %}
 
 {% block scripts %}

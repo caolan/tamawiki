@@ -14,7 +14,13 @@ pub struct Document {
     /// Current document content
     pub content: String,
     /// Current active editors
-    pub participants: HashSet<ParticipantId>,
+    pub participants: HashSet<DocumentParticipant>,
+}
+
+/// Edit session participant data relevant to displaying a document
+#[derive(Debug, PartialEq, Eq, Hash, Default, Clone, Serialize)]
+pub struct DocumentParticipant {
+    id: ParticipantId
 }
 
 impl Document {
@@ -31,10 +37,10 @@ impl Document {
                 }
             },
             Event::Join(Join {id}) => {
-                self.participants.insert(*id);
+                self.participants.insert(DocumentParticipant {id: *id});
             },
             Event::Leave(Leave {id}) => {
-                self.participants.remove(&id);
+                self.participants.remove(&DocumentParticipant {id: *id});
             },
         }
         Ok(())
