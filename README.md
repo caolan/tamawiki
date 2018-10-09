@@ -4,11 +4,11 @@
 
 I'm implementing a basic wiki to help me learn [Rust](https://rust-lang.org). 
 
-# Documentation
+## Documentation
 
 [API Documentation](https://caolan.github.io/tamawiki/tamawiki/index.html)
 
-# Running
+## Running
 
 ```
 npm install
