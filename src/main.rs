@@ -14,7 +14,7 @@ fn main() {
         "index.html" => "Welcome to TamaWiki.\n"
     };
     let server = Server::bind(&addr)
-        .serve(TamaWiki::new(store, "public"))
+        .serve(TamaWiki::new(store, "public/dist"))
         .map_err(|err| eprintln!("Server error: {}", err));
     
     hyper::rt::run(server);

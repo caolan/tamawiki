@@ -1,8 +1,16 @@
 language: rust
+dist: trusty
+sudo: required
+before_script:
+  - curl -sSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
+  - echo "deb https://deb.nodesource.com/node_8.x trusty main" | sudo tee -a /etc/apt/sources.list
+  - sudo apt-get update -qq
+  - sudo apt-get install nodejs -y
 script:
   - cargo build --verbose --all
   - cargo test --verbose --all
   - cargo doc --verbose --all
+  - npm install && npx webpack
 rust:
   - stable
   - beta
@@ -11,7 +19,10 @@ matrix:
   allow_failures:
     - rust: nightly
   fast_finish: true
-cache: cargo
+cache:
+  cargo: true
+  directories:
+    - node_modules
 deploy:
   provider: pages
   skip-cleanup: true
@@ -20,4 +31,3 @@ deploy:
   local-dir: target/doc
   on:
     branch: master
-rust: stable
