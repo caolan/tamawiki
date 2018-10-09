@@ -923,7 +923,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">Operation</span>, <span class="ident">Insert</span>, <span class="ident">Join</span>};
+    <span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">DocumentParticipant</span>, <span class="ident">Operation</span>, <span class="ident">Insert</span>, <span class="ident">Join</span>};
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashSet</span>;
     
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1233,7 +1233,7 @@
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">seq</span>, <span class="number">3</span>);
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">doc</span>, <span class="ident">Document</span> {
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello, world&quot;</span>),
-                <span class="ident">participants</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
+                <span class="ident">participants</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">DocumentParticipant</span> {<span class="ident">id</span>: <span class="number">1</span>}].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
             });
         });
 
@@ -1255,7 +1255,7 @@
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">seq</span>, <span class="number">3</span>);
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">doc</span>, <span class="ident">Document</span> {
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello, world&quot;</span>),
-                <span class="ident">participants</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
+                <span class="ident">participants</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">DocumentParticipant</span> {<span class="ident">id</span>: <span class="number">1</span>}].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
             });
         });
 
@@ -1320,7 +1320,7 @@
         ).<span class="ident">map</span>(<span class="op">|</span><span class="ident">doc</span><span class="op">|</span> {
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">doc</span>, <span class="ident">Document</span> {
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;&quot;</span>),
-                <span class="ident">participants</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
+                <span class="ident">participants</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">DocumentParticipant</span> {<span class="ident">id</span>: <span class="number">1</span>}].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
             });
         });
 
@@ -1330,7 +1330,7 @@
         ).<span class="ident">map</span>(<span class="op">|</span><span class="ident">doc</span><span class="op">|</span> {
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">doc</span>, <span class="ident">Document</span> {
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello&quot;</span>),
-                <span class="ident">participants</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
+                <span class="ident">participants</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">DocumentParticipant</span> {<span class="ident">id</span>: <span class="number">1</span>}].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
             });
         });
 
@@ -1340,7 +1340,7 @@
         ).<span class="ident">map</span>(<span class="op">|</span><span class="ident">doc</span><span class="op">|</span> {
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">doc</span>, <span class="ident">Document</span> {
                 <span class="ident">content</span>: <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Hello, world&quot;</span>),
-                <span class="ident">participants</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
+                <span class="ident">participants</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">DocumentParticipant</span> {<span class="ident">id</span>: <span class="number">1</span>}].<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
             });
         });
         
