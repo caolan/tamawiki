@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.1.7/src/runtime/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.1.11/src/runtime/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -493,6 +493,7 @@
 <span id="493">493</span>
 <span id="494">494</span>
 <span id="495">495</span>
+<span id="496">496</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! A batteries included runtime for applications using Tokio.</span>
 <span class="doccomment">//!</span>
@@ -621,12 +622,11 @@
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 
+<span class="kw">use</span> <span class="ident">tokio_executor</span>::<span class="ident">enter</span>;
 <span class="kw">use</span> <span class="ident">tokio_threadpool</span> <span class="kw">as</span> <span class="ident">threadpool</span>;
 
 <span class="kw">use</span> <span class="ident">futures</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::<span class="ident">Future</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">futures2</span>;
 
 <span class="doccomment">/// Handle to the Tokio runtime.</span>
 <span class="doccomment">///</span>
@@ -708,19 +708,9 @@
 {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
     <span class="ident">runtime</span>.<span class="ident">spawn</span>(<span class="ident">future</span>);
-    <span class="ident">runtime</span>.<span class="ident">shutdown_on_idle</span>().<span class="ident">wait</span>().<span class="ident">unwrap</span>();
-}
-
-<span class="doccomment">/// Start the Tokio runtime using the supplied future to bootstrap execution.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Identical to `run` but works with futures 0.2-style futures.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run2</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">future</span>: <span class="ident">F</span>)
-    <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">futures2</span>::<span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> <span class="ident">futures2</span>::<span class="ident">Never</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-{
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">Runtime</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
-    <span class="ident">runtime</span>.<span class="ident">spawn2</span>(<span class="ident">future</span>);
-    <span class="ident">runtime</span>.<span class="ident">shutdown_on_idle</span>().<span class="ident">wait</span>().<span class="ident">unwrap</span>();
+    <span class="ident">enter</span>().<span class="ident">expect</span>(<span class="string">&quot;nested tokio::run&quot;</span>)
+        .<span class="ident">block_on</span>(<span class="ident">runtime</span>.<span class="ident">shutdown_on_idle</span>())
+        .<span class="ident">unwrap</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">Runtime</span> {
@@ -849,26 +839,13 @@
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Spawn a futures 0.2-style future onto the Tokio runtime.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Otherwise identical to `spawn`</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn2</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">futures2</span>::<span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> <span class="ident">futures2</span>::<span class="ident">Never</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    {
-        <span class="ident">futures2</span>::<span class="ident">executor</span>::<span class="ident">Executor</span>::<span class="ident">spawn</span>(
-            <span class="self">self</span>.<span class="ident">inner_mut</span>().<span class="ident">pool</span>.<span class="ident">sender_mut</span>(), <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">future</span>)
-        ).<span class="ident">unwrap</span>();
-        <span class="self">self</span>
-    }
-
     <span class="doccomment">/// Run a future to completion on the Tokio runtime.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This runs the given future on the runtime, blocking until it is</span>
     <span class="doccomment">/// complete, and yielding its resolved result. Any tasks or timers which</span>
     <span class="doccomment">/// the future spawns internally will be executed on the runtime.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This method should not be called from an asynchrounous context.</span>
+    <span class="doccomment">/// This method should not be called from an asynchronous context.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
@@ -883,6 +860,31 @@
         <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">futures</span>::<span class="ident">sync</span>::<span class="ident">oneshot</span>::<span class="ident">channel</span>();
         <span class="self">self</span>.<span class="ident">spawn</span>(<span class="ident">future</span>.<span class="ident">then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">tx</span>.<span class="ident">send</span>(<span class="ident">r</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">unreachable</span><span class="macro">!</span>())));
         <span class="ident">rx</span>.<span class="ident">wait</span>().<span class="ident">unwrap</span>()
+    }
+
+    <span class="doccomment">/// Run a future to completion on the Tokio runtime, then wait for all</span>
+    <span class="doccomment">/// background futures to complete too.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This runs the given future on the runtime, blocking until it is</span>
+    <span class="doccomment">/// complete, waiting for background futures to complete, and yielding</span>
+    <span class="doccomment">/// its resolved result. Any tasks or timers which the future spawns</span>
+    <span class="doccomment">/// internally will be executed on the runtime and waited for completion.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method should not be called from an asynchronous context.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function panics if the executor is at capacity, if the provided</span>
+    <span class="doccomment">/// future panics, or if called within an asynchronous execution context.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block_on_all</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">future</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span>,
+        <span class="ident">R</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">E</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    {
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block_on</span>(<span class="ident">future</span>);
+        <span class="self">self</span>.<span class="ident">shutdown_on_idle</span>().<span class="ident">wait</span>().<span class="ident">unwrap</span>();
+        <span class="ident">res</span>
     }
 
     <span class="doccomment">/// Signals the runtime to shutdown once it becomes idle.</span>

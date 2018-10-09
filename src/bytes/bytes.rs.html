@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-0.4.9/src/bytes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bytes.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-0.4.10/src/bytes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bytes.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2873,6 +2873,46 @@
 <span id="2873">2873</span>
 <span id="2874">2874</span>
 <span id="2875">2875</span>
+<span id="2876">2876</span>
+<span id="2877">2877</span>
+<span id="2878">2878</span>
+<span id="2879">2879</span>
+<span id="2880">2880</span>
+<span id="2881">2881</span>
+<span id="2882">2882</span>
+<span id="2883">2883</span>
+<span id="2884">2884</span>
+<span id="2885">2885</span>
+<span id="2886">2886</span>
+<span id="2887">2887</span>
+<span id="2888">2888</span>
+<span id="2889">2889</span>
+<span id="2890">2890</span>
+<span id="2891">2891</span>
+<span id="2892">2892</span>
+<span id="2893">2893</span>
+<span id="2894">2894</span>
+<span id="2895">2895</span>
+<span id="2896">2896</span>
+<span id="2897">2897</span>
+<span id="2898">2898</span>
+<span id="2899">2899</span>
+<span id="2900">2900</span>
+<span id="2901">2901</span>
+<span id="2902">2902</span>
+<span id="2903">2903</span>
+<span id="2904">2904</span>
+<span id="2905">2905</span>
+<span id="2906">2906</span>
+<span id="2907">2907</span>
+<span id="2908">2908</span>
+<span id="2909">2909</span>
+<span id="2910">2910</span>
+<span id="2911">2911</span>
+<span id="2912">2912</span>
+<span id="2913">2913</span>
+<span id="2914">2914</span>
+<span id="2915">2915</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> {<span class="ident">IntoBuf</span>, <span class="ident">Buf</span>, <span class="ident">BufMut</span>};
 <span class="kw">use</span> <span class="ident">buf</span>::<span class="ident">Iter</span>;
@@ -3450,6 +3490,46 @@
     <span class="doccomment">/// Requires that `end &lt;= self.len()`, otherwise slicing will panic.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">end</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">Bytes</span> {
         <span class="self">self</span>.<span class="ident">slice</span>(<span class="number">0</span>, <span class="ident">end</span>)
+    }
+
+    <span class="doccomment">/// Returns a slice of self that is equivalent to the given `subset`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// When processing a `Bytes` buffer with other tools, one often gets a</span>
+    <span class="doccomment">/// `&amp;[u8]` which is in fact a slice of the `Bytes`, i.e. a subset of it.</span>
+    <span class="doccomment">/// This function turns that `&amp;[u8]` into another `Bytes`, as if one had</span>
+    <span class="doccomment">/// called `self.slice()` with the offsets that correspond to `subset`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This operation is `O(1)`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use bytes::Bytes;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let bytes = Bytes::from(&amp;b&quot;012345678&quot;[..]);</span>
+    <span class="doccomment">/// let as_slice = bytes.as_ref();</span>
+    <span class="doccomment">/// let subset = &amp;as_slice[2..6];</span>
+    <span class="doccomment">/// let subslice = bytes.slice_ref(&amp;subset);</span>
+    <span class="doccomment">/// assert_eq!(&amp;subslice[..], b&quot;2345&quot;);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Requires that the given `sub` slice is in fact contained within the</span>
+    <span class="doccomment">/// `Bytes` buffer; otherwise this function will panic.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">slice_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">subset</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-&gt;</span> <span class="ident">Bytes</span> {
+        <span class="kw">let</span> <span class="ident">bytes_p</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">bytes_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
+
+        <span class="kw">let</span> <span class="ident">sub_p</span> <span class="op">=</span> <span class="ident">subset</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">sub_len</span> <span class="op">=</span> <span class="ident">subset</span>.<span class="ident">len</span>();
+
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">sub_p</span> <span class="op">&gt;=</span> <span class="ident">bytes_p</span>);
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">sub_p</span> <span class="op">+</span> <span class="ident">sub_len</span> <span class="op">&lt;=</span> <span class="ident">bytes_p</span> <span class="op">+</span> <span class="ident">bytes_len</span>);
+
+        <span class="kw">let</span> <span class="ident">sub_offset</span> <span class="op">=</span> <span class="ident">sub_p</span> <span class="op">-</span> <span class="ident">bytes_p</span>;
+
+        <span class="self">self</span>.<span class="ident">slice</span>(<span class="ident">sub_offset</span>, <span class="ident">sub_offset</span> <span class="op">+</span> <span class="ident">sub_len</span>)
     }
 
     <span class="doccomment">/// Splits the bytes into two at the given index.</span>

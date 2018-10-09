@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-io-0.1.7/src/async_read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_read.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-io-0.1.9/src/async_read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>async_read.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -166,6 +166,7 @@
 <span id="166">166</span>
 <span id="167">167</span>
 <span id="168">168</span>
+<span id="169">169</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span> <span class="kw">as</span> <span class="ident">std_io</span>;
 <span class="kw">use</span> <span class="ident">bytes</span>::<span class="ident">BufMut</span>;
@@ -185,15 +186,16 @@
 <span class="doccomment">/// Specifically, this means that the `read` function will return one of the</span>
 <span class="doccomment">/// following:</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// * `Ok(n)` means that `n` bytes of data was immediately read and placed into</span>
-<span class="doccomment">///   the output buffer, where `n` == 0 implies that EOF has been reached.</span>
+<span class="doccomment">/// * `Ok(Async::Ready(n))` means that `n` bytes of data was immediately read</span>
+<span class="doccomment">///   and placed into the output buffer, where `n` == 0 implies that EOF has</span>
+<span class="doccomment">///   been reached.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// * `Err(e) if e.kind() == ErrorKind::WouldBlock` means that no data was read</span>
-<span class="doccomment">///   into the buffer provided. The I/O object is not currently readable but may</span>
-<span class="doccomment">///   become readable in the future. Most importantly, **the current future&#39;s</span>
-<span class="doccomment">///   task is scheduled to get unparked when the object is readable**. This</span>
-<span class="doccomment">///   means that like `Future::poll` you&#39;ll receive a notification when the I/O</span>
-<span class="doccomment">///   object is readable again.</span>
+<span class="doccomment">/// * `Ok(Async::NotReady)` means that no data was read into the buffer </span>
+<span class="doccomment">///   provided. The I/O object is not currently readable but may become readable</span>
+<span class="doccomment">///   in the future. Most importantly, **the current future&#39;s task is scheduled</span>
+<span class="doccomment">///   to get unparked when the object is readable**. This means that like </span>
+<span class="doccomment">///   `Future::poll` you&#39;ll receive a notification when the I/O object is </span>
+<span class="doccomment">///   readable again.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// * `Err(e)` for other errors are standard I/O errors coming from the</span>
 <span class="doccomment">///   underlying object.</span>
@@ -221,7 +223,7 @@
     <span class="doccomment">/// `prepare_uninitialized_buffer`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function isn&#39;t actually `unsafe` to call but `unsafe` to implement.</span>
-    <span class="doccomment">/// The implementor must ensure that either the whole `buf` has been zeroed</span>
+    <span class="doccomment">/// The implementer must ensure that either the whole `buf` has been zeroed</span>
     <span class="doccomment">/// or `read_buf()` overwrites the buffer without reading it and returns</span>
     <span class="doccomment">/// correct value.</span>
     <span class="doccomment">///</span>

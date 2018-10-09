@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.5/src/pool/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.7/src/pool/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -541,28 +541,6 @@
 <span id="541">541</span>
 <span id="542">542</span>
 <span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
 </pre><pre class="rust ">
 <span class="kw">mod</span> <span class="ident">backup</span>;
 <span class="kw">mod</span> <span class="ident">backup_stack</span>;
@@ -587,13 +565,15 @@
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">Poll</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">task</span>::<span class="ident">AtomicTask</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">UnsafeCell</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::{<span class="ident">Acquire</span>, <span class="ident">AcqRel</span>, <span class="ident">Relaxed</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">Cell</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">num</span>::<span class="ident">Wrapping</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::{<span class="ident">Acquire</span>, <span class="ident">AcqRel</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">AtomicUsize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">thread</span>;
 
-<span class="kw">use</span> <span class="ident">rand</span>::{<span class="ident">Rng</span>, <span class="ident">SeedableRng</span>, <span class="ident">XorShiftRng</span>};
+<span class="kw">use</span> <span class="ident">crossbeam_utils</span>::<span class="ident">CachePadded</span>;
+<span class="kw">use</span> <span class="ident">rand</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Pool</span> {
@@ -605,19 +585,16 @@
     <span class="comment">//</span>
     <span class="comment">// The value of this atomic is deserialized into a `pool::State` instance.</span>
     <span class="comment">// See comments for that type.</span>
-    <span class="kw">pub</span> <span class="ident">state</span>: <span class="ident">AtomicUsize</span>,
+    <span class="kw">pub</span> <span class="ident">state</span>: <span class="ident">CachePadded</span><span class="op">&lt;</span><span class="ident">AtomicUsize</span><span class="op">&gt;</span>,
 
     <span class="comment">// Stack tracking sleeping workers.</span>
-    <span class="ident">sleep_stack</span>: <span class="ident">worker</span>::<span class="ident">Stack</span>,
+    <span class="ident">sleep_stack</span>: <span class="ident">CachePadded</span><span class="op">&lt;</span><span class="ident">worker</span>::<span class="ident">Stack</span><span class="op">&gt;</span>,
 
     <span class="comment">// Number of workers that haven&#39;t reached the final state of shutdown</span>
     <span class="comment">//</span>
     <span class="comment">// This is only used to know when to single `shutdown_task` once the</span>
     <span class="comment">// shutdown process has completed.</span>
     <span class="kw">pub</span> <span class="ident">num_workers</span>: <span class="ident">AtomicUsize</span>,
-
-    <span class="comment">// Used to generate a thread local RNG seed</span>
-    <span class="kw">pub</span> <span class="ident">next_thread_id</span>: <span class="ident">AtomicUsize</span>,
 
     <span class="comment">// Worker state</span>
     <span class="comment">//</span>
@@ -675,18 +652,15 @@
         <span class="kw">let</span> <span class="ident">blocking</span> <span class="op">=</span> <span class="ident">Blocking</span>::<span class="ident">new</span>(<span class="ident">max_blocking</span>);
 
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">Pool</span> {
-            <span class="ident">state</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="ident">State</span>::<span class="ident">new</span>().<span class="ident">into</span>()),
-            <span class="ident">sleep_stack</span>: <span class="ident">worker</span>::<span class="ident">Stack</span>::<span class="ident">new</span>(),
+            <span class="ident">state</span>: <span class="ident">CachePadded</span>::<span class="ident">new</span>(<span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="ident">State</span>::<span class="ident">new</span>().<span class="ident">into</span>())),
+            <span class="ident">sleep_stack</span>: <span class="ident">CachePadded</span>::<span class="ident">new</span>(<span class="ident">worker</span>::<span class="ident">Stack</span>::<span class="ident">new</span>()),
             <span class="ident">num_workers</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>),
-            <span class="ident">next_thread_id</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="number">0</span>),
             <span class="ident">workers</span>,
             <span class="ident">backup</span>,
             <span class="ident">backup_stack</span>,
             <span class="ident">blocking</span>,
             <span class="ident">shutdown_task</span>: <span class="ident">ShutdownTask</span> {
-                <span class="ident">task1</span>: <span class="ident">AtomicTask</span>::<span class="ident">new</span>(),
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-                <span class="ident">task2</span>: <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">AtomicWaker</span>::<span class="ident">new</span>(),
+                <span class="ident">task</span>: <span class="ident">AtomicTask</span>::<span class="ident">new</span>(),
             },
             <span class="ident">config</span>,
         };
@@ -985,6 +959,8 @@
                     <span class="kw">break</span>;
                 }
 
+                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">inner</span>.<span class="ident">backup</span>[<span class="ident">backup_id</span>.<span class="number">0</span>].<span class="ident">is_pushed</span>());
+
                 <span class="comment">// Push the thread back onto the backup stack. This makes it</span>
                 <span class="comment">// available for future handoffs.</span>
                 <span class="comment">//</span>
@@ -1005,20 +981,14 @@
 
                 <span class="comment">// Wait for a handoff</span>
                 <span class="kw">let</span> <span class="ident">handoff</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">backup</span>[<span class="ident">backup_id</span>.<span class="number">0</span>]
-                    .<span class="ident">wait_for_handoff</span>(<span class="bool-val">true</span>);
+                    .<span class="ident">wait_for_handoff</span>(<span class="ident">inner</span>.<span class="ident">config</span>.<span class="ident">keep_alive</span>);
 
                 <span class="kw">match</span> <span class="ident">handoff</span> {
                     <span class="ident">Handoff</span>::<span class="ident">Worker</span>(<span class="ident">id</span>) <span class="op">=&gt;</span> {
                         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">inner</span>.<span class="ident">backup</span>[<span class="ident">backup_id</span>.<span class="number">0</span>].<span class="ident">is_running</span>());
                         <span class="ident">worker_id</span> <span class="op">=</span> <span class="ident">id</span>;
                     }
-                    <span class="ident">Handoff</span>::<span class="ident">Idle</span> <span class="op">=&gt;</span> {
-                        <span class="comment">// Worker is idle</span>
-                        <span class="kw">break</span>;
-                    }
-                    <span class="ident">Handoff</span>::<span class="ident">Terminated</span> <span class="op">=&gt;</span> {
-                        <span class="comment">// TODO: When wait_for_handoff supports blocking with a</span>
-                        <span class="comment">// timeout, this will have to be smarter</span>
+                    <span class="ident">Handoff</span>::<span class="ident">Idle</span> <span class="op">|</span> <span class="ident">Handoff</span>::<span class="ident">Terminated</span> <span class="op">=&gt;</span> {
                         <span class="kw">break</span>;
                     }
                 }
@@ -1084,39 +1054,25 @@
 
     <span class="doccomment">/// Generates a random number</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Uses a thread-local seeded XorShift.</span>
+    <span class="doccomment">/// Uses a thread-local random number generator based on XorShift.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rand_usize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">usize</span> {
-        <span class="comment">// Use a thread-local random number generator. If the thread does not</span>
-        <span class="comment">// have one yet, then seed a new one</span>
-        <span class="macro">thread_local</span><span class="macro">!</span>(<span class="kw">static</span> <span class="ident">THREAD_RNG_KEY</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">XorShiftRng</span><span class="op">&gt;&gt;</span> <span class="op">=</span> <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>));
-
-        <span class="ident">THREAD_RNG_KEY</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;32&quot;</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">new_rng</span>(<span class="ident">thread_id</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">XorShiftRng</span> {
-                <span class="ident">XorShiftRng</span>::<span class="ident">from_seed</span>([
-                    <span class="ident">thread_id</span> <span class="kw">as</span> <span class="ident">u32</span>,
-                    <span class="number">0x00000000</span>,
-                    <span class="number">0xa8a7d469</span>,
-                    <span class="number">0x97830e05</span>])
+        <span class="macro">thread_local</span><span class="macro">!</span> {
+            <span class="kw">static</span> <span class="ident">RNG</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;&gt;</span> <span class="op">=</span> {
+                <span class="comment">// The initial seed must be non-zero.</span>
+                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">rand</span>::<span class="ident">random</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>() <span class="op">|</span> <span class="number">1</span>;
+                <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="ident">Wrapping</span>(<span class="ident">init</span>))
             }
+        }
 
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_pointer_width</span> <span class="op">=</span> <span class="string">&quot;64&quot;</span>)]</span>
-            <span class="kw">fn</span> <span class="ident">new_rng</span>(<span class="ident">thread_id</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="ident">XorShiftRng</span> {
-                <span class="ident">XorShiftRng</span>::<span class="ident">from_seed</span>([
-                    <span class="ident">thread_id</span> <span class="kw">as</span> <span class="ident">u32</span>,
-                    (<span class="ident">thread_id</span> <span class="op">&gt;&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <span class="ident">u32</span>,
-                    <span class="number">0xa8a7d469</span>,
-                    <span class="number">0x97830e05</span>])
-            }
-
-            <span class="kw">let</span> <span class="ident">thread_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_thread_id</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">Relaxed</span>);
-            <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">get</span>() };
-
-            <span class="kw">if</span> <span class="ident">rng</span>.<span class="ident">is_none</span>() {
-                <span class="kw-2">*</span><span class="ident">rng</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">new_rng</span>(<span class="ident">thread_id</span>));
-            }
-
-            <span class="ident">rng</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>().<span class="ident">next_u32</span>() <span class="kw">as</span> <span class="ident">usize</span>
+        <span class="ident">RNG</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">rng</span><span class="op">|</span> {
+            <span class="comment">// This is the 32-bit variant of Xorshift.</span>
+            <span class="comment">// https://en.wikipedia.org/wiki/Xorshift</span>
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">rng</span>.<span class="ident">get</span>();
+            <span class="ident">x</span> <span class="op">^=</span> <span class="ident">x</span> <span class="op">&lt;&lt;</span> <span class="number">13</span>;
+            <span class="ident">x</span> <span class="op">^=</span> <span class="ident">x</span> <span class="op">&gt;&gt;</span> <span class="number">17</span>;
+            <span class="ident">x</span> <span class="op">^=</span> <span class="ident">x</span> <span class="op">&lt;&lt;</span> <span class="number">5</span>;
+            <span class="ident">rng</span>.<span class="ident">set</span>(<span class="ident">x</span>);
+            <span class="ident">x</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>
         })
     }
 }

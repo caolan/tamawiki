@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.12/src/tera.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tera.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.17/src/tera.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tera.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -962,23 +962,52 @@
 <span id="962">962</span>
 <span id="963">963</span>
 <span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
 
 <span class="kw">use</span> <span class="ident">glob</span>::<span class="ident">glob</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">Serialize</span>;
 <span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">value</span>::<span class="ident">to_value</span>;
 
-<span class="kw">use</span> <span class="ident">template</span>::<span class="ident">Template</span>;
 <span class="kw">use</span> <span class="ident">builtins</span>::<span class="ident">filters</span>::{<span class="ident">array</span>, <span class="ident">common</span>, <span class="ident">number</span>, <span class="ident">object</span>, <span class="ident">string</span>, <span class="ident">FilterFn</span>};
+<span class="kw">use</span> <span class="ident">builtins</span>::<span class="ident">functions</span>::{<span class="self">self</span>, <span class="ident">GlobalFn</span>};
 <span class="kw">use</span> <span class="ident">builtins</span>::<span class="ident">testers</span>::{<span class="self">self</span>, <span class="ident">TesterFn</span>};
-<span class="kw">use</span> <span class="ident">builtins</span>::<span class="ident">global_functions</span>::{<span class="self">self</span>, <span class="ident">GlobalFn</span>};
 <span class="kw">use</span> <span class="ident">errors</span>::{<span class="prelude-ty">Result</span>, <span class="ident">ResultExt</span>};
 <span class="kw">use</span> <span class="ident">renderer</span>::<span class="ident">Renderer</span>;
+<span class="kw">use</span> <span class="ident">template</span>::<span class="ident">Template</span>;
 <span class="kw">use</span> <span class="ident">utils</span>::<span class="ident">escape_html</span>;
 
 <span class="doccomment">/// The escape function type definition</span>
@@ -1024,10 +1053,11 @@
         <span class="ident">tera</span>.<span class="ident">load_from_glob</span>()<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="op">!</span><span class="ident">parse_only</span> {
             <span class="ident">tera</span>.<span class="ident">build_inheritance_chains</span>()<span class="question-mark">?</span>;
+            <span class="ident">tera</span>.<span class="ident">check_macro_files</span>()<span class="question-mark">?</span>;
         }
         <span class="ident">tera</span>.<span class="ident">register_tera_filters</span>();
         <span class="ident">tera</span>.<span class="ident">register_tera_testers</span>();
-        <span class="ident">tera</span>.<span class="ident">register_tera_global_functions</span>();
+        <span class="ident">tera</span>.<span class="ident">register_tera_functions</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">tera</span>)
     }
 
@@ -1075,7 +1105,8 @@
         }
         <span class="comment">// We want to preserve templates that have been added through</span>
         <span class="comment">// Tera::extend so we only keep those</span>
-        <span class="self">self</span>.<span class="ident">templates</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">templates</span>
+        <span class="self">self</span>.<span class="ident">templates</span> <span class="op">=</span> <span class="self">self</span>
+            .<span class="ident">templates</span>
             .<span class="ident">iter</span>()
             .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">t</span>)<span class="op">|</span> <span class="ident">t</span>.<span class="ident">from_extend</span>)
             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">n</span>, <span class="ident">t</span>)<span class="op">|</span> (<span class="ident">n</span>.<span class="ident">clone</span>(), <span class="ident">t</span>.<span class="ident">clone</span>())) <span class="comment">// TODO: avoid that clone</span>
@@ -1126,7 +1157,8 @@
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">as_ref</span>();
         <span class="kw">let</span> <span class="ident">tpl_name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">unwrap_or_else</span>(<span class="op">||</span> <span class="ident">path</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>());
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span> <span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">path</span>).<span class="ident">chain_err</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Couldn&#39;t open template &#39;{:?}&#39;&quot;</span>, <span class="ident">path</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">f</span> <span class="op">=</span>
+            <span class="ident">File</span>::<span class="ident">open</span>(<span class="ident">path</span>).<span class="ident">chain_err</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Couldn&#39;t open template &#39;{:?}&#39;&quot;</span>, <span class="ident">path</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
         <span class="ident">f</span>.<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">input</span>)
@@ -1232,6 +1264,26 @@
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="doccomment">/// We keep track of macro files loaded in each Template so we can know whether one or them</span>
+    <span class="doccomment">/// is missing and error accordingly before the user tries to render a template.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// As with `self::build_inheritance_chains`, you don&#39;t usually need to call that yourself.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_macro_files</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">for</span> <span class="ident">template</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">templates</span>.<span class="ident">values</span>() {
+            <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">tpl_name</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">template</span>.<span class="ident">imported_macro_files</span> {
+                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">templates</span>.<span class="ident">contains_key</span>(<span class="ident">tpl_name</span>) {
+                    <span class="macro">bail</span><span class="macro">!</span>(
+                        <span class="string">&quot;Template `{}` loads macros from `{}` which isn&#39;t present in Tera&quot;</span>,
+                        <span class="ident">template</span>.<span class="ident">name</span>,
+                        <span class="ident">tpl_name</span>
+                    );
+                }
+            }
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
     <span class="doccomment">/// Renders a Tera template given an object that implements `Serialize`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// To render a template with an empty context, simply pass a new `Context` object</span>
@@ -1241,7 +1293,7 @@
     <span class="doccomment">/// ```rust,ignore</span>
     <span class="doccomment">/// // Rendering a template with a normal context</span>
     <span class="doccomment">/// let mut context = Context::new();</span>
-    <span class="doccomment">/// context.add(&quot;age&quot;, 18);</span>
+    <span class="doccomment">/// context.insert(&quot;age&quot;, 18);</span>
     <span class="doccomment">/// tera.render(&quot;hello.html&quot;, &amp;context);</span>
     <span class="doccomment">/// // Rendering a template with a struct that impl `Serialize`</span>
     <span class="doccomment">/// tera.render(&quot;hello.html&quot;, &amp;product);</span>
@@ -1259,7 +1311,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">template</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_template</span>(<span class="ident">template_name</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">renderer</span> <span class="op">=</span> <span class="ident">Renderer</span>::<span class="ident">new</span>(<span class="ident">template</span>, <span class="self">self</span>, <span class="ident">value</span>);
+        <span class="kw">let</span> <span class="ident">renderer</span> <span class="op">=</span> <span class="ident">Renderer</span>::<span class="ident">new</span>(<span class="ident">template</span>, <span class="self">self</span>, <span class="ident">value</span>);
         <span class="ident">renderer</span>.<span class="ident">render</span>()
     }
 
@@ -1273,7 +1325,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust,ignore</span>
     <span class="doccomment">/// let mut context = Context::new();</span>
-    <span class="doccomment">/// context.add(&quot;greeting&quot;, &amp;&quot;hello&quot;);</span>
+    <span class="doccomment">/// context.insert(&quot;greeting&quot;, &amp;&quot;hello&quot;);</span>
     <span class="doccomment">/// Tera::one_off(&quot;{{ greeting }} world&quot;, &amp;context, true);</span>
     <span class="doccomment">/// // Or with a struct that impl Serialize</span>
     <span class="doccomment">/// Tera::one_off(&quot;{{ greeting }} world&quot;, &amp;user, true);</span>
@@ -1311,6 +1363,7 @@
             .<span class="ident">chain_err</span>(<span class="op">||</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Failed to parse &#39;{}&#39;&quot;</span>, <span class="ident">name</span>))<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">templates</span>.<span class="ident">insert</span>(<span class="ident">name</span>.<span class="ident">to_string</span>(), <span class="ident">tpl</span>);
         <span class="self">self</span>.<span class="ident">build_inheritance_chains</span>()<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">check_macro_files</span>()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1332,6 +1385,7 @@
             <span class="self">self</span>.<span class="ident">templates</span>.<span class="ident">insert</span>(<span class="ident">name</span>.<span class="ident">to_string</span>(), <span class="ident">tpl</span>);
         }
         <span class="self">self</span>.<span class="ident">build_inheritance_chains</span>()<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">check_macro_files</span>()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1348,13 +1402,10 @@
     <span class="doccomment">/// // Rename</span>
     <span class="doccomment">/// tera.add_template_file(path, Some(&quot;index&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_template_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">path</span>: <span class="ident">P</span>,
-        <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_template_file</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">path</span>: <span class="ident">P</span>, <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">add_file</span>(<span class="ident">name</span>, <span class="ident">path</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">build_inheritance_chains</span>()<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">check_macro_files</span>()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1372,12 +1423,13 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_template_files</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">Path</span><span class="op">&gt;&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">files</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">P</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>)<span class="op">&gt;</span>
+        <span class="ident">files</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">P</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
     ) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">for</span> (<span class="ident">path</span>, <span class="ident">name</span>) <span class="kw">in</span> <span class="ident">files</span> {
             <span class="self">self</span>.<span class="ident">add_file</span>(<span class="ident">name</span>, <span class="ident">path</span>)<span class="question-mark">?</span>;
         }
         <span class="self">self</span>.<span class="ident">build_inheritance_chains</span>()<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">check_macro_files</span>()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1423,6 +1475,7 @@
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.11.16&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use `get_function` instead&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_global_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fn_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">GlobalFn</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">global_functions</span>.<span class="ident">get</span>(<span class="ident">fn_name</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">t</span>),
@@ -1430,6 +1483,14 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fn_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">GlobalFn</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">global_functions</span>.<span class="ident">get</span>(<span class="ident">fn_name</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">t</span>),
+            <span class="prelude-val">None</span> <span class="op">=&gt;</span> <span class="macro">bail</span><span class="macro">!</span>(<span class="string">&quot;Global function &#39;{}&#39; not found&quot;</span>, <span class="ident">fn_name</span>),
+        }
+    }
     <span class="doccomment">/// Register a global function with Tera.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If a global function with that name already exists, it will be overwritten</span>
@@ -1437,7 +1498,19 @@
     <span class="doccomment">/// ```rust,ignore</span>
     <span class="doccomment">/// tera.register_global_function(&quot;range&quot;, range);</span>
     <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.11.16&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use `register_function` instead&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_global_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">function</span>: <span class="ident">GlobalFn</span>) {
+        <span class="self">self</span>.<span class="ident">global_functions</span>.<span class="ident">insert</span>(<span class="ident">name</span>.<span class="ident">to_string</span>(), <span class="ident">function</span>);
+    }
+
+    <span class="doccomment">/// Register a function with Tera.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If a function with that name already exists, it will be overwritten</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust,ignore</span>
+    <span class="doccomment">/// tera.register_function(&quot;range&quot;, range);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_function</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">function</span>: <span class="ident">GlobalFn</span>) {
         <span class="self">self</span>.<span class="ident">global_functions</span>.<span class="ident">insert</span>(<span class="ident">name</span>.<span class="ident">to_string</span>(), <span class="ident">function</span>);
     }
 
@@ -1473,6 +1546,7 @@
         <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;reverse&quot;</span>, <span class="ident">common</span>::<span class="ident">reverse</span>);
         <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;date&quot;</span>, <span class="ident">common</span>::<span class="ident">date</span>);
         <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;json_encode&quot;</span>, <span class="ident">common</span>::<span class="ident">json_encode</span>);
+        <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;as_str&quot;</span>, <span class="ident">common</span>::<span class="ident">as_str</span>);
 
         <span class="self">self</span>.<span class="ident">register_filter</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">object</span>::<span class="ident">get</span>);
     }
@@ -1492,10 +1566,10 @@
         <span class="self">self</span>.<span class="ident">register_tester</span>(<span class="string">&quot;matching&quot;</span>, <span class="ident">testers</span>::<span class="ident">matching</span>);
     }
 
-    <span class="kw">fn</span> <span class="ident">register_tera_global_functions</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">register_global_function</span>(<span class="string">&quot;range&quot;</span>, <span class="ident">global_functions</span>::<span class="ident">make_range_fn</span>());
-        <span class="self">self</span>.<span class="ident">register_global_function</span>(<span class="string">&quot;now&quot;</span>, <span class="ident">global_functions</span>::<span class="ident">make_now_fn</span>());
-        <span class="self">self</span>.<span class="ident">register_global_function</span>(<span class="string">&quot;throw&quot;</span>, <span class="ident">global_functions</span>::<span class="ident">make_throw_fn</span>());
+    <span class="kw">fn</span> <span class="ident">register_tera_functions</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="self">self</span>.<span class="ident">register_function</span>(<span class="string">&quot;range&quot;</span>, <span class="ident">functions</span>::<span class="ident">make_range_fn</span>());
+        <span class="self">self</span>.<span class="ident">register_function</span>(<span class="string">&quot;now&quot;</span>, <span class="ident">functions</span>::<span class="ident">make_now_fn</span>());
+        <span class="self">self</span>.<span class="ident">register_function</span>(<span class="string">&quot;throw&quot;</span>, <span class="ident">functions</span>::<span class="ident">make_throw_fn</span>());
     }
 
     <span class="doccomment">/// Select which suffix(es) to automatically do HTML escaping on,</span>
@@ -1530,7 +1604,7 @@
     <span class="doccomment">/// tera.add_raw_template(&quot;foo&quot;, &quot;\&quot;{{ content }}\&quot;&quot;).unwrap();</span>
     <span class="doccomment">/// tera.autoescape_on(vec![&quot;foo&quot;]);</span>
     <span class="doccomment">/// let mut context = Context::new();</span>
-    <span class="doccomment">/// context.add(&quot;content&quot;, &amp;&quot;Hello\n\&#39;world\&quot;!&quot;);</span>
+    <span class="doccomment">/// context.insert(&quot;content&quot;, &amp;&quot;Hello\n\&#39;world\&quot;!&quot;);</span>
     <span class="doccomment">/// let result = tera.render(&quot;foo&quot;, &amp;context).unwrap();</span>
     <span class="doccomment">/// assert_eq!(result, r#&quot;&quot;Hello\n\&#39;world\&quot;!&quot;&quot;#);</span>
     <span class="doccomment">///```</span>
@@ -1556,7 +1630,8 @@
             <span class="macro">bail</span><span class="macro">!</span>(<span class="string">&quot;Reloading is only available if you are using a glob&quot;</span>);
         }
 
-        <span class="self">self</span>.<span class="ident">build_inheritance_chains</span>()
+        <span class="self">self</span>.<span class="ident">build_inheritance_chains</span>()<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">check_macro_files</span>()
     }
 
     <span class="doccomment">/// Use that method when you want to add a given Tera instance templates/filters/testers</span>
@@ -1589,7 +1664,8 @@
             }
         }
 
-        <span class="self">self</span>.<span class="ident">build_inheritance_chains</span>()
+        <span class="self">self</span>.<span class="ident">build_inheritance_chains</span>()<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">check_macro_files</span>()
     }
 }
 
@@ -1607,7 +1683,7 @@
 
         <span class="ident">tera</span>.<span class="ident">register_tera_filters</span>();
         <span class="ident">tera</span>.<span class="ident">register_tera_testers</span>();
-        <span class="ident">tera</span>.<span class="ident">register_tera_global_functions</span>();
+        <span class="ident">tera</span>.<span class="ident">register_tera_functions</span>();
         <span class="ident">tera</span>
     }
 }
@@ -1653,22 +1729,17 @@
             (<span class="string">&quot;b&quot;</span>, <span class="string">&quot;{% extends \&quot;c\&quot; %}&quot;</span>),
             (<span class="string">&quot;c&quot;</span>, <span class="string">&quot;{% extends \&quot;d\&quot; %}&quot;</span>),
             (<span class="string">&quot;d&quot;</span>, <span class="string">&quot;&quot;</span>),
-        ]).<span class="ident">unwrap</span>();
+        ])
+        .<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(
             <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;a&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parents</span>,
             <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;b&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;c&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;d&quot;</span>.<span class="ident">to_string</span>()]
         );
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;b&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parents</span>,
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;c&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;d&quot;</span>.<span class="ident">to_string</span>()]
-        );
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;b&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parents</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;c&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;d&quot;</span>.<span class="ident">to_string</span>()]);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;c&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parents</span>,
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;d&quot;</span>.<span class="ident">to_string</span>()]
-        );
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;c&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parents</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;d&quot;</span>.<span class="ident">to_string</span>()]);
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;d&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">parents</span>.<span class="ident">len</span>(), <span class="number">0</span>);
     }
@@ -1685,10 +1756,9 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_circular_extends</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">default</span>();
-        <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">tera</span>.<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[
-            (<span class="string">&quot;a&quot;</span>, <span class="string">&quot;{% extends \&quot;b\&quot; %}&quot;</span>),
-            (<span class="string">&quot;b&quot;</span>, <span class="string">&quot;{% extends \&quot;a\&quot; %}&quot;</span>),
-        ]).<span class="ident">unwrap_err</span>();
+        <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">tera</span>
+            .<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;{% extends \&quot;b\&quot; %}&quot;</span>), (<span class="string">&quot;b&quot;</span>, <span class="string">&quot;{% extends \&quot;a\&quot; %}&quot;</span>)])
+            .<span class="ident">unwrap_err</span>();
 
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">err</span>.<span class="ident">description</span>().<span class="ident">contains</span>(<span class="string">&quot;Circular extend detected for template&quot;</span>));
     }
@@ -1711,18 +1781,12 @@
             ),
         ]).<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="ident">hey_definitions</span> <span class="op">=</span> <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;child&quot;</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">blocks_definitions</span>
-            .<span class="ident">get</span>(<span class="string">&quot;hey&quot;</span>)
-            .<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">hey_definitions</span> <span class="op">=</span>
+            <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;child&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">blocks_definitions</span>.<span class="ident">get</span>(<span class="string">&quot;hey&quot;</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">hey_definitions</span>.<span class="ident">len</span>(), <span class="number">3</span>);
 
-        <span class="kw">let</span> <span class="ident">ending_definitions</span> <span class="op">=</span> <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;child&quot;</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">blocks_definitions</span>
-            .<span class="ident">get</span>(<span class="string">&quot;ending&quot;</span>)
-            .<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">ending_definitions</span> <span class="op">=</span>
+            <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;child&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">blocks_definitions</span>.<span class="ident">get</span>(<span class="string">&quot;ending&quot;</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">ending_definitions</span>.<span class="ident">len</span>(), <span class="number">2</span>);
     }
 
@@ -1741,25 +1805,19 @@
             ),
         ]).<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="ident">hey_definitions</span> <span class="op">=</span> <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;child&quot;</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">blocks_definitions</span>
-            .<span class="ident">get</span>(<span class="string">&quot;hey&quot;</span>)
-            .<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">hey_definitions</span> <span class="op">=</span>
+            <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;child&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">blocks_definitions</span>.<span class="ident">get</span>(<span class="string">&quot;hey&quot;</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">hey_definitions</span>.<span class="ident">len</span>(), <span class="number">3</span>);
 
-        <span class="kw">let</span> <span class="ident">ending_definitions</span> <span class="op">=</span> <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;parent&quot;</span>)
-            .<span class="ident">unwrap</span>()
-            .<span class="ident">blocks_definitions</span>
-            .<span class="ident">get</span>(<span class="string">&quot;ending&quot;</span>)
-            .<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">ending_definitions</span> <span class="op">=</span>
+            <span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;parent&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">blocks_definitions</span>.<span class="ident">get</span>(<span class="string">&quot;ending&quot;</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">ending_definitions</span>.<span class="ident">len</span>(), <span class="number">1</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_can_autoescape_one_off_template</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span>::<span class="ident">new</span>();
-        <span class="ident">context</span>.<span class="ident">add</span>(<span class="string">&quot;greeting&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;p&gt;&quot;</span>);
+        <span class="ident">context</span>.<span class="ident">insert</span>(<span class="string">&quot;greeting&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;p&gt;&quot;</span>);
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">one_off</span>(<span class="string">&quot;{{ greeting }} world&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="bool-val">true</span>).<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="string">&quot;&amp;lt;p&amp;gt; world&quot;</span>);
@@ -1768,7 +1826,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_can_disable_autoescape_one_off_template</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span>::<span class="ident">new</span>();
-        <span class="ident">context</span>.<span class="ident">add</span>(<span class="string">&quot;greeting&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;p&gt;&quot;</span>);
+        <span class="ident">context</span>.<span class="ident">insert</span>(<span class="string">&quot;greeting&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;p&gt;&quot;</span>);
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">one_off</span>(<span class="string">&quot;{{ greeting }} world&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">context</span>, <span class="bool-val">false</span>).<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="string">&quot;&lt;p&gt; world&quot;</span>);
@@ -1796,21 +1854,21 @@
         <span class="ident">tera</span>.<span class="ident">autoescape_on</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;foo&quot;</span>]);
         <span class="ident">tera</span>.<span class="ident">set_escape_fn</span>(<span class="ident">escape_c_string</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span>::<span class="ident">new</span>();
-        <span class="ident">context</span>.<span class="ident">add</span>(<span class="string">&quot;content&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;Hello\n\&#39;world\&quot;!&quot;</span>);
+        <span class="ident">context</span>.<span class="ident">insert</span>(<span class="string">&quot;content&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;Hello\n\&#39;world\&quot;!&quot;</span>);
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">tera</span>.<span class="ident">render</span>(<span class="string">&quot;foo&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">context</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="string">r#&quot;&quot;Hello\n\&#39;world\&quot;!&quot;&quot;#</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_reset_escape_function</span>() {
-        <span class="kw">let</span> <span class="ident">no_escape</span>: <span class="kw">super</span>::<span class="ident">EscapeFn</span> <span class="op">=</span> <span class="op">|</span><span class="ident">input</span><span class="op">|</span> { <span class="ident">input</span>.<span class="ident">to_string</span>() };
+        <span class="kw">let</span> <span class="ident">no_escape</span>: <span class="kw">super</span>::<span class="ident">EscapeFn</span> <span class="op">=</span> <span class="op">|</span><span class="ident">input</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">to_string</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">default</span>();
         <span class="ident">tera</span>.<span class="ident">add_raw_template</span>(<span class="string">&quot;foo&quot;</span>, <span class="string">&quot;{{ content }}&quot;</span>).<span class="ident">unwrap</span>();
         <span class="ident">tera</span>.<span class="ident">autoescape_on</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;foo&quot;</span>]);
         <span class="ident">tera</span>.<span class="ident">set_escape_fn</span>(<span class="ident">no_escape</span>);
         <span class="ident">tera</span>.<span class="ident">reset_escape_fn</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span>::<span class="ident">new</span>();
-        <span class="ident">context</span>.<span class="ident">add</span>(<span class="string">&quot;content&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;Hello\n\&#39;world\&quot;!&quot;</span>);
+        <span class="ident">context</span>.<span class="ident">insert</span>(<span class="string">&quot;content&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;Hello\n\&#39;world\&quot;!&quot;</span>);
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">tera</span>.<span class="ident">render</span>(<span class="string">&quot;foo&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">context</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="string">&quot;Hello\n&amp;#x27;world&amp;quot;!&quot;</span>);
     }
@@ -1827,16 +1885,16 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_extend_no_overlap</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">my_tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">default</span>();
-        <span class="ident">my_tera</span>.<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[
-            (<span class="string">&quot;one&quot;</span>, <span class="string">&quot;{% block hey %}1{% endblock hey %}&quot;</span>),
-            (<span class="string">&quot;two&quot;</span>, <span class="string">&quot;{% block hey %}2{% endblock hey %}&quot;</span>),
-            (<span class="string">&quot;three&quot;</span>, <span class="string">&quot;{% block hey %}3{% endblock hey %}&quot;</span>),
-        ]).<span class="ident">unwrap</span>();
+        <span class="ident">my_tera</span>
+            .<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                (<span class="string">&quot;one&quot;</span>, <span class="string">&quot;{% block hey %}1{% endblock hey %}&quot;</span>),
+                (<span class="string">&quot;two&quot;</span>, <span class="string">&quot;{% block hey %}2{% endblock hey %}&quot;</span>),
+                (<span class="string">&quot;three&quot;</span>, <span class="string">&quot;{% block hey %}3{% endblock hey %}&quot;</span>),
+            ])
+            .<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">framework_tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">default</span>();
-        <span class="ident">framework_tera</span>.<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[
-            (<span class="string">&quot;four&quot;</span>, <span class="string">&quot;Framework X&quot;</span>),
-        ]).<span class="ident">unwrap</span>();
+        <span class="ident">framework_tera</span>.<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[(<span class="string">&quot;four&quot;</span>, <span class="string">&quot;Framework X&quot;</span>)]).<span class="ident">unwrap</span>();
 
         <span class="ident">my_tera</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">framework_tera</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">my_tera</span>.<span class="ident">templates</span>.<span class="ident">len</span>(), <span class="number">4</span>);
@@ -1847,17 +1905,18 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_extend_with_overlap</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">my_tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">default</span>();
-        <span class="ident">my_tera</span>.<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[
-            (<span class="string">&quot;one&quot;</span>, <span class="string">&quot;MINE&quot;</span>),
-            (<span class="string">&quot;two&quot;</span>, <span class="string">&quot;{% block hey %}2{% endblock hey %}&quot;</span>),
-            (<span class="string">&quot;three&quot;</span>, <span class="string">&quot;{% block hey %}3{% endblock hey %}&quot;</span>),
-        ]).<span class="ident">unwrap</span>();
+        <span class="ident">my_tera</span>
+            .<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[
+                (<span class="string">&quot;one&quot;</span>, <span class="string">&quot;MINE&quot;</span>),
+                (<span class="string">&quot;two&quot;</span>, <span class="string">&quot;{% block hey %}2{% endblock hey %}&quot;</span>),
+                (<span class="string">&quot;three&quot;</span>, <span class="string">&quot;{% block hey %}3{% endblock hey %}&quot;</span>),
+            ])
+            .<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">framework_tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">default</span>();
-        <span class="ident">framework_tera</span>.<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[
-            (<span class="string">&quot;one&quot;</span>, <span class="string">&quot;FRAMEWORK&quot;</span>),
-            (<span class="string">&quot;four&quot;</span>, <span class="string">&quot;Framework X&quot;</span>),
-        ]).<span class="ident">unwrap</span>();
+        <span class="ident">framework_tera</span>
+            .<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[(<span class="string">&quot;one&quot;</span>, <span class="string">&quot;FRAMEWORK&quot;</span>), (<span class="string">&quot;four&quot;</span>, <span class="string">&quot;Framework X&quot;</span>)])
+            .<span class="ident">unwrap</span>();
 
         <span class="ident">my_tera</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">framework_tera</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">my_tera</span>.<span class="ident">templates</span>.<span class="ident">len</span>(), <span class="number">4</span>);
@@ -1885,7 +1944,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">can_load_from_glob</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">new</span>(<span class="string">&quot;examples/basic/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">new</span>(<span class="string">&quot;examples/basic/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tera</span>.<span class="ident">get_template</span>(<span class="string">&quot;base.html&quot;</span>).<span class="ident">is_ok</span>());
     }
 
@@ -1901,10 +1960,9 @@
     <span class="kw">fn</span> <span class="ident">full_reload_with_glob_after_extending</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">new</span>(<span class="string">&quot;examples/basic/templates/**/*&quot;</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">framework_tera</span> <span class="op">=</span> <span class="ident">Tera</span>::<span class="ident">default</span>();
-        <span class="ident">framework_tera</span>.<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[
-            (<span class="string">&quot;one&quot;</span>, <span class="string">&quot;FRAMEWORK&quot;</span>),
-            (<span class="string">&quot;four&quot;</span>, <span class="string">&quot;Framework X&quot;</span>),
-        ]).<span class="ident">unwrap</span>();
+        <span class="ident">framework_tera</span>
+            .<span class="ident">add_raw_templates</span>(<span class="macro">vec</span><span class="macro">!</span>[(<span class="string">&quot;one&quot;</span>, <span class="string">&quot;FRAMEWORK&quot;</span>), (<span class="string">&quot;four&quot;</span>, <span class="string">&quot;Framework X&quot;</span>)])
+            .<span class="ident">unwrap</span>();
         <span class="ident">tera</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">framework_tera</span>).<span class="ident">unwrap</span>();
         <span class="ident">tera</span>.<span class="ident">full_reload</span>().<span class="ident">unwrap</span>();
 

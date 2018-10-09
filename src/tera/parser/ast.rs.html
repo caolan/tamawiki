@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.12/src/parser/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.17/src/parser/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -288,6 +288,26 @@
 <span id="288">288</span>
 <span id="289">289</span>
 <span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
@@ -303,10 +323,7 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">WS</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="ident">WS</span> {
-            <span class="ident">left</span>: <span class="bool-val">false</span>,
-            <span class="ident">right</span>: <span class="bool-val">false</span>,
-        }
+        <span class="ident">WS</span> { <span class="ident">left</span>: <span class="bool-val">false</span>, <span class="ident">right</span>: <span class="bool-val">false</span> }
     }
 }
 
@@ -384,33 +401,44 @@
 <span class="doccomment">/// A function call, can be a filter or a global function</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FunctionCall</span> {
+    <span class="doccomment">/// The name of the function</span>
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
+    <span class="doccomment">/// The args of the function: key -&gt; value</span>
     <span class="kw">pub</span> <span class="ident">args</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Expr</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// A mathematical expression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MathExpr</span> {
+    <span class="doccomment">/// The left hand side of the expression</span>
     <span class="kw">pub</span> <span class="ident">lhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The right hand side of the expression</span>
     <span class="kw">pub</span> <span class="ident">rhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The operator used</span>
     <span class="kw">pub</span> <span class="ident">operator</span>: <span class="ident">MathOperator</span>,
 }
 
+<span class="doccomment">/// A logical expression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LogicExpr</span> {
+    <span class="doccomment">/// The left hand side of the expression</span>
     <span class="kw">pub</span> <span class="ident">lhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The right hand side of the expression</span>
     <span class="kw">pub</span> <span class="ident">rhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The operator used</span>
     <span class="kw">pub</span> <span class="ident">operator</span>: <span class="ident">LogicOperator</span>,
 }
-
 
 <span class="doccomment">/// Can only be a combination of string + ident or ident + ident</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StringConcat</span> {
+    <span class="doccomment">/// All the values we&#39;re concatening into a string</span>
     <span class="kw">pub</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ExprVal</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// An expression is the node found in variable block, kwargs and conditions.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExprVal</span> {
     <span class="ident">String</span>(<span class="ident">String</span>),
     <span class="ident">Int</span>(<span class="ident">i64</span>),
@@ -428,39 +456,35 @@
     <span class="ident">StringConcat</span>(<span class="ident">StringConcat</span>),
 }
 
+<span class="doccomment">/// An expression is a value that can be negated and followed by</span>
+<span class="doccomment">/// optional filters</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Expr</span> {
+    <span class="doccomment">/// The expression we are evaluating</span>
     <span class="kw">pub</span> <span class="ident">val</span>: <span class="ident">ExprVal</span>,
+    <span class="doccomment">/// Is it using `not`?</span>
     <span class="kw">pub</span> <span class="ident">negated</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// List of filters used on that value</span>
     <span class="kw">pub</span> <span class="ident">filters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionCall</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Expr</span> {
+    <span class="doccomment">/// Create a new basic Expr</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">val</span>: <span class="ident">ExprVal</span>) <span class="op">-&gt;</span> <span class="ident">Expr</span> {
-        <span class="ident">Expr</span> {
-            <span class="ident">val</span>,
-            <span class="ident">negated</span>: <span class="bool-val">false</span>,
-            <span class="ident">filters</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-        }
+        <span class="ident">Expr</span> { <span class="ident">val</span>, <span class="ident">negated</span>: <span class="bool-val">false</span>, <span class="ident">filters</span>: <span class="macro">vec</span><span class="macro">!</span>[] }
     }
 
+    <span class="doccomment">/// Create a new negated Expr</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_negated</span>(<span class="ident">val</span>: <span class="ident">ExprVal</span>) <span class="op">-&gt;</span> <span class="ident">Expr</span> {
-        <span class="ident">Expr</span> {
-            <span class="ident">val</span>,
-            <span class="ident">negated</span>: <span class="bool-val">true</span>,
-            <span class="ident">filters</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-        }
+        <span class="ident">Expr</span> { <span class="ident">val</span>, <span class="ident">negated</span>: <span class="bool-val">true</span>, <span class="ident">filters</span>: <span class="macro">vec</span><span class="macro">!</span>[] }
     }
 
+    <span class="doccomment">/// Create a new basic Expr with some filters</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_filters</span>(<span class="ident">val</span>: <span class="ident">ExprVal</span>, <span class="ident">filters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FunctionCall</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Expr</span> {
-        <span class="ident">Expr</span> {
-            <span class="ident">val</span>,
-            <span class="ident">filters</span>,
-            <span class="ident">negated</span>: <span class="bool-val">false</span>,
-        }
+        <span class="ident">Expr</span> { <span class="ident">val</span>, <span class="ident">filters</span>, <span class="ident">negated</span>: <span class="bool-val">false</span> }
     }
 
-    <span class="comment">// Check if the expr has a default filter as first filter</span>
+    <span class="doccomment">/// Check if the expr has a default filter as first filter</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_default_filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">filters</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -484,7 +508,9 @@
 <span class="doccomment">/// A filter section node `{{ filter name(param=&quot;value&quot;) }} content {{ endfilter }}`</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FilterSection</span> {
+    <span class="doccomment">/// The filter call itsel</span>
     <span class="kw">pub</span> <span class="ident">filter</span>: <span class="ident">FunctionCall</span>,
+    <span class="doccomment">/// The filter body</span>
     <span class="kw">pub</span> <span class="ident">body</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
 }
 
@@ -493,32 +519,45 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Set</span> {
     <span class="doccomment">/// The name for that value in the context</span>
     <span class="kw">pub</span> <span class="ident">key</span>: <span class="ident">String</span>,
+    <span class="doccomment">/// The value to assign</span>
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">Expr</span>,
+    <span class="doccomment">/// Whether we want to set the variable globally or locally</span>
+    <span class="doccomment">/// global_set is only useful in loops</span>
     <span class="kw">pub</span> <span class="ident">global</span>: <span class="ident">bool</span>,
 }
 
 <span class="doccomment">/// A call to a namespaced macro `macros::my_macro()`</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MacroCall</span> {
+    <span class="doccomment">/// The namespace we&#39;re looking for that macro in</span>
     <span class="kw">pub</span> <span class="ident">namespace</span>: <span class="ident">String</span>,
+    <span class="doccomment">/// The macro name</span>
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
+    <span class="doccomment">/// The args for that macro: name -&gt; value</span>
     <span class="kw">pub</span> <span class="ident">args</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Expr</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// A Macro definition</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MacroDefinition</span> {
+    <span class="doccomment">/// The macro name</span>
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
     <span class="doccomment">/// The args for that macro: name -&gt; optional default value</span>
     <span class="kw">pub</span> <span class="ident">args</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;&gt;</span>,
+    <span class="doccomment">/// The macro content</span>
     <span class="kw">pub</span> <span class="ident">body</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// A block definition</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Block</span> {
+    <span class="doccomment">/// The block name</span>
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
+    <span class="doccomment">/// The block content</span>
     <span class="kw">pub</span> <span class="ident">body</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// A forloop: can be over values or key/values</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Forloop</span> {
     <span class="doccomment">/// Name of the key in the loop (only when iterating on map-like objects)</span>
@@ -531,6 +570,7 @@
     <span class="kw">pub</span> <span class="ident">body</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// An if/elif/else condition with their respective body</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">If</span> {
     <span class="doccomment">/// First item if the if, all the ones after are elif</span>

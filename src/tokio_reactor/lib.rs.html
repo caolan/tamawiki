@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-reactor-0.1.3/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-reactor-0.1.6/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -756,22 +756,10 @@
 <span id="756">756</span>
 <span id="757">757</span>
 <span id="758">758</span>
-<span id="759">759</span>
-<span id="760">760</span>
-<span id="761">761</span>
-<span id="762">762</span>
-<span id="763">763</span>
-<span id="764">764</span>
-<span id="765">765</span>
-<span id="766">766</span>
-<span id="767">767</span>
-<span id="768">768</span>
-<span id="769">769</span>
-<span id="770">770</span>
-<span id="771">771</span>
-<span id="772">772</span>
-<span id="773">773</span>
 </pre><pre class="rust ">
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/tokio-reactor/0.1.6&quot;</span>)]</span>
+<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>, <span class="ident">warnings</span>, <span class="ident">missing_debug_implementations</span>)]</span>
+
 <span class="doccomment">//! Event loop that drives Tokio I/O resources.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The reactor is the engine that drives asynchronous I/O resources (like TCP and</span>
@@ -801,25 +789,25 @@
 <span class="doccomment">//! [`PollEvented`]: struct.PollEvented.html</span>
 <span class="doccomment">//! [reactor module]: https://docs.rs/tokio/0.1/tokio/reactor/index.html</span>
 
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/tokio-reactor/0.1.3&quot;</span>)]</span>
-<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>, <span class="ident">warnings</span>, <span class="ident">missing_debug_implementations</span>)]</span>
-
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">crossbeam_utils</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">futures</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">lazy_static</span>;
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">log</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">mio</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">num_cpus</span>;
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">parking_lot</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">slab</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_executor</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">tokio_io</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">futures2</span>;
 
 <span class="kw">mod</span> <span class="ident">atomic_task</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">background</span>;
 <span class="kw">mod</span> <span class="ident">poll_evented</span>;
 <span class="kw">mod</span> <span class="ident">registration</span>;
+<span class="kw">mod</span> <span class="ident">sharded_rwlock</span>;
 
 <span class="comment">// ===== Public re-exports =====</span>
 
@@ -830,17 +818,20 @@
 <span class="comment">// ===== Private imports =====</span>
 
 <span class="kw">use</span> <span class="ident">atomic_task</span>::<span class="ident">AtomicTask</span>;
+<span class="kw">use</span> <span class="ident">sharded_rwlock</span>::<span class="ident">RwLock</span>;
 
+<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">task</span>::<span class="ident">Task</span>;
 <span class="kw">use</span> <span class="ident">tokio_executor</span>::<span class="ident">Enter</span>;
 <span class="kw">use</span> <span class="ident">tokio_executor</span>::<span class="ident">park</span>::{<span class="ident">Park</span>, <span class="ident">Unpark</span>};
 
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt</span>, <span class="ident">usize</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::{<span class="ident">Relaxed</span>, <span class="ident">SeqCst</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">ATOMIC_USIZE_INIT</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Weak</span>, <span class="ident">RwLock</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Weak</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
 
 <span class="kw">use</span> <span class="ident">log</span>::<span class="ident">Level</span>;
@@ -948,14 +939,6 @@
     <span class="kw">fn</span> <span class="ident">_assert</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span>() {}
 
     <span class="ident">_assert</span>::<span class="op">&lt;</span><span class="ident">Handle</span><span class="op">&gt;</span>();
-}
-
-<span class="doccomment">/// A wakeup handle for a task, which may be either a futures 0.1 or 0.2 task</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Task</span> {
-    <span class="ident">Futures1</span>(<span class="ident">futures</span>::<span class="ident">task</span>::<span class="ident">Task</span>),
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-    <span class="ident">Futures2</span>(<span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Waker</span>),
 }
 
 <span class="comment">// ===== impl Reactor =====</span>
@@ -1108,7 +1091,7 @@
     <span class="doccomment">/// either successfully or with an error.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">io_dispatch</span>
-            .<span class="ident">read</span>().<span class="ident">unwrap</span>()
+            .<span class="ident">read</span>()
             .<span class="ident">is_empty</span>()
     }
 
@@ -1171,7 +1154,7 @@
         <span class="comment">// Create a scope to ensure that notifying the tasks stays out of the</span>
         <span class="comment">// lock&#39;s critical section.</span>
         {
-            <span class="kw">let</span> <span class="ident">io_dispatch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">io_dispatch</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">io_dispatch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">io_dispatch</span>.<span class="ident">read</span>();
 
             <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">io_dispatch</span>.<span class="ident">get</span>(<span class="ident">token</span>) {
                 <span class="prelude-val">Some</span>(<span class="ident">io</span>) <span class="op">=&gt;</span> <span class="ident">io</span>,
@@ -1415,7 +1398,7 @@
         <span class="comment">// Get an ABA guard value</span>
         <span class="kw">let</span> <span class="ident">aba_guard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_aba_guard</span>.<span class="ident">fetch_add</span>(<span class="number">1</span> <span class="op">&lt;&lt;</span> <span class="ident">TOKEN_SHIFT</span>, <span class="ident">Relaxed</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_dispatch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">io_dispatch</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">io_dispatch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">io_dispatch</span>.<span class="ident">write</span>();
 
         <span class="kw">if</span> <span class="ident">io_dispatch</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">MAX_SOURCES</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">Other</span>, <span class="string">&quot;reactor at max \
@@ -1445,13 +1428,13 @@
 
     <span class="kw">fn</span> <span class="ident">drop_source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="ident">usize</span>) {
         <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;dropping I/O source: {}&quot;</span>, <span class="ident">token</span>);
-        <span class="self">self</span>.<span class="ident">io_dispatch</span>.<span class="ident">write</span>().<span class="ident">unwrap</span>().<span class="ident">remove</span>(<span class="ident">token</span>);
+        <span class="self">self</span>.<span class="ident">io_dispatch</span>.<span class="ident">write</span>().<span class="ident">remove</span>(<span class="ident">token</span>);
     }
 
     <span class="doccomment">/// Registers interest in the I/O resource associated with `token`.</span>
     <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">token</span>: <span class="ident">usize</span>, <span class="ident">dir</span>: <span class="ident">Direction</span>, <span class="ident">t</span>: <span class="ident">Task</span>) {
         <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;scheduling direction for: {}&quot;</span>, <span class="ident">token</span>);
-        <span class="kw">let</span> <span class="ident">io_dispatch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">io_dispatch</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">io_dispatch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">io_dispatch</span>.<span class="ident">read</span>();
         <span class="kw">let</span> <span class="ident">sched</span> <span class="op">=</span> <span class="ident">io_dispatch</span>.<span class="ident">get</span>(<span class="ident">token</span>).<span class="ident">unwrap</span>();
 
         <span class="kw">let</span> (<span class="ident">task</span>, <span class="ident">ready</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">dir</span> {
@@ -1472,7 +1455,7 @@
         <span class="comment">// When a reactor is dropped it needs to wake up all blocked tasks as</span>
         <span class="comment">// they&#39;ll never receive a notification, and all connected I/O objects</span>
         <span class="comment">// will start returning errors pretty quickly.</span>
-        <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">io_dispatch</span>.<span class="ident">read</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">io_dispatch</span>.<span class="ident">read</span>();
         <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">io</span>) <span class="kw">in</span> <span class="ident">io</span>.<span class="ident">iter</span>() {
             <span class="ident">io</span>.<span class="ident">writer</span>.<span class="ident">notify</span>();
             <span class="ident">io</span>.<span class="ident">reader</span>.<span class="ident">notify</span>();
@@ -1488,17 +1471,6 @@
                 <span class="ident">mio</span>::<span class="ident">Ready</span>::<span class="ident">all</span>() <span class="op">-</span> <span class="ident">mio</span>::<span class="ident">Ready</span>::<span class="ident">writable</span>()
             }
             <span class="ident">Direction</span>::<span class="ident">Write</span> <span class="op">=&gt;</span> <span class="ident">mio</span>::<span class="ident">Ready</span>::<span class="ident">writable</span>() <span class="op">|</span> <span class="ident">platform</span>::<span class="ident">hup</span>(),
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Task</span> {
-    <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Task</span>::<span class="ident">Futures1</span>(<span class="kw-2">ref</span> <span class="ident">task</span>) <span class="op">=&gt;</span> <span class="ident">task</span>.<span class="ident">notify</span>(),
-
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-            <span class="ident">Task</span>::<span class="ident">Futures2</span>(<span class="kw-2">ref</span> <span class="ident">waker</span>) <span class="op">=&gt;</span> <span class="ident">waker</span>.<span class="ident">wake</span>(),
         }
     }
 }
@@ -1530,19 +1502,17 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">lift_async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">old</span>: <span class="ident">futures</span>::<span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">old</span> {
-        <span class="ident">futures</span>::<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">x</span>) <span class="op">=&gt;</span> <span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">x</span>),
-        <span class="ident">futures</span>::<span class="ident">Async</span>::<span class="ident">NotReady</span> <span class="op">=&gt;</span> <span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>,
+<span class="comment">// ===== impl SetFallbackError =====</span>
+
+<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">SetFallbackError</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">fmt</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">description</span>())
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-<span class="kw">fn</span> <span class="ident">lower_async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">new</span>: <span class="ident">futures2</span>::<span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">futures</span>::<span class="ident">Async</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">new</span> {
-        <span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">x</span>) <span class="op">=&gt;</span> <span class="ident">futures</span>::<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">x</span>),
-        <span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span> <span class="op">=&gt;</span> <span class="ident">futures</span>::<span class="ident">Async</span>::<span class="ident">NotReady</span>,
+<span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">SetFallbackError</span> {
+    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
+        <span class="string">&quot;attempted to set fallback reactor while already configured&quot;</span>
     }
 }
 </pre>

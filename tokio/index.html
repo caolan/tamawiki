@@ -1,16 +1,16 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `tokio` crate."><meta name="keywords" content="rust, rustlang, rust-lang, tokio"><title>tokio - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Crate tokio</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'tokio', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>tokio</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/tokio/lib.rs.html#1-235' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>A runtime for writing reliable, asynchronous, and slim applications.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `tokio` crate."><meta name="keywords" content="rust, rustlang, rust-lang, tokio"><title>tokio - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Crate tokio</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'tokio', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>tokio</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/tokio/lib.rs.html#1-120' title='goto source code'>[src]</a></span></h1><div class='docblock'><p>A runtime for writing reliable, asynchronous, and slim applications.</p>
 <p>Tokio is an event-driven, non-blocking I/O platform for writing asynchronous
 applications with the Rust programming language. At a high level, it
 provides a few major components:</p>
 <ul>
 <li>A multi threaded, work-stealing based task [scheduler][runtime].</li>
-<li>A [reactor][reactor] backed by the operating system's event queue (epoll, kqueue,
+<li>A [reactor] backed by the operating system's event queue (epoll, kqueue,
 IOCP, etc...).</li>
 <li>Asynchronous [TCP and UDP][net] sockets.</li>
 <li>Asynchronous [filesystem][fs] operations.</li>
 <li>[Timer][timer] API for scheduling work in the future.</li>
 </ul>
-<p>Tokio is built using <a href="http://docs.rs/futures">futures</a> as the abstraction for managing the
+<p>Tokio is built using <a href="http://docs.rs/futures/0.1">futures</a> as the abstraction for managing the
 complexity of asynchronous programming.</p>
 <p>Guide level documentation is found on the <a href="https://tokio.rs/docs/getting-started/hello-world/">website</a>.</p>
 <h1 id="examples" class="section-header"><a href="#examples">Examples</a></h1>
@@ -67,6 +67,14 @@ complexity of asynchronous programming.</p>
                            </td>
                        </tr>
                        <tr class=' module-item'>
+                           <td><a class="mod" href="codec/index.html"
+                                  title='mod tokio::codec'>codec</a></td>
+                           <td class='docblock-short'>
+                                <p>Utilities for encoding and decoding frames.</p>
+
+                           </td>
+                       </tr>
+                       <tr class=' module-item'>
                            <td><a class="mod" href="executor/index.html"
                                   title='mod tokio::executor'>executor</a></td>
                            <td class='docblock-short'>
@@ -94,7 +102,7 @@ complexity of asynchronous programming.</p>
                            <td><a class="mod" href="net/index.html"
                                   title='mod tokio::net'>net</a></td>
                            <td class='docblock-short'>
-                                <p>TCP/UDP bindings for <code>tokio</code>.</p>
+                                <p>TCP/UDP/Unix bindings for <code>tokio</code>.</p>
 
                            </td>
                        </tr>

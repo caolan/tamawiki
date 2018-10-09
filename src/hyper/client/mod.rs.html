@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.12.7/src/client/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.12.11/src/client/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -968,6 +968,18 @@
 <span id="968">968</span>
 <span id="969">969</span>
 <span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! HTTP Client</span>
 <span class="doccomment">//!</span>
@@ -1061,17 +1073,15 @@
 <span class="kw">use</span> <span class="ident">http</span>::<span class="ident">uri</span>::<span class="ident">Scheme</span>;
 
 <span class="kw">use</span> <span class="ident">body</span>::{<span class="ident">Body</span>, <span class="ident">Payload</span>};
-<span class="kw">use</span> <span class="ident">common</span>::<span class="ident">Exec</span>;
-<span class="kw">use</span> <span class="ident">common</span>::<span class="ident">lazy</span> <span class="kw">as</span> <span class="ident">hyper_lazy</span>;
+<span class="kw">use</span> <span class="ident">common</span>::{<span class="ident">Exec</span>, <span class="ident">lazy</span> <span class="kw">as</span> <span class="ident">hyper_lazy</span>, <span class="ident">Lazy</span>};
 <span class="kw">use</span> <span class="self">self</span>::<span class="ident">connect</span>::{<span class="ident">Connect</span>, <span class="ident">Destination</span>};
-<span class="kw">use</span> <span class="self">self</span>::<span class="ident">pool</span>::{<span class="ident">Pool</span>, <span class="ident">Poolable</span>, <span class="ident">Reservation</span>};
+<span class="kw">use</span> <span class="self">self</span>::<span class="ident">pool</span>::{<span class="ident">Key</span> <span class="kw">as</span> <span class="ident">PoolKey</span>, <span class="ident">Pool</span>, <span class="ident">Poolable</span>, <span class="ident">Pooled</span>, <span class="ident">Reservation</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span> <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">connect</span>::<span class="ident">HttpConnector</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">conn</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">connect</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">dispatch</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>)]</span> <span class="kw">mod</span> <span class="ident">dns</span>;
 <span class="kw">mod</span> <span class="ident">pool</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -1220,79 +1230,147 @@
         }
 
 
-        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">RetryableSendRequest</span> {
-            <span class="ident">client</span>: <span class="ident">client</span>,
-            <span class="ident">future</span>: <span class="self">self</span>.<span class="ident">send_request</span>(<span class="ident">req</span>, <span class="kw-2">&amp;</span><span class="ident">domain</span>),
-            <span class="ident">domain</span>: <span class="ident">domain</span>,
-            <span class="ident">uri</span>: <span class="ident">uri</span>,
-        };
-        <span class="ident">ResponseFuture</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">fut</span>))
+        <span class="kw">let</span> <span class="ident">pool_key</span> <span class="op">=</span> (<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">domain</span>.<span class="ident">to_string</span>()), <span class="self">self</span>.<span class="ident">ver</span>);
+        <span class="ident">ResponseFuture</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">retryably_send_request</span>(<span class="ident">req</span>, <span class="ident">pool_key</span>)))
     }
 
-    <span class="comment">//TODO: replace with `impl Future` when stable</span>
-    <span class="kw">fn</span> <span class="ident">send_request</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">domain</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">ClientError</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">ver</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ver</span>;
-        <span class="kw">let</span> <span class="ident">pool_key</span> <span class="op">=</span> (<span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">domain</span>.<span class="ident">to_string</span>()), <span class="self">self</span>.<span class="ident">ver</span>);
-        <span class="kw">let</span> <span class="ident">checkout</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">checkout</span>(<span class="ident">pool_key</span>.<span class="ident">clone</span>());
-        <span class="kw">let</span> <span class="ident">connect</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">executor</span>.<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="ident">h1_writev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">h1_writev</span>;
-            <span class="kw">let</span> <span class="ident">h1_title_case_headers</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">h1_title_case_headers</span>;
-            <span class="kw">let</span> <span class="ident">connector</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">connector</span>.<span class="ident">clone</span>();
-            <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">Destination</span> {
-                <span class="ident">uri</span>: <span class="ident">url</span>,
-            };
-            <span class="ident">hyper_lazy</span>(<span class="kw">move</span> <span class="op">||</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">connecting</span>) <span class="op">=</span> <span class="ident">pool</span>.<span class="ident">connecting</span>(<span class="kw-2">&amp;</span><span class="ident">pool_key</span>) {
-                    <span class="ident">Either</span>::<span class="ident">A</span>(<span class="ident">connector</span>.<span class="ident">connect</span>(<span class="ident">dst</span>)
-                        .<span class="ident">map_err</span>(::<span class="ident">Error</span>::<span class="ident">new_connect</span>)
-                        .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">io</span>, <span class="ident">connected</span>)<span class="op">|</span> {
-                            <span class="ident">conn</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
-                                .<span class="ident">exec</span>(<span class="ident">executor</span>.<span class="ident">clone</span>())
-                                .<span class="ident">h1_writev</span>(<span class="ident">h1_writev</span>)
-                                .<span class="ident">h1_title_case_headers</span>(<span class="ident">h1_title_case_headers</span>)
-                                .<span class="ident">http2_only</span>(<span class="ident">pool_key</span>.<span class="number">1</span> <span class="op">==</span> <span class="ident">Ver</span>::<span class="ident">Http2</span>)
-                                .<span class="ident">handshake</span>(<span class="ident">io</span>)
-                                .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">tx</span>, <span class="ident">conn</span>)<span class="op">|</span> {
-                                    <span class="kw">let</span> <span class="ident">bg</span> <span class="op">=</span> <span class="ident">executor</span>.<span class="ident">execute</span>(<span class="ident">conn</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;client connection error: {}&quot;</span>, <span class="ident">e</span>)
-                                    }));
+    <span class="kw">fn</span> <span class="ident">retryably_send_request</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">pool_key</span>: <span class="ident">PoolKey</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">=</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">clone</span>();
 
-                                    <span class="comment">// This task is critical, so an execute error</span>
-                                    <span class="comment">// should be returned.</span>
-                                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">bg</span> {
-                                        <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;error spawning critical client task: {}&quot;</span>, <span class="ident">err</span>);
-                                        <span class="kw">return</span> <span class="ident">Either</span>::<span class="ident">A</span>(<span class="ident">future</span>::<span class="ident">err</span>(<span class="ident">err</span>));
-                                    }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">send_fut</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">send_request</span>(<span class="ident">req</span>, <span class="ident">pool_key</span>.<span class="ident">clone</span>());
+        <span class="ident">future</span>::<span class="ident">poll_fn</span>(<span class="kw">move</span> <span class="op">||</span> <span class="kw">loop</span> {
+            <span class="kw">match</span> <span class="ident">send_fut</span>.<span class="ident">poll</span>() {
+                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">resp</span>)) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">resp</span>)),
+                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">ClientError</span>::<span class="ident">Normal</span>(<span class="ident">err</span>)) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">ClientError</span>::<span class="ident">Canceled</span> {
+                    <span class="ident">connection_reused</span>,
+                    <span class="kw-2">mut</span> <span class="ident">req</span>,
+                    <span class="ident">reason</span>,
+                }) <span class="op">=&gt;</span> {
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">client</span>.<span class="ident">retry_canceled_requests</span> <span class="op">||</span> <span class="op">!</span><span class="ident">connection_reused</span> {
+                        <span class="comment">// if client disabled, don&#39;t retry</span>
+                        <span class="comment">// a fresh connection means we definitely can&#39;t retry</span>
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">reason</span>);
+                    }
 
-                                    <span class="comment">// Wait for &#39;conn&#39; to ready up before we</span>
-                                    <span class="comment">// declare this tx as usable</span>
-                                    <span class="ident">Either</span>::<span class="ident">B</span>(<span class="ident">tx</span>.<span class="ident">when_ready</span>())
-                                })
-                                .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">tx</span><span class="op">|</span> {
-                                    <span class="ident">pool</span>.<span class="ident">pooled</span>(<span class="ident">connecting</span>, <span class="ident">PoolClient</span> {
-                                        <span class="ident">is_proxied</span>: <span class="ident">connected</span>.<span class="ident">is_proxied</span>,
-                                        <span class="ident">tx</span>: <span class="kw">match</span> <span class="ident">ver</span> {
-                                            <span class="ident">Ver</span>::<span class="ident">Http1</span> <span class="op">=&gt;</span> <span class="ident">PoolTx</span>::<span class="ident">Http1</span>(<span class="ident">tx</span>),
-                                            <span class="ident">Ver</span>::<span class="ident">Http2</span> <span class="op">=&gt;</span> <span class="ident">PoolTx</span>::<span class="ident">Http2</span>(<span class="ident">tx</span>.<span class="ident">into_http2</span>()),
-                                        },
-                                    })
-                                })
-                        }))
-                } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">canceled</span> <span class="op">=</span> ::<span class="ident">Error</span>::<span class="ident">new_canceled</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;HTTP/2 connection in progress&quot;</span>));
-                    <span class="ident">Either</span>::<span class="ident">B</span>(<span class="ident">future</span>::<span class="ident">err</span>(<span class="ident">canceled</span>))
+                    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;unstarted request canceled, trying again (reason={:?})&quot;</span>, <span class="ident">reason</span>);
+                    <span class="kw-2">*</span><span class="ident">req</span>.<span class="ident">uri_mut</span>() <span class="op">=</span> <span class="ident">uri</span>.<span class="ident">clone</span>();
+                    <span class="ident">send_fut</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">send_request</span>(<span class="ident">req</span>, <span class="ident">pool_key</span>.<span class="ident">clone</span>());
                 }
-            })
-        };
+            }
+        })
+    }
+
+    <span class="kw">fn</span> <span class="ident">send_request</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>, <span class="ident">pool_key</span>: <span class="ident">PoolKey</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">ClientError</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span> {
+        <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">connection_for</span>(<span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">clone</span>(), <span class="ident">pool_key</span>);
+
+        <span class="kw">let</span> <span class="ident">ver</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ver</span>;
+        <span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">executor</span>.<span class="ident">clone</span>();
+        <span class="ident">conn</span>.<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">pooled</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="ident">ver</span> <span class="op">==</span> <span class="ident">Ver</span>::<span class="ident">Http1</span> {
+                <span class="comment">// CONNECT always sends origin-form, so check it first...</span>
+                <span class="kw">if</span> <span class="ident">req</span>.<span class="ident">method</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">Method</span>::<span class="ident">CONNECT</span> {
+                    <span class="ident">authority_form</span>(<span class="ident">req</span>.<span class="ident">uri_mut</span>());
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">pooled</span>.<span class="ident">is_proxied</span> {
+                    <span class="ident">absolute_form</span>(<span class="ident">req</span>.<span class="ident">uri_mut</span>());
+                } <span class="kw">else</span> {
+                    <span class="ident">origin_form</span>(<span class="ident">req</span>.<span class="ident">uri_mut</span>());
+                };
+            } <span class="kw">else</span> {
+                <span class="macro">debug_assert</span><span class="macro">!</span>(
+                    <span class="ident">req</span>.<span class="ident">method</span>() <span class="op">!=</span> <span class="kw-2">&amp;</span><span class="ident">Method</span>::<span class="ident">CONNECT</span>,
+                    <span class="string">&quot;Client should have returned Error for HTTP2 CONNECT&quot;</span>
+                );
+            }
+
+            <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">pooled</span>.<span class="ident">send_request_retryable</span>(<span class="ident">req</span>)
+                .<span class="ident">map_err</span>(<span class="ident">ClientError</span>::<span class="ident">map_with_reused</span>(<span class="ident">pooled</span>.<span class="ident">is_reused</span>()));
+
+            <span class="comment">// As of futures@0.1.21, there is a race condition in the mpsc</span>
+            <span class="comment">// channel, such that sending when the receiver is closing can</span>
+            <span class="comment">// result in the message being stuck inside the queue. It won&#39;t</span>
+            <span class="comment">// ever notify until the Sender side is dropped.</span>
+            <span class="comment">//</span>
+            <span class="comment">// To counteract this, we must check if our senders &#39;want&#39; channel</span>
+            <span class="comment">// has been closed after having tried to send. If so, error out...</span>
+            <span class="kw">if</span> <span class="ident">pooled</span>.<span class="ident">is_closed</span>() {
+                <span class="kw">return</span> <span class="ident">Either</span>::<span class="ident">A</span>(<span class="ident">fut</span>);
+            }
+
+            <span class="ident">Either</span>::<span class="ident">B</span>(<span class="ident">fut</span>
+                .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">res</span><span class="op">|</span> {
+                    <span class="comment">// If pooled is HTTP/2, we can toss this reference immediately.</span>
+                    <span class="comment">//</span>
+                    <span class="comment">// when pooled is dropped, it will try to insert back into the</span>
+                    <span class="comment">// pool. To delay that, spawn a future that completes once the</span>
+                    <span class="comment">// sender is ready again.</span>
+                    <span class="comment">//</span>
+                    <span class="comment">// This *should* only be once the related `Connection` has polled</span>
+                    <span class="comment">// for a new request to start.</span>
+                    <span class="comment">//</span>
+                    <span class="comment">// It won&#39;t be ready if there is a body to stream.</span>
+                    <span class="kw">if</span> <span class="ident">ver</span> <span class="op">==</span> <span class="ident">Ver</span>::<span class="ident">Http2</span> <span class="op">||</span> <span class="op">!</span><span class="ident">pooled</span>.<span class="ident">is_pool_enabled</span>() <span class="op">||</span> <span class="ident">pooled</span>.<span class="ident">is_ready</span>() {
+                        <span class="ident">drop</span>(<span class="ident">pooled</span>);
+                    } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">res</span>.<span class="ident">body</span>().<span class="ident">is_end_stream</span>() {
+                        <span class="kw">let</span> (<span class="ident">delayed_tx</span>, <span class="ident">delayed_rx</span>) <span class="op">=</span> <span class="ident">oneshot</span>::<span class="ident">channel</span>();
+                        <span class="ident">res</span>.<span class="ident">body_mut</span>().<span class="ident">delayed_eof</span>(<span class="ident">delayed_rx</span>);
+                        <span class="kw">let</span> <span class="ident">on_idle</span> <span class="op">=</span> <span class="ident">future</span>::<span class="ident">poll_fn</span>(<span class="kw">move</span> <span class="op">||</span> {
+                            <span class="ident">pooled</span>.<span class="ident">poll_ready</span>()
+                        })
+                            .<span class="ident">then</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                                <span class="comment">// At this point, `pooled` is dropped, and had a chance</span>
+                                <span class="comment">// to insert into the pool (if conn was idle)</span>
+                                <span class="ident">drop</span>(<span class="ident">delayed_tx</span>);
+                                <span class="prelude-val">Ok</span>(())
+                            });
+
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">executor</span>.<span class="ident">execute</span>(<span class="ident">on_idle</span>) {
+                            <span class="comment">// This task isn&#39;t critical, so just log and ignore.</span>
+                            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;error spawning task to insert idle connection: {}&quot;</span>, <span class="ident">err</span>);
+                        }
+                    } <span class="kw">else</span> {
+                        <span class="comment">// There&#39;s no body to delay, but the connection isn&#39;t</span>
+                        <span class="comment">// ready yet. Only re-insert when it&#39;s ready</span>
+                        <span class="kw">let</span> <span class="ident">on_idle</span> <span class="op">=</span> <span class="ident">future</span>::<span class="ident">poll_fn</span>(<span class="kw">move</span> <span class="op">||</span> {
+                            <span class="ident">pooled</span>.<span class="ident">poll_ready</span>()
+                        })
+                            .<span class="ident">then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(()));
+
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">executor</span>.<span class="ident">execute</span>(<span class="ident">on_idle</span>) {
+                            <span class="comment">// This task isn&#39;t critical, so just log and ignore.</span>
+                            <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;error spawning task to insert idle connection: {}&quot;</span>, <span class="ident">err</span>);
+                        }
+                    }
+                    <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
+                }))
+        })
+    }
+
+    <span class="kw">fn</span> <span class="ident">connection_for</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">uri</span>: <span class="ident">Uri</span>, <span class="ident">pool_key</span>: <span class="ident">PoolKey</span>)
+        <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">PoolClient</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">ClientError</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>
+    {
+        <span class="comment">// This actually races 2 different futures to try to get a ready</span>
+        <span class="comment">// connection the fastest, and to reduce connection churn.</span>
+        <span class="comment">//</span>
+        <span class="comment">// - If the pool has an idle connection waiting, that&#39;s used</span>
+        <span class="comment">//   immediately.</span>
+        <span class="comment">// - Otherwise, the Connector is asked to start connecting to</span>
+        <span class="comment">//   the destination Uri.</span>
+        <span class="comment">// - Meanwhile, the pool Checkout is watching to see if any other</span>
+        <span class="comment">//   request finishes and tries to insert an idle connection.</span>
+        <span class="comment">// - If a new connection is started, but the Checkout wins after</span>
+        <span class="comment">//   (an idle connection becamse available first), the started</span>
+        <span class="comment">//   connection future is spawned into the runtime to complete,</span>
+        <span class="comment">//   and then be inserted into the pool as an idle connection.</span>
+        <span class="kw">let</span> <span class="ident">checkout</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">checkout</span>(<span class="ident">pool_key</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">connect</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">connect_to</span>(<span class="ident">uri</span>, <span class="ident">pool_key</span>);
 
         <span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">executor</span>.<span class="ident">clone</span>();
-        <span class="comment">// The order of the `select` is depended on below...</span>
-        <span class="kw">let</span> <span class="ident">race</span> <span class="op">=</span> <span class="ident">checkout</span>.<span class="ident">select2</span>(<span class="ident">connect</span>)
+        <span class="ident">checkout</span>
+            <span class="comment">// The order of the `select` is depended on below...</span>
+            .<span class="ident">select2</span>(<span class="ident">connect</span>)
             .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">either</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">either</span> {
                 <span class="comment">// Checkout won, connect future may have been started or not.</span>
                 <span class="comment">//</span>
@@ -1349,114 +1427,70 @@
                         <span class="ident">Either</span>::<span class="ident">B</span>(<span class="ident">future</span>::<span class="ident">err</span>(<span class="ident">ClientError</span>::<span class="ident">Normal</span>(<span class="ident">err</span>)))
                     }
                 }
-            });
+            })
+    }
 
+    <span class="kw">fn</span> <span class="ident">connect_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">uri</span>: <span class="ident">Uri</span>, <span class="ident">pool_key</span>: <span class="ident">PoolKey</span>)
+        <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Pooled</span><span class="op">&lt;</span><span class="ident">PoolClient</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>, <span class="ident">Error</span><span class="op">=</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    {
         <span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">executor</span>.<span class="ident">clone</span>();
-        <span class="kw">let</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">race</span>.<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">pooled</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">conn_reused</span> <span class="op">=</span> <span class="ident">pooled</span>.<span class="ident">is_reused</span>();
-            <span class="kw">if</span> <span class="ident">ver</span> <span class="op">==</span> <span class="ident">Ver</span>::<span class="ident">Http1</span> {
-                <span class="comment">// CONNECT always sends origin-form, so check it first...</span>
-                <span class="kw">if</span> <span class="ident">req</span>.<span class="ident">method</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">Method</span>::<span class="ident">CONNECT</span> {
-                    <span class="ident">authority_form</span>(<span class="ident">req</span>.<span class="ident">uri_mut</span>());
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">pooled</span>.<span class="ident">is_proxied</span> {
-                    <span class="ident">absolute_form</span>(<span class="ident">req</span>.<span class="ident">uri_mut</span>());
-                } <span class="kw">else</span> {
-                    <span class="ident">origin_form</span>(<span class="ident">req</span>.<span class="ident">uri_mut</span>());
-                };
-            } <span class="kw">else</span> {
-                <span class="macro">debug_assert</span><span class="macro">!</span>(
-                    <span class="ident">req</span>.<span class="ident">method</span>() <span class="op">!=</span> <span class="kw-2">&amp;</span><span class="ident">Method</span>::<span class="ident">CONNECT</span>,
-                    <span class="string">&quot;Client should have returned Error for HTTP2 CONNECT&quot;</span>
-                );
-            }
-
-            <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">pooled</span>.<span class="ident">send_request_retryable</span>(<span class="ident">req</span>);
-
-            <span class="comment">// As of futures@0.1.21, there is a race condition in the mpsc</span>
-            <span class="comment">// channel, such that sending when the receiver is closing can</span>
-            <span class="comment">// result in the message being stuck inside the queue. It won&#39;t</span>
-            <span class="comment">// ever notify until the Sender side is dropped.</span>
+        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">h1_writev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">h1_writev</span>;
+        <span class="kw">let</span> <span class="ident">h1_title_case_headers</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">h1_title_case_headers</span>;
+        <span class="kw">let</span> <span class="ident">connector</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">connector</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">ver</span> <span class="op">=</span> <span class="ident">pool_key</span>.<span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">Destination</span> {
+            <span class="ident">uri</span>,
+        };
+        <span class="ident">hyper_lazy</span>(<span class="kw">move</span> <span class="op">||</span> {
+            <span class="comment">// Try to take a &quot;connecting lock&quot;.</span>
             <span class="comment">//</span>
-            <span class="comment">// To counteract this, we must check if our senders &#39;want&#39; channel</span>
-            <span class="comment">// has been closed after having tried to send. If so, error out...</span>
-            <span class="kw">if</span> <span class="ident">pooled</span>.<span class="ident">is_closed</span>() {
-                <span class="ident">drop</span>(<span class="ident">pooled</span>);
-                <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">fut</span>
-                    .<span class="ident">map_err</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">err</span>, <span class="ident">orig_req</span>)<span class="op">|</span> {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">req</span>) <span class="op">=</span> <span class="ident">orig_req</span> {
-                            <span class="ident">ClientError</span>::<span class="ident">Canceled</span> {
-                                <span class="ident">connection_reused</span>: <span class="ident">conn_reused</span>,
-                                <span class="ident">reason</span>: <span class="ident">err</span>,
-                                <span class="ident">req</span>,
+            <span class="comment">// If the pool_key is for HTTP/2, and there is already a</span>
+            <span class="comment">// connection being estabalished, then this can&#39;t take a</span>
+            <span class="comment">// second lock. The &quot;connect_to&quot; future is Canceled.</span>
+            <span class="kw">let</span> <span class="ident">connecting</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">pool</span>.<span class="ident">connecting</span>(<span class="kw-2">&amp;</span><span class="ident">pool_key</span>) {
+                <span class="prelude-val">Some</span>(<span class="ident">lock</span>) <span class="op">=&gt;</span> <span class="ident">lock</span>,
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">canceled</span> <span class="op">=</span> ::<span class="ident">Error</span>::<span class="ident">new_canceled</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;HTTP/2 connection in progress&quot;</span>));
+                    <span class="kw">return</span> <span class="ident">Either</span>::<span class="ident">B</span>(<span class="ident">future</span>::<span class="ident">err</span>(<span class="ident">canceled</span>));
+                }
+            };
+            <span class="ident">Either</span>::<span class="ident">A</span>(<span class="ident">connector</span>.<span class="ident">connect</span>(<span class="ident">dst</span>)
+                .<span class="ident">map_err</span>(::<span class="ident">Error</span>::<span class="ident">new_connect</span>)
+                .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">io</span>, <span class="ident">connected</span>)<span class="op">|</span> {
+                    <span class="ident">conn</span>::<span class="ident">Builder</span>::<span class="ident">new</span>()
+                        .<span class="ident">exec</span>(<span class="ident">executor</span>.<span class="ident">clone</span>())
+                        .<span class="ident">h1_writev</span>(<span class="ident">h1_writev</span>)
+                        .<span class="ident">h1_title_case_headers</span>(<span class="ident">h1_title_case_headers</span>)
+                        .<span class="ident">http2_only</span>(<span class="ident">pool_key</span>.<span class="number">1</span> <span class="op">==</span> <span class="ident">Ver</span>::<span class="ident">Http2</span>)
+                        .<span class="ident">handshake</span>(<span class="ident">io</span>)
+                        .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">tx</span>, <span class="ident">conn</span>)<span class="op">|</span> {
+                            <span class="kw">let</span> <span class="ident">bg</span> <span class="op">=</span> <span class="ident">executor</span>.<span class="ident">execute</span>(<span class="ident">conn</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+                                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;client connection error: {}&quot;</span>, <span class="ident">e</span>)
+                            }));
+
+                            <span class="comment">// This task is critical, so an execute error</span>
+                            <span class="comment">// should be returned.</span>
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">bg</span> {
+                                <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;error spawning critical client task: {}&quot;</span>, <span class="ident">err</span>);
+                                <span class="kw">return</span> <span class="ident">Either</span>::<span class="ident">A</span>(<span class="ident">future</span>::<span class="ident">err</span>(<span class="ident">err</span>));
                             }
-                        } <span class="kw">else</span> {
-                            <span class="ident">ClientError</span>::<span class="ident">Normal</span>(<span class="ident">err</span>)
-                        }
-                    });
-                <span class="ident">Either</span>::<span class="ident">A</span>(<span class="ident">fut</span>)
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">fut</span>
-                    .<span class="ident">map_err</span>(<span class="kw">move</span> <span class="op">|</span>(<span class="ident">err</span>, <span class="ident">orig_req</span>)<span class="op">|</span> {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">req</span>) <span class="op">=</span> <span class="ident">orig_req</span> {
-                            <span class="ident">ClientError</span>::<span class="ident">Canceled</span> {
-                                <span class="ident">connection_reused</span>: <span class="ident">conn_reused</span>,
-                                <span class="ident">reason</span>: <span class="ident">err</span>,
-                                <span class="ident">req</span>,
-                            }
-                        } <span class="kw">else</span> {
-                            <span class="ident">ClientError</span>::<span class="ident">Normal</span>(<span class="ident">err</span>)
-                        }
-                    })
-                    .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">res</span><span class="op">|</span> {
-                        <span class="comment">// If pooled is HTTP/2, we can toss this reference immediately.</span>
-                        <span class="comment">//</span>
-                        <span class="comment">// when pooled is dropped, it will try to insert back into the</span>
-                        <span class="comment">// pool. To delay that, spawn a future that completes once the</span>
-                        <span class="comment">// sender is ready again.</span>
-                        <span class="comment">//</span>
-                        <span class="comment">// This *should* only be once the related `Connection` has polled</span>
-                        <span class="comment">// for a new request to start.</span>
-                        <span class="comment">//</span>
-                        <span class="comment">// It won&#39;t be ready if there is a body to stream.</span>
-                        <span class="kw">if</span> <span class="ident">ver</span> <span class="op">==</span> <span class="ident">Ver</span>::<span class="ident">Http2</span> <span class="op">||</span> <span class="op">!</span><span class="ident">pooled</span>.<span class="ident">is_pool_enabled</span>() <span class="op">||</span> <span class="ident">pooled</span>.<span class="ident">is_ready</span>() {
-                            <span class="ident">drop</span>(<span class="ident">pooled</span>);
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">res</span>.<span class="ident">body</span>().<span class="ident">is_end_stream</span>() {
-                            <span class="kw">let</span> (<span class="ident">delayed_tx</span>, <span class="ident">delayed_rx</span>) <span class="op">=</span> <span class="ident">oneshot</span>::<span class="ident">channel</span>();
-                            <span class="ident">res</span>.<span class="ident">body_mut</span>().<span class="ident">delayed_eof</span>(<span class="ident">delayed_rx</span>);
-                            <span class="kw">let</span> <span class="ident">on_idle</span> <span class="op">=</span> <span class="ident">future</span>::<span class="ident">poll_fn</span>(<span class="kw">move</span> <span class="op">||</span> {
-                                <span class="ident">pooled</span>.<span class="ident">poll_ready</span>()
+
+                            <span class="comment">// Wait for &#39;conn&#39; to ready up before we</span>
+                            <span class="comment">// declare this tx as usable</span>
+                            <span class="ident">Either</span>::<span class="ident">B</span>(<span class="ident">tx</span>.<span class="ident">when_ready</span>())
+                        })
+                        .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">tx</span><span class="op">|</span> {
+                            <span class="ident">pool</span>.<span class="ident">pooled</span>(<span class="ident">connecting</span>, <span class="ident">PoolClient</span> {
+                                <span class="ident">is_proxied</span>: <span class="ident">connected</span>.<span class="ident">is_proxied</span>,
+                                <span class="ident">tx</span>: <span class="kw">match</span> <span class="ident">ver</span> {
+                                    <span class="ident">Ver</span>::<span class="ident">Http1</span> <span class="op">=&gt;</span> <span class="ident">PoolTx</span>::<span class="ident">Http1</span>(<span class="ident">tx</span>),
+                                    <span class="ident">Ver</span>::<span class="ident">Http2</span> <span class="op">=&gt;</span> <span class="ident">PoolTx</span>::<span class="ident">Http2</span>(<span class="ident">tx</span>.<span class="ident">into_http2</span>()),
+                                },
                             })
-                                .<span class="ident">then</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                                    <span class="comment">// At this point, `pooled` is dropped, and had a chance</span>
-                                    <span class="comment">// to insert into the pool (if conn was idle)</span>
-                                    <span class="ident">drop</span>(<span class="ident">delayed_tx</span>);
-                                    <span class="prelude-val">Ok</span>(())
-                                });
-
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">executor</span>.<span class="ident">execute</span>(<span class="ident">on_idle</span>) {
-                                <span class="comment">// This task isn&#39;t critical, so just log and ignore.</span>
-                                <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;error spawning task to insert idle connection: {}&quot;</span>, <span class="ident">err</span>);
-                            }
-                        } <span class="kw">else</span> {
-                            <span class="comment">// There&#39;s no body to delay, but the connection isn&#39;t</span>
-                            <span class="comment">// ready yet. Only re-insert when it&#39;s ready</span>
-                            <span class="kw">let</span> <span class="ident">on_idle</span> <span class="op">=</span> <span class="ident">future</span>::<span class="ident">poll_fn</span>(<span class="kw">move</span> <span class="op">||</span> {
-                                <span class="ident">pooled</span>.<span class="ident">poll_ready</span>()
-                            })
-                                .<span class="ident">then</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(()));
-
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">executor</span>.<span class="ident">execute</span>(<span class="ident">on_idle</span>) {
-                                <span class="comment">// This task isn&#39;t critical, so just log and ignore.</span>
-                                <span class="macro">warn</span><span class="macro">!</span>(<span class="string">&quot;error spawning task to insert idle connection: {}&quot;</span>, <span class="ident">err</span>);
-                            }
-                        }
-                        <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
-                    });
-                <span class="ident">Either</span>::<span class="ident">B</span>(<span class="ident">fut</span>)
-            }
-        });
-
-        <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">resp</span>)
+                        })
+                }))
+        })
     }
 }
 
@@ -1511,49 +1545,8 @@
     }
 }
 
-<span class="kw">struct</span> <span class="ident">RetryableSendRequest</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="ident">client</span>: <span class="ident">Client</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span><span class="op">&gt;</span>,
-    <span class="ident">domain</span>: <span class="ident">String</span>,
-    <span class="ident">future</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">ClientError</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>,
-    <span class="ident">uri</span>: <span class="ident">Uri</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span><span class="op">&gt;</span> <span class="ident">Future</span> <span class="kw">for</span> <span class="ident">RetryableSendRequest</span><span class="op">&lt;</span><span class="ident">C</span>, <span class="ident">B</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">C</span>: <span class="ident">Connect</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">C</span>::<span class="ident">Future</span>: <span class="lifetime">&#39;static</span>,
-    <span class="ident">B</span>: <span class="ident">Payload</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">B</span>::<span class="ident">Data</span>: <span class="ident">Send</span>,
-{
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ::<span class="ident">Error</span>;
-
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">future</span>.<span class="ident">poll</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">resp</span>)) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">resp</span>)),
-                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">ClientError</span>::<span class="ident">Normal</span>(<span class="ident">err</span>)) <span class="op">=&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">ClientError</span>::<span class="ident">Canceled</span> {
-                    <span class="ident">connection_reused</span>,
-                    <span class="kw-2">mut</span> <span class="ident">req</span>,
-                    <span class="ident">reason</span>,
-                }) <span class="op">=&gt;</span> {
-                    <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">client</span>.<span class="ident">retry_canceled_requests</span> <span class="op">||</span> <span class="op">!</span><span class="ident">connection_reused</span> {
-                        <span class="comment">// if client disabled, don&#39;t retry</span>
-                        <span class="comment">// a fresh connection means we definitely can&#39;t retry</span>
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">reason</span>);
-                    }
-
-                    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;unstarted request canceled, trying again (reason={:?})&quot;</span>, <span class="ident">reason</span>);
-                    <span class="kw-2">*</span><span class="ident">req</span>.<span class="ident">uri_mut</span>() <span class="op">=</span> <span class="self">self</span>.<span class="ident">uri</span>.<span class="ident">clone</span>();
-                    <span class="self">self</span>.<span class="ident">future</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">client</span>.<span class="ident">send_request</span>(<span class="ident">req</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">domain</span>);
-                }
-            }
-        }
-    }
-}
-
+<span class="comment">// FIXME: allow() required due to `impl Trait` leaking types to this lint</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
 <span class="kw">struct</span> <span class="ident">PoolClient</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
     <span class="ident">is_proxied</span>: <span class="ident">bool</span>,
     <span class="ident">tx</span>: <span class="ident">PoolTx</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
@@ -1588,14 +1581,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">Payload</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">PoolClient</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
-    <span class="comment">//TODO: replace with `impl Future` when stable</span>
-    <span class="kw">fn</span> <span class="ident">send_request_retryable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">=</span>(::<span class="ident">Error</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">send_request_retryable</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> (::<span class="ident">Error</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>)<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">B</span>: <span class="ident">Send</span>,
     {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">tx</span> {
-            <span class="ident">PoolTx</span>::<span class="ident">Http1</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">tx</span>) <span class="op">=&gt;</span> <span class="ident">tx</span>.<span class="ident">send_request_retryable</span>(<span class="ident">req</span>),
-            <span class="ident">PoolTx</span>::<span class="ident">Http2</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">tx</span>) <span class="op">=&gt;</span> <span class="ident">tx</span>.<span class="ident">send_request_retryable</span>(<span class="ident">req</span>),
+            <span class="ident">PoolTx</span>::<span class="ident">Http1</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">tx</span>) <span class="op">=&gt;</span> <span class="ident">Either</span>::<span class="ident">A</span>(<span class="ident">tx</span>.<span class="ident">send_request_retryable</span>(<span class="ident">req</span>)),
+            <span class="ident">PoolTx</span>::<span class="ident">Http2</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">tx</span>) <span class="op">=&gt;</span> <span class="ident">Either</span>::<span class="ident">B</span>(<span class="ident">tx</span>.<span class="ident">send_request_retryable</span>(<span class="ident">req</span>)),
         }
     }
 }
@@ -1634,12 +1626,32 @@
     }
 }
 
+<span class="comment">// FIXME: allow() required due to `impl Trait` leaking types to this lint</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
 <span class="kw">enum</span> <span class="ident">ClientError</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
     <span class="ident">Normal</span>(::<span class="ident">Error</span>),
     <span class="ident">Canceled</span> {
         <span class="ident">connection_reused</span>: <span class="ident">bool</span>,
         <span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
         <span class="ident">reason</span>: ::<span class="ident">Error</span>,
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="ident">ClientError</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">map_with_reused</span>(<span class="ident">conn_reused</span>: <span class="ident">bool</span>)
+        <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Fn</span>((::<span class="ident">Error</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;&gt;</span>)) <span class="op">-&gt;</span> <span class="self">Self</span>
+    {
+        <span class="kw">move</span> <span class="op">|</span>(<span class="ident">err</span>, <span class="ident">orig_req</span>)<span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">req</span>) <span class="op">=</span> <span class="ident">orig_req</span> {
+                <span class="ident">ClientError</span>::<span class="ident">Canceled</span> {
+                    <span class="ident">connection_reused</span>: <span class="ident">conn_reused</span>,
+                    <span class="ident">reason</span>: <span class="ident">err</span>,
+                    <span class="ident">req</span>,
+                }
+            } <span class="kw">else</span> {
+                <span class="ident">ClientError</span>::<span class="ident">Normal</span>(<span class="ident">err</span>)
+            }
+        }
     }
 }
 
@@ -1719,8 +1731,7 @@
     <span class="ident">keep_alive_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>,
     <span class="ident">h1_writev</span>: <span class="ident">bool</span>,
     <span class="ident">h1_title_case_headers</span>: <span class="ident">bool</span>,
-    <span class="comment">//TODO: make use of max_idle config</span>
-    <span class="ident">max_idle</span>: <span class="ident">usize</span>,
+    <span class="ident">max_idle_per_host</span>: <span class="ident">usize</span>,
     <span class="ident">retry_canceled_requests</span>: <span class="ident">bool</span>,
     <span class="ident">set_host</span>: <span class="ident">bool</span>,
     <span class="ident">ver</span>: <span class="ident">Ver</span>,
@@ -1734,7 +1745,7 @@
             <span class="ident">keep_alive_timeout</span>: <span class="prelude-val">Some</span>(<span class="ident">Duration</span>::<span class="ident">from_secs</span>(<span class="number">90</span>)),
             <span class="ident">h1_writev</span>: <span class="bool-val">true</span>,
             <span class="ident">h1_title_case_headers</span>: <span class="bool-val">false</span>,
-            <span class="ident">max_idle</span>: <span class="number">5</span>,
+            <span class="ident">max_idle_per_host</span>: ::<span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span>,
             <span class="ident">retry_canceled_requests</span>: <span class="bool-val">true</span>,
             <span class="ident">set_host</span>: <span class="bool-val">true</span>,
             <span class="ident">ver</span>: <span class="ident">Ver</span>::<span class="ident">Http1</span>,
@@ -1805,6 +1816,14 @@
         <span class="self">self</span>
     }
 
+    <span class="doccomment">/// Sets the maximum idle connection per host allowed in the pool.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Default is `usize::MAX` (no limit).</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_idle_per_host</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">max_idle</span>: <span class="ident">usize</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">max_idle_per_host</span> <span class="op">=</span> <span class="ident">max_idle</span>;
+        <span class="self">self</span>
+    }
+
     <span class="doccomment">/// Set whether to retry requests that get disrupted before ever starting</span>
     <span class="doccomment">/// to write.</span>
     <span class="doccomment">///</span>
@@ -1871,7 +1890,12 @@
             <span class="ident">executor</span>: <span class="self">self</span>.<span class="ident">exec</span>.<span class="ident">clone</span>(),
             <span class="ident">h1_writev</span>: <span class="self">self</span>.<span class="ident">h1_writev</span>,
             <span class="ident">h1_title_case_headers</span>: <span class="self">self</span>.<span class="ident">h1_title_case_headers</span>,
-            <span class="ident">pool</span>: <span class="ident">Pool</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">keep_alive</span>, <span class="self">self</span>.<span class="ident">keep_alive_timeout</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">exec</span>),
+            <span class="ident">pool</span>: <span class="ident">Pool</span>::<span class="ident">new</span>(
+                <span class="ident">pool</span>::<span class="ident">Enabled</span>(<span class="self">self</span>.<span class="ident">keep_alive</span>),
+                <span class="ident">pool</span>::<span class="ident">IdleTimeout</span>(<span class="self">self</span>.<span class="ident">keep_alive_timeout</span>),
+                <span class="ident">pool</span>::<span class="ident">MaxIdlePerHost</span>(<span class="self">self</span>.<span class="ident">max_idle_per_host</span>),
+                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">exec</span>,
+            ),
             <span class="ident">retry_canceled_requests</span>: <span class="self">self</span>.<span class="ident">retry_canceled_requests</span>,
             <span class="ident">set_host</span>: <span class="self">self</span>.<span class="ident">set_host</span>,
             <span class="ident">ver</span>: <span class="self">self</span>.<span class="ident">ver</span>,
@@ -1885,7 +1909,7 @@
             .<span class="ident">field</span>(<span class="string">&quot;keep_alive&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">keep_alive</span>)
             .<span class="ident">field</span>(<span class="string">&quot;keep_alive_timeout&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">keep_alive_timeout</span>)
             .<span class="ident">field</span>(<span class="string">&quot;http1_writev&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">h1_writev</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;max_idle&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">max_idle</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;max_idle_per_host&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">max_idle_per_host</span>)
             .<span class="ident">field</span>(<span class="string">&quot;set_host&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">set_host</span>)
             .<span class="ident">field</span>(<span class="string">&quot;version&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ver</span>)
             .<span class="ident">finish</span>()

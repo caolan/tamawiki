@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-1.0.6/src/prec_climber.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prec_climber.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/pest-2.0.1/src/prec_climber.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>prec_climber.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -226,6 +226,10 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
 </pre><pre class="rust ">
 <span class="comment">// pest. The Elegant Parser</span>
 <span class="comment">// Copyright (c) 2018 Dragoș Tiselice</span>
@@ -236,8 +240,7 @@
 <span class="comment">// option. All files in the project carrying such notice may not be copied,</span>
 <span class="comment">// modified, or distributed except according to those terms.</span>
 
-<span class="doccomment">//! A `mod` containing constructs useful in infix operator parsing with the precedence climbing</span>
-<span class="doccomment">//! method.</span>
+<span class="doccomment">//! Constructs useful in infix operator parsing with the precedence climbing method.</span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>::<span class="ident">Peekable</span>;
@@ -246,7 +249,9 @@
 <span class="kw">use</span> <span class="ident">RuleType</span>;
 <span class="kw">use</span> <span class="ident">iterators</span>::<span class="ident">Pair</span>;
 
-<span class="doccomment">/// An `enum` describing an `Operator`&#39;s associativity.</span>
+<span class="doccomment">/// Associativity of an [`Operator`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`Operator`]: struct.Operator.html</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Assoc</span> {
     <span class="doccomment">/// Left `Operator` associativity</span>
@@ -255,7 +260,9 @@
     <span class="ident">Right</span>
 }
 
-<span class="doccomment">/// A `struct` defining an infix operator used in [`PrecClimber`](struct.PrecClimber.html).</span>
+<span class="doccomment">/// Infix operator used in [`PrecClimber`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`PrecClimber`]: struct.PrecClimber.html</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Operator</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RuleType</span><span class="op">&gt;</span> {
     <span class="ident">rule</span>: <span class="ident">R</span>,
@@ -305,11 +312,12 @@
     }
 }
 
-<span class="doccomment">/// A `struct` useful in order to perform [precedence climbing][1] on infix expressions contained in</span>
-<span class="doccomment">/// a [`Pairs`](../iterators/struct.Pairs.html). The token pairs contained in the `Pairs` should</span>
-<span class="doccomment">/// start with a *primary* pair and then alternate between an *operator* and a *primary*.</span>
+<span class="doccomment">/// List of operators and precedences, which can perform [precedence climbing][1] on infix</span>
+<span class="doccomment">/// expressions contained in a [`Pairs`]. The token pairs contained in the `Pairs` should start</span>
+<span class="doccomment">/// with a *primary* pair and then alternate between an *operator* and a *primary*.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [1]: https://en.wikipedia.org/wiki/Operator-precedence_parser#Precedence_climbing_method</span>
+<span class="doccomment">/// [`Pairs`]: ../iterators/struct.Pairs.html</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrecClimber</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RuleType</span><span class="op">&gt;</span> {
     <span class="ident">ops</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">R</span>, (<span class="ident">u32</span>, <span class="ident">Assoc</span>)<span class="op">&gt;</span>

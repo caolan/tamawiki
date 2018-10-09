@@ -62,7 +62,7 @@ sets a thread-local variable referencing the associated <a href="struct.Reactor.
 and <a href="struct.Handle.html#method.current"><code>Handle::current</code></a> (used by <a href="struct.Registration.html"><code>Registration</code></a>) returns the reference.</p>
 <h2 id="implementation" class="section-header"><a href="#implementation">Implementation</a></h2>
 <p>The reactor implementation uses <a href="https://github.com/carllerche/mio"><code>mio</code></a> to interface with the operating
-system's event queue. A call to <a href="struct.Reactor.html#method.poll"><code>Reactor::poll</code></a> results in in a single
+system's event queue. A call to <a href="struct.Reactor.html#method.poll"><code>Reactor::poll</code></a> results in a single
 call to <a href="https://docs.rs/mio/0.6/mio/struct.Poll.html#method.poll"><code>Poll::poll</code></a> which in turn results in a single call to the
 operating system's selector.</p>
 <p>The reactor maintains state for each registered I/O resource. This tracks
@@ -82,8 +82,8 @@ applications may wish to implement their own resources that are also backed
 by the reactor.</p>
 <p>There are a couple of ways to do this.</p>
 <p>If the custom I/O resource implements <a href="https://docs.rs/mio/0.6/mio/trait.Evented.html"><code>mio::Evented</code></a> and implements
-<a href="https://doc.rust-lang.org/std/io/trait.Read.html"><code>std::Read</code></a> and / or <a href="https://doc.rust-lang.org/std/io/trait.Write.html"><code>std::Write</code></a>, then <a href="struct.PollEvented.html"><code>PollEvented</code></a> is the most
-suited.</p>
+<a href="https://doc.rust-lang.org/std/io/trait.Read.html"><code>std::io::Read</code></a> and / or <a href="https://doc.rust-lang.org/std/io/trait.Write.html"><code>std::io::Write</code></a>, then <a href="struct.PollEvented.html"><code>PollEvented</code></a> is the
+most suited.</p>
 <p>Otherwise, <a href="struct.Registration.html"><code>Registration</code></a> can be used directly. This provides the lowest
 level primitive needed for integrating with the reactor: a stream of
 readiness events.</p>
@@ -109,8 +109,8 @@ readiness events.</p>
                            <td><a class="struct" href="struct.PollEvented2.html"
                                   title='struct tokio::reactor::PollEvented2'>PollEvented2</a></td>
                            <td class='docblock-short'>
-                                <p>Associates an I/O resource that implements the <a href="https://doc.rust-lang.org/std/io/trait.Read.html"><code>std::Read</code></a> and / or
-<a href="https://doc.rust-lang.org/std/io/trait.Write.html"><code>std::Write</code></a> traits with the reactor that drives it.</p>
+                                <p>Associates an I/O resource that implements the <a href="https://doc.rust-lang.org/std/io/trait.Read.html"><code>std::io::Read</code></a> and/or
+<a href="https://doc.rust-lang.org/std/io/trait.Write.html"><code>std::io::Write</code></a> traits with the reactor that drives it.</p>
 
                            </td>
                        </tr>

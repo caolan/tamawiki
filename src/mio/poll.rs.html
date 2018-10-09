@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.6.15/src/poll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.6.16/src/poll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -2731,6 +2731,50 @@
 <span id="2731">2731</span>
 <span id="2732">2732</span>
 <span id="2733">2733</span>
+<span id="2734">2734</span>
+<span id="2735">2735</span>
+<span id="2736">2736</span>
+<span id="2737">2737</span>
+<span id="2738">2738</span>
+<span id="2739">2739</span>
+<span id="2740">2740</span>
+<span id="2741">2741</span>
+<span id="2742">2742</span>
+<span id="2743">2743</span>
+<span id="2744">2744</span>
+<span id="2745">2745</span>
+<span id="2746">2746</span>
+<span id="2747">2747</span>
+<span id="2748">2748</span>
+<span id="2749">2749</span>
+<span id="2750">2750</span>
+<span id="2751">2751</span>
+<span id="2752">2752</span>
+<span id="2753">2753</span>
+<span id="2754">2754</span>
+<span id="2755">2755</span>
+<span id="2756">2756</span>
+<span id="2757">2757</span>
+<span id="2758">2758</span>
+<span id="2759">2759</span>
+<span id="2760">2760</span>
+<span id="2761">2761</span>
+<span id="2762">2762</span>
+<span id="2763">2763</span>
+<span id="2764">2764</span>
+<span id="2765">2765</span>
+<span id="2766">2766</span>
+<span id="2767">2767</span>
+<span id="2768">2768</span>
+<span id="2769">2769</span>
+<span id="2770">2770</span>
+<span id="2771">2771</span>
+<span id="2772">2772</span>
+<span id="2773">2773</span>
+<span id="2774">2774</span>
+<span id="2775">2775</span>
+<span id="2776">2776</span>
+<span id="2777">2777</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> {<span class="ident">sys</span>, <span class="ident">Token</span>};
 <span class="kw">use</span> <span class="ident">event_imp</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">event</span>, <span class="ident">Ready</span>, <span class="ident">Event</span>, <span class="ident">Evented</span>, <span class="ident">PollOpt</span>};
@@ -3429,8 +3473,8 @@
     <span class="doccomment">/// readiness. `Poll` will only return readiness events for operations</span>
     <span class="doccomment">/// specified by this argument.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// If a socket is registered with [`readable`] interest and the socket</span>
-    <span class="doccomment">/// becomes writable, no event will be returned from [`poll`].</span>
+    <span class="doccomment">/// If a socket is registered with readable interest and the socket becomes</span>
+    <span class="doccomment">/// writable, no event will be returned from [`poll`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The readiness interest for an `Evented` handle can be changed at any</span>
     <span class="doccomment">/// time by calling [`reregister`].</span>
@@ -3594,7 +3638,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// When an `Evented` handle is deregistered, the `Poll` instance will</span>
     <span class="doccomment">/// no longer monitor it for readiness state changes. Unlike disabling</span>
-    <span class="doccomment">/// handles with [`oneshot`], deregistering clears up any internal resources</span>
+    <span class="doccomment">/// handles with oneshot, deregistering clears up any internal resources</span>
     <span class="doccomment">/// needed to track the handle.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A handle can be passed back to `register` after it has been</span>
@@ -3891,6 +3935,8 @@
         <span class="kw">if</span> <span class="ident">timeout</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">Duration</span>::<span class="ident">from_millis</span>(<span class="number">0</span>)) {
             <span class="comment">// If blocking is not requested, then there is no need to prepare</span>
             <span class="comment">// the queue for sleep</span>
+            <span class="comment">//</span>
+            <span class="comment">// The sleep_marker should be removed by readiness_queue.poll().</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">readiness_queue</span>.<span class="ident">prepare_for_sleep</span>() {
             <span class="comment">// The readiness queue is empty. The call to `prepare_for_sleep`</span>
             <span class="comment">// inserts `sleep_marker` into the queue. This signals to any</span>
@@ -4850,6 +4896,13 @@
         <span class="comment">// loop where `Poll::poll` will keep dequeuing nodes it enqueues.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">until</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
 
+        <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">dst</span>.<span class="ident">capacity</span>() {
+            <span class="comment">// If `dst` is already full, the readiness queue won&#39;t be drained.</span>
+            <span class="comment">// This might result in `sleep_marker` staying in the queue and</span>
+            <span class="comment">// unecessary pipe writes occuring.</span>
+            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">clear_sleep_marker</span>();
+        }
+
         <span class="lifetime">&#39;outer</span>:
         <span class="kw">while</span> <span class="ident">dst</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">dst</span>.<span class="ident">capacity</span>() {
             <span class="comment">// Dequeue a node. If the queue is in an inconsistent state, then</span>
@@ -5087,6 +5140,37 @@
         }
     }
 
+    <span class="kw">fn</span> <span class="ident">clear_sleep_marker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="kw">let</span> <span class="ident">end_marker</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">end_marker</span>();
+        <span class="kw">let</span> <span class="ident">sleep_marker</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sleep_marker</span>();
+
+        <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">tail_readiness</span>.<span class="ident">get</span>();
+
+            <span class="kw">if</span> <span class="ident">tail</span> <span class="op">!=</span> <span class="self">self</span>.<span class="ident">sleep_marker</span>() {
+                <span class="kw">return</span>;
+            }
+
+            <span class="comment">// The empty markeer is *not* currently in the readiness queue</span>
+            <span class="comment">// (since the sleep markeris).</span>
+            <span class="self">self</span>.<span class="ident">end_marker</span>.<span class="ident">next_readiness</span>.<span class="ident">store</span>(<span class="ident">ptr</span>::<span class="ident">null_mut</span>(), <span class="ident">Relaxed</span>);
+
+            <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">head_readiness</span>.<span class="ident">compare_and_swap</span>(
+                <span class="ident">sleep_marker</span>, <span class="ident">end_marker</span>, <span class="ident">AcqRel</span>);
+
+            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">actual</span> <span class="op">!=</span> <span class="ident">end_marker</span>);
+
+            <span class="kw">if</span> <span class="ident">actual</span> <span class="op">!=</span> <span class="ident">sleep_marker</span> {
+                <span class="comment">// The readiness queue is not empty, we cannot remove the sleep</span>
+                <span class="comment">// markeer</span>
+                <span class="kw">return</span>;
+            }
+
+            <span class="comment">// Update the tail pointer.</span>
+            <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">tail_readiness</span>.<span class="ident">get</span>() <span class="op">=</span> <span class="ident">end_marker</span>;
+        }
+    }
+
     <span class="doccomment">/// Must only be called in `poll` or `drop`</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dequeue_node</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">until</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ReadinessNode</span>) <span class="op">-&gt;</span> <span class="ident">Dequeue</span> {
         <span class="comment">// This is the 1024cores.net intrusive MPSC queue [1] &quot;pop&quot; function</span>
@@ -5096,6 +5180,10 @@
 
         <span class="kw">if</span> <span class="ident">tail</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">end_marker</span>() <span class="op">||</span> <span class="ident">tail</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">sleep_marker</span>() <span class="op">||</span> <span class="ident">tail</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">closed_marker</span>() {
             <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">is_null</span>() {
+                <span class="comment">// Make sure the sleep marker is removed (as we are no longer</span>
+                <span class="comment">// sleeping</span>
+                <span class="self">self</span>.<span class="ident">clear_sleep_marker</span>();
+
                 <span class="kw">return</span> <span class="ident">Dequeue</span>::<span class="ident">Empty</span>;
             }
 

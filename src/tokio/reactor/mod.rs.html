@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.1.7/src/reactor/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-0.1.11/src/reactor/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -231,7 +231,7 @@
 <span class="doccomment">//! ## Implementation</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The reactor implementation uses [`mio`] to interface with the operating</span>
-<span class="doccomment">//! system&#39;s event queue. A call to [`Reactor::poll`] results in in a single</span>
+<span class="doccomment">//! system&#39;s event queue. A call to [`Reactor::poll`] results in a single</span>
 <span class="doccomment">//! call to [`Poll::poll`] which in turn results in a single call to the</span>
 <span class="doccomment">//! operating system&#39;s selector.</span>
 <span class="doccomment">//!</span>
@@ -257,8 +257,8 @@
 <span class="doccomment">//! There are a couple of ways to do this.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! If the custom I/O resource implements [`mio::Evented`] and implements</span>
-<span class="doccomment">//! [`std::Read`] and / or [`std::Write`], then [`PollEvented`] is the most</span>
-<span class="doccomment">//! suited.</span>
+<span class="doccomment">//! [`std::io::Read`] and / or [`std::io::Write`], then [`PollEvented`] is the</span>
+<span class="doccomment">//! most suited.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Otherwise, [`Registration`] can be used directly. This provides the lowest</span>
 <span class="doccomment">//! level primitive needed for integrating with the reactor: a stream of</span>
@@ -282,8 +282,8 @@
 <span class="doccomment">//! [`Poll::poll`]: https://docs.rs/mio/0.6/mio/struct.Poll.html#method.poll</span>
 <span class="doccomment">//! [`mio::Evented`]: https://docs.rs/mio/0.6/mio/trait.Evented.html</span>
 <span class="doccomment">//! [`PollEvented`]: struct.PollEvented.html</span>
-<span class="doccomment">//! [`std::Read`]: https://doc.rust-lang.org/std/io/trait.Read.html</span>
-<span class="doccomment">//! [`std::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html</span>
+<span class="doccomment">//! [`std::io::Read`]: https://doc.rust-lang.org/std/io/trait.Read.html</span>
+<span class="doccomment">//! [`std::io::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tokio_reactor</span>::{
     <span class="ident">Reactor</span>,

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-reactor-0.1.3/src/poll_evented.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll_evented.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-reactor-0.1.6/src/poll_evented.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll_evented.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -469,199 +469,6 @@
 <span id="469">469</span>
 <span id="470">470</span>
 <span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
-<span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
-<span id="491">491</span>
-<span id="492">492</span>
-<span id="493">493</span>
-<span id="494">494</span>
-<span id="495">495</span>
-<span id="496">496</span>
-<span id="497">497</span>
-<span id="498">498</span>
-<span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
-<span id="575">575</span>
-<span id="576">576</span>
-<span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
-<span id="597">597</span>
-<span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
-<span id="609">609</span>
-<span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
-<span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
-<span id="635">635</span>
-<span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
-<span id="639">639</span>
-<span id="640">640</span>
-<span id="641">641</span>
-<span id="642">642</span>
-<span id="643">643</span>
-<span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-<span id="652">652</span>
-<span id="653">653</span>
-<span id="654">654</span>
-<span id="655">655</span>
-<span id="656">656</span>
-<span id="657">657</span>
-<span id="658">658</span>
-<span id="659">659</span>
-<span id="660">660</span>
-<span id="661">661</span>
-<span id="662">662</span>
-<span id="663">663</span>
-<span id="664">664</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> {<span class="ident">Handle</span>, <span class="ident">Registration</span>};
 
@@ -670,20 +477,17 @@
 <span class="kw">use</span> <span class="ident">mio</span>::<span class="ident">event</span>::<span class="ident">Evented</span>;
 <span class="kw">use</span> <span class="ident">tokio_io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">futures2</span>;
-
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">Read</span>, <span class="ident">Write</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">AtomicUsize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::<span class="ident">Relaxed</span>;
 
-<span class="doccomment">/// Associates an I/O resource that implements the [`std::Read`] and / or</span>
-<span class="doccomment">/// [`std::Write`] traits with the reactor that drives it.</span>
+<span class="doccomment">/// Associates an I/O resource that implements the [`std::io::Read`] and/or</span>
+<span class="doccomment">/// [`std::io::Write`] traits with the reactor that drives it.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `PollEvented` uses [`Registration`] internally to take a type that</span>
-<span class="doccomment">/// implements [`mio::Evented`] as well as [`std::Read`] and or [`std::Write`]</span>
-<span class="doccomment">/// and associate it with a reactor that will drive it.</span>
+<span class="doccomment">/// implements [`mio::Evented`] as well as [`std::io::Read`] and or</span>
+<span class="doccomment">/// [`std::io::Write`] and associate it with a reactor that will drive it.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Once the [`mio::Evented`] type is wrapped by `PollEvented`, it can be</span>
 <span class="doccomment">/// used from within the future&#39;s execution model. As such, the `PollEvented`</span>
@@ -742,15 +546,15 @@
 <span class="doccomment">/// These events are included as part of the read readiness event stream. The</span>
 <span class="doccomment">/// write readiness event stream is only for `Ready::writable()` events.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`std::Read`]: https://doc.rust-lang.org/std/io/trait.Read.html</span>
-<span class="doccomment">/// [`std::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html</span>
+<span class="doccomment">/// [`std::io::Read`]: https://doc.rust-lang.org/std/io/trait.Read.html</span>
+<span class="doccomment">/// [`std::io::Write`]: https://doc.rust-lang.org/std/io/trait.Write.html</span>
 <span class="doccomment">/// [`AsyncRead`]: ../io/trait.AsyncRead.html</span>
 <span class="doccomment">/// [`AsyncWrite`]: ../io/trait.AsyncWrite.html</span>
 <span class="doccomment">/// [`mio::Evented`]: https://docs.rs/mio/0.6/mio/trait.Evented.html</span>
 <span class="doccomment">/// [`Registration`]: struct.Registration.html</span>
 <span class="doccomment">/// [`TcpListener`]: ../net/struct.TcpListener.html</span>
 <span class="doccomment">/// [`clear_read_ready`]: #method.clear_read_ready</span>
-<span class="doccomment">/// [`clear_read_ready`]: #method.clear_read_ready</span>
+<span class="doccomment">/// [`clear_write_ready`]: #method.clear_write_ready</span>
 <span class="doccomment">/// [`poll_read_ready`]: #method.poll_read_ready</span>
 <span class="doccomment">/// [`poll_write_ready`]: #method.poll_write_ready</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PollEvented</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Evented</span><span class="op">&gt;</span> {
@@ -893,19 +697,6 @@
         )
     }
 
-    <span class="doccomment">/// Like `poll_read_ready` but compatible with futures 0.2.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_read_ready2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>, <span class="ident">mask</span>: <span class="ident">mio</span>::<span class="ident">Ready</span>)
-        <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">mio</span>::<span class="ident">Ready</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span>
-    {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">mask</span>.<span class="ident">is_writable</span>(), <span class="string">&quot;cannot poll for write readiness&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="op">||</span> <span class="macro">poll_ready</span><span class="macro">!</span>(
-            <span class="self">self</span>, <span class="ident">mask</span>, <span class="ident">read_readiness</span>, <span class="ident">take_read_ready</span>,
-            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">registration</span>.<span class="ident">poll_read_ready2</span>(<span class="ident">cx</span>).<span class="ident">map</span>(::<span class="ident">lower_async</span>)
-        );
-        <span class="ident">res</span>().<span class="ident">map</span>(::<span class="ident">lift_async</span>)
-    }
-
     <span class="doccomment">/// Clears the I/O resource&#39;s read readiness state and registers the current</span>
     <span class="doccomment">/// task to be notified once a read readiness event is received.</span>
     <span class="doccomment">///</span>
@@ -931,25 +722,6 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">poll_read_ready</span>(<span class="ident">ready</span>)<span class="question-mark">?</span>.<span class="ident">is_ready</span>() {
             <span class="comment">// Notify the current task</span>
             <span class="ident">task</span>::<span class="ident">current</span>().<span class="ident">notify</span>();
-        }
-
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="doccomment">/// Like `clear_read_ready` but compatible with futures 0.2.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_read_ready2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>, <span class="ident">ready</span>: <span class="ident">mio</span>::<span class="ident">Ready</span>)
-        <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    {
-        <span class="comment">// Cannot clear write readiness</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">ready</span>.<span class="ident">is_writable</span>(), <span class="string">&quot;cannot clear write readiness&quot;</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>::<span class="ident">platform</span>::<span class="ident">is_hup</span>(<span class="kw-2">&amp;</span><span class="ident">ready</span>), <span class="string">&quot;cannot clear HUP readiness&quot;</span>);
-
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">read_readiness</span>.<span class="ident">fetch_and</span>(<span class="op">!</span><span class="ident">ready</span>.<span class="ident">as_usize</span>(), <span class="ident">Relaxed</span>);
-
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">poll_read_ready2</span>(<span class="ident">cx</span>, <span class="ident">ready</span>)<span class="question-mark">?</span>.<span class="ident">is_ready</span>() {
-            <span class="comment">// Notify the current task</span>
-            <span class="ident">cx</span>.<span class="ident">waker</span>().<span class="ident">wake</span>()
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -984,22 +756,6 @@
         )
     }
 
-    <span class="doccomment">/// Like `poll_write_ready` but compatible with futures 0.2.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_write_ready2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>)
-        <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">mio</span>::<span class="ident">Ready</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span>
-    {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="op">||</span> <span class="macro">poll_ready</span><span class="macro">!</span>(
-            <span class="self">self</span>,
-            <span class="ident">mio</span>::<span class="ident">Ready</span>::<span class="ident">writable</span>(),
-            <span class="ident">write_readiness</span>,
-            <span class="ident">take_write_ready</span>,
-            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">registration</span>.<span class="ident">poll_write_ready2</span>(<span class="ident">cx</span>).<span class="ident">map</span>(::<span class="ident">lower_async</span>)
-        );
-        <span class="ident">res</span>().<span class="ident">map</span>(::<span class="ident">lift_async</span>)
-    }
-
-
     <span class="doccomment">/// Resets the I/O resource&#39;s write readiness state and registers the current</span>
     <span class="doccomment">/// task to be notified once a write readiness event is received.</span>
     <span class="doccomment">///</span>
@@ -1020,21 +776,6 @@
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">poll_write_ready</span>()<span class="question-mark">?</span>.<span class="ident">is_ready</span>() {
             <span class="comment">// Notify the current task</span>
             <span class="ident">task</span>::<span class="ident">current</span>().<span class="ident">notify</span>();
-        }
-
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="doccomment">/// Like `clear_write_ready`, but compatible with futures 0.2.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_write_ready2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ready</span> <span class="op">=</span> <span class="ident">mio</span>::<span class="ident">Ready</span>::<span class="ident">writable</span>();
-
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">write_readiness</span>.<span class="ident">fetch_and</span>(<span class="op">!</span><span class="ident">ready</span>.<span class="ident">as_usize</span>(), <span class="ident">Relaxed</span>);
-
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">poll_write_ready2</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>.<span class="ident">is_ready</span>() {
-            <span class="comment">// Notify the current task</span>
-            <span class="ident">cx</span>.<span class="ident">waker</span>().<span class="ident">wake</span>()
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -1064,28 +805,6 @@
         }
 
         <span class="kw">return</span> <span class="ident">r</span>
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="ident">futures2</span>::<span class="ident">io</span>::<span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">PollEvented</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Evented</span>, <span class="ident">E</span>: <span class="ident">Read</span>,
-{
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>])
-                 <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span>
-    {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">poll_read_ready2</span>(<span class="ident">cx</span>, <span class="ident">mio</span>::<span class="ident">Ready</span>::<span class="ident">readable</span>())<span class="question-mark">?</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>);
-        }
-
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">read</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">n</span>)),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=&gt;</span> {
-                <span class="self">self</span>.<span class="ident">clear_read_ready2</span>(<span class="ident">cx</span>, <span class="ident">mio</span>::<span class="ident">Ready</span>::<span class="ident">readable</span>())<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>)
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
-        }
     }
 }
 
@@ -1121,48 +840,6 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="ident">futures2</span>::<span class="ident">io</span>::<span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="ident">PollEvented</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Evented</span>, <span class="ident">E</span>: <span class="ident">Write</span>,
-{
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>])
-                  <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span>
-    {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">poll_write_ready2</span>(<span class="ident">cx</span>)<span class="question-mark">?</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>);
-        }
-
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">write</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">n</span>)),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=&gt;</span> {
-                <span class="self">self</span>.<span class="ident">clear_write_ready2</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>)
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">poll_write_ready2</span>(<span class="ident">cx</span>)<span class="question-mark">?</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>);
-        }
-
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_mut</span>().<span class="ident">flush</span>() {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Ready</span>(())),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=&gt;</span> {
-                <span class="self">self</span>.<span class="ident">clear_write_ready2</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>)
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="ident">futures2</span>::<span class="ident">io</span>::<span class="ident">AsyncWrite</span>::<span class="ident">poll_flush</span>(<span class="self">self</span>, <span class="ident">cx</span>)
-    }
-}
-
-
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="ident">PollEvented</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Evented</span> <span class="op">+</span> <span class="ident">Read</span>,
 {
@@ -1196,28 +873,6 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">futures2</span>::<span class="ident">io</span>::<span class="ident">AsyncRead</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PollEvented</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Evented</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">E</span>: <span class="ident">Read</span>,
-{
-    <span class="kw">fn</span> <span class="ident">poll_read</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">u8</span>])
-                 <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span>
-    {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">poll_read_ready2</span>(<span class="ident">cx</span>, <span class="ident">mio</span>::<span class="ident">Ready</span>::<span class="ident">readable</span>())<span class="question-mark">?</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>);
-        }
-
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_ref</span>().<span class="ident">read</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">n</span>)),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=&gt;</span> {
-                <span class="self">self</span>.<span class="ident">clear_read_ready2</span>(<span class="ident">cx</span>, <span class="ident">mio</span>::<span class="ident">Ready</span>::<span class="ident">readable</span>())<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>)
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
-        }
-    }
-}
-
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Write</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PollEvented</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Evented</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">E</span>: <span class="ident">Write</span>,
 {
@@ -1247,47 +902,6 @@
         }
 
         <span class="kw">return</span> <span class="ident">r</span>
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-futures&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">futures2</span>::<span class="ident">io</span>::<span class="ident">AsyncWrite</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PollEvented</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">E</span>: <span class="ident">Evented</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">E</span>: <span class="ident">Write</span>,
-{
-    <span class="kw">fn</span> <span class="ident">poll_write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>])
-                  <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span>
-    {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">poll_write_ready2</span>(<span class="ident">cx</span>)<span class="question-mark">?</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>);
-        }
-
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_ref</span>().<span class="ident">write</span>(<span class="ident">buf</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="ident">n</span>)),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=&gt;</span> {
-                <span class="self">self</span>.<span class="ident">clear_write_ready2</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>)
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">poll_write_ready2</span>(<span class="ident">cx</span>)<span class="question-mark">?</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>);
-        }
-
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_ref</span>().<span class="ident">flush</span>() {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Ready</span>(())),
-            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span> <span class="op">=&gt;</span> {
-                <span class="self">self</span>.<span class="ident">clear_write_ready2</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">futures2</span>::<span class="ident">Async</span>::<span class="ident">Pending</span>)
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">futures2</span>::<span class="ident">task</span>::<span class="ident">Context</span>) <span class="op">-&gt;</span> <span class="ident">futures2</span>::<span class="ident">Poll</span><span class="op">&lt;</span>(), <span class="ident">io</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="ident">futures2</span>::<span class="ident">io</span>::<span class="ident">AsyncWrite</span>::<span class="ident">poll_flush</span>(<span class="self">self</span>, <span class="ident">cx</span>)
     }
 }
 

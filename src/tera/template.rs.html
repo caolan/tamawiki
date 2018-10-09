@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.12/src/template.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>template.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.17/src/template.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>template.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -162,15 +162,12 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
 </pre><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">VecDeque</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 
 <span class="kw">use</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span>;
-<span class="kw">use</span> <span class="ident">parser</span>::{<span class="ident">parse</span>, <span class="ident">remove_whitespace</span>};
 <span class="kw">use</span> <span class="ident">parser</span>::<span class="ident">ast</span>::{<span class="ident">Block</span>, <span class="ident">MacroDefinition</span>, <span class="ident">Node</span>};
+<span class="kw">use</span> <span class="ident">parser</span>::{<span class="ident">parse</span>, <span class="ident">remove_whitespace</span>};
 
 <span class="doccomment">/// This is the parsed equivalent of a template file.</span>
 <span class="doccomment">/// It also does some pre-processing to ensure it does as less as possible at runtime</span>
@@ -199,7 +196,6 @@
     <span class="kw">pub</span> <span class="ident">blocks</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Block</span><span class="op">&gt;</span>,
 
     <span class="comment">// Below are filled when all templates have been parsed so we know the full hierarchy of templates</span>
-
     <span class="doccomment">/// The full list of parent templates</span>
     <span class="kw">pub</span> <span class="ident">parents</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The definition of all the blocks for the current template and the definition of those blocks</span>
@@ -259,20 +255,18 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(
-            <span class="ident">Template</span> {
-                <span class="ident">name</span>: <span class="ident">tpl_name</span>.<span class="ident">to_string</span>(),
-                <span class="ident">path</span>: <span class="ident">tpl_path</span>,
-                <span class="ident">ast</span>,
-                <span class="ident">parent</span>,
-                <span class="ident">blocks</span>,
-                <span class="ident">macros</span>,
-                <span class="ident">imported_macro_files</span>,
-                <span class="ident">parents</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-                <span class="ident">blocks_definitions</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
-                <span class="ident">from_extend</span>: <span class="bool-val">false</span>,
-            }
-        )
+        <span class="prelude-val">Ok</span>(<span class="ident">Template</span> {
+            <span class="ident">name</span>: <span class="ident">tpl_name</span>.<span class="ident">to_string</span>(),
+            <span class="ident">path</span>: <span class="ident">tpl_path</span>,
+            <span class="ident">ast</span>,
+            <span class="ident">parent</span>,
+            <span class="ident">blocks</span>,
+            <span class="ident">macros</span>,
+            <span class="ident">imported_macro_files</span>,
+            <span class="ident">parents</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+            <span class="ident">blocks_definitions</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
+            <span class="ident">from_extend</span>: <span class="bool-val">false</span>,
+        })
     }
 }
 
@@ -298,7 +292,8 @@
             <span class="string">&quot;hello&quot;</span>,
             <span class="prelude-val">None</span>,
             <span class="string">&quot;{% extends \&quot;base.html\&quot; %}{% block hey %}{% endblock hey %}&quot;</span>,
-        ).<span class="ident">unwrap</span>();
+        )
+        .<span class="ident">unwrap</span>();
 
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tpl</span>.<span class="ident">parent</span>.<span class="ident">unwrap</span>(), <span class="string">&quot;base.html&quot;</span>.<span class="ident">to_string</span>());
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tpl</span>.<span class="ident">blocks</span>.<span class="ident">contains_key</span>(<span class="string">&quot;hey&quot;</span>), <span class="bool-val">true</span>);
@@ -325,12 +320,11 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_can_find_imported_macros</span>() {
-        <span class="kw">let</span> <span class="ident">tpl</span> <span class="op">=</span> <span class="ident">Template</span>::<span class="ident">new</span>(
-            <span class="string">&quot;hello&quot;</span>,
-            <span class="prelude-val">None</span>,
-            <span class="string">&quot;{% import \&quot;macros.html\&quot; as macros %}&quot;</span>,
-        ).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tpl</span>.<span class="ident">imported_macro_files</span>, <span class="macro">vec</span><span class="macro">!</span>[(<span class="string">&quot;macros.html&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;macros&quot;</span>.<span class="ident">to_string</span>())]);
+        <span class="kw">let</span> <span class="ident">tpl</span> <span class="op">=</span> <span class="ident">Template</span>::<span class="ident">new</span>(<span class="string">&quot;hello&quot;</span>, <span class="prelude-val">None</span>, <span class="string">&quot;{% import \&quot;macros.html\&quot; as macros %}&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="ident">tpl</span>.<span class="ident">imported_macro_files</span>,
+            <span class="macro">vec</span><span class="macro">!</span>[(<span class="string">&quot;macros.html&quot;</span>.<span class="ident">to_string</span>(), <span class="string">&quot;macros&quot;</span>.<span class="ident">to_string</span>())]
+        );
     }
 }
 </pre>

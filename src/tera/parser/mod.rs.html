@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.12/src/parser/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.17/src/parser/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -956,14 +956,27 @@
 <span id="956">956</span>
 <span id="957">957</span>
 <span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
 
-<span class="kw">use</span> <span class="ident">pest</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">PestError</span>, <span class="ident">Parser</span>};
-<span class="kw">use</span> <span class="ident">pest</span>::<span class="ident">prec_climber</span>::{<span class="ident">Assoc</span>, <span class="ident">Operator</span>, <span class="ident">PrecClimber</span>};
 <span class="kw">use</span> <span class="ident">pest</span>::<span class="ident">iterators</span>::<span class="ident">Pair</span>;
+<span class="kw">use</span> <span class="ident">pest</span>::<span class="ident">prec_climber</span>::{<span class="ident">Assoc</span>, <span class="ident">Operator</span>, <span class="ident">PrecClimber</span>};
+<span class="kw">use</span> <span class="ident">pest</span>::<span class="ident">Parser</span>;
 
-<span class="kw">use</span> <span class="ident">errors</span>::{<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">TeraResult</span>, <span class="ident">ResultExt</span>};
+<span class="kw">use</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">TeraResult</span>;
 
 <span class="comment">// This include forces recompiling this source file if the grammar file changes.</span>
 <span class="comment">// Uncomment it when doing changes to the .pest file</span>
@@ -973,14 +986,15 @@
 <span class="attribute">#[<span class="ident">grammar</span> <span class="op">=</span> <span class="string">&quot;parser/tera.pest&quot;</span>]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TeraParser</span>;
 
+<span class="doccomment">/// The AST of Tera</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ast</span>;
 <span class="kw">mod</span> <span class="ident">whitespace</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">whitespace</span>::<span class="ident">remove_whitespace</span>;
 <span class="kw">use</span> <span class="self">self</span>::<span class="ident">ast</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">whitespace</span>::<span class="ident">remove_whitespace</span>;
 
 <span class="macro">lazy_static</span><span class="macro">!</span> {
     <span class="kw">static</span> <span class="kw-2">ref</span> <span class="ident">MATH_CLIMBER</span>: <span class="ident">PrecClimber</span><span class="op">&lt;</span><span class="ident">Rule</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">PrecClimber</span>::<span class="ident">new</span>(<span class="macro">vec</span><span class="macro">!</span>[
@@ -1076,14 +1090,16 @@
         <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">as_rule</span>() {
             <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>().<span class="ident">to_string</span>()),
             <span class="ident">Rule</span>::<span class="ident">test_args</span> <span class="op">=&gt;</span>
-                <span class="comment">// iterate on the test_arg rule</span>
+            <span class="comment">// iterate on the test_arg rule</span>
+            {
                 <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
                     <span class="comment">// only expressions allowed in the grammar so we skip the</span>
                     <span class="comment">// matching</span>
                     <span class="kw">for</span> <span class="ident">p3</span> <span class="kw">in</span> <span class="ident">p2</span>.<span class="ident">into_inner</span>() {
                         <span class="ident">args</span>.<span class="ident">push</span>(<span class="ident">parse_logic_expr</span>(<span class="ident">p3</span>));
                     }
-                },
+                }
+            }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;{:?} not supposed to get there (parse_test_call)!&quot;</span>, <span class="ident">p</span>.<span class="ident">as_rule</span>()),
         };
     }
@@ -1120,14 +1136,14 @@
         <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">as_rule</span>() {
             <span class="ident">Rule</span>::<span class="ident">string</span> <span class="op">=&gt;</span> {
                 <span class="ident">current_str</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">replace_string_markers</span>(<span class="ident">p</span>.<span class="ident">as_str</span>()));
-            },
+            }
             <span class="ident">Rule</span>::<span class="ident">dotted_square_bracket_ident</span> <span class="op">=&gt;</span> {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">current_str</span>.<span class="ident">is_empty</span>() {
                     <span class="ident">values</span>.<span class="ident">push</span>(<span class="ident">ExprVal</span>::<span class="ident">String</span>(<span class="ident">current_str</span>));
                     <span class="ident">current_str</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
                 }
                 <span class="ident">values</span>.<span class="ident">push</span>(<span class="ident">ExprVal</span>::<span class="ident">Ident</span>(<span class="ident">p</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>()))
-            },
+            }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Got {:?} in parse_string_concat&quot;</span>, <span class="ident">p</span>),
         };
     }
@@ -1303,7 +1319,7 @@
         <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">as_rule</span>() {
             <span class="ident">Rule</span>::<span class="ident">basic_expr_filter</span> <span class="op">=&gt;</span> {
                 <span class="ident">vals</span>.<span class="ident">push</span>(<span class="ident">parse_basic_expr_with_filters</span>(<span class="ident">p</span>));
-            },
+            }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Got {:?} in parse_array&quot;</span>, <span class="ident">p</span>.<span class="ident">as_rule</span>()),
         }
     }
@@ -1415,21 +1431,25 @@
 
     <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>() {
         <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">as_rule</span>() {
-            <span class="ident">Rule</span>::<span class="ident">raw_tag</span> <span class="op">=&gt;</span> <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
-                <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
-                    <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="ident">Rule</span>::<span class="ident">raw_tag</span> <span class="op">=&gt;</span> {
+                <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
+                    <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
+                        <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
+                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                    }
                 }
-            },
+            }
             <span class="ident">Rule</span>::<span class="ident">raw_text</span> <span class="op">=&gt;</span> <span class="ident">text</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>()),
-            <span class="ident">Rule</span>::<span class="ident">endraw_tag</span> <span class="op">=&gt;</span> <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
-                <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
-                    <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="ident">Rule</span>::<span class="ident">endraw_tag</span> <span class="op">=&gt;</span> {
+                <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
+                    <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
+                        <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
+                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                    }
                 }
-            },
+            }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;unexpected {:?} rule in parse_raw_tag&quot;</span>, <span class="ident">p</span>.<span class="ident">as_rule</span>()),
         };
     }
@@ -1445,20 +1465,22 @@
 
     <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>() {
         <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">as_rule</span>() {
-            <span class="ident">Rule</span>::<span class="ident">filter_tag</span> <span class="op">=&gt;</span> <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
-                <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
-                    <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">fn_call</span> <span class="op">=&gt;</span> <span class="ident">filter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">parse_fn_call</span>(<span class="ident">p2</span>)),
-                    <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> {
-                        <span class="ident">filter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">FunctionCall</span> {
-                            <span class="ident">name</span>: <span class="ident">p2</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>(),
-                            <span class="ident">args</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
-                        });
+            <span class="ident">Rule</span>::<span class="ident">filter_tag</span> <span class="op">=&gt;</span> {
+                <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
+                    <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
+                        <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">fn_call</span> <span class="op">=&gt;</span> <span class="ident">filter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">parse_fn_call</span>(<span class="ident">p2</span>)),
+                        <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> {
+                            <span class="ident">filter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">FunctionCall</span> {
+                                <span class="ident">name</span>: <span class="ident">p2</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>(),
+                                <span class="ident">args</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
+                            });
+                        }
+                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Got {:?} while parsing filter_tag&quot;</span>, <span class="ident">p2</span>),
                     }
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Got {:?} while parsing filter_tag&quot;</span>, <span class="ident">p2</span>),
                 }
-            },
+            }
             <span class="ident">Rule</span>::<span class="ident">content</span>
             <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">macro_content</span>
             <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">block_content</span>
@@ -1466,13 +1488,15 @@
             <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">for_content</span> <span class="op">=&gt;</span> {
                 <span class="ident">body</span>.<span class="ident">extend</span>(<span class="ident">parse_content</span>(<span class="ident">p</span>));
             }
-            <span class="ident">Rule</span>::<span class="ident">endfilter_tag</span> <span class="op">=&gt;</span> <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
-                <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
-                    <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="ident">Rule</span>::<span class="ident">endfilter_tag</span> <span class="op">=&gt;</span> {
+                <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
+                    <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
+                        <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
+                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                    }
                 }
-            },
+            }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;unexpected {:?} rule in parse_filter_section&quot;</span>, <span class="ident">p</span>.<span class="ident">as_rule</span>()),
         };
     }
@@ -1488,23 +1512,27 @@
 
     <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>() {
         <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">as_rule</span>() {
-            <span class="ident">Rule</span>::<span class="ident">block_tag</span> <span class="op">=&gt;</span> <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
-                <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
-                    <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>().<span class="ident">to_string</span>()),
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
-                };
-            },
+            <span class="ident">Rule</span>::<span class="ident">block_tag</span> <span class="op">=&gt;</span> {
+                <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
+                    <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
+                        <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>().<span class="ident">to_string</span>()),
+                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                    };
+                }
+            }
             <span class="ident">Rule</span>::<span class="ident">block_content</span> <span class="op">=&gt;</span> <span class="ident">body</span>.<span class="ident">extend</span>(<span class="ident">parse_content</span>(<span class="ident">p</span>)),
-            <span class="ident">Rule</span>::<span class="ident">endblock_tag</span> <span class="op">=&gt;</span> <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
-                <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
-                    <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> (),
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
-                };
-            },
+            <span class="ident">Rule</span>::<span class="ident">endblock_tag</span> <span class="op">=&gt;</span> {
+                <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
+                    <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
+                        <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> (),
+                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                    };
+                }
+            }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;unexpected {:?} rule in parse_filter_section&quot;</span>, <span class="ident">p</span>.<span class="ident">as_rule</span>()),
         };
     }
@@ -1521,35 +1549,39 @@
 
     <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="ident">pair</span>.<span class="ident">into_inner</span>() {
         <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">as_rule</span>() {
-            <span class="ident">Rule</span>::<span class="ident">macro_tag</span> <span class="op">=&gt;</span> <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
-                <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
-                    <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">p2</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>()),
-                    <span class="ident">Rule</span>::<span class="ident">macro_def_arg</span> <span class="op">=&gt;</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arg_name</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">default_val</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-                        <span class="kw">for</span> <span class="ident">p3</span> <span class="kw">in</span> <span class="ident">p2</span>.<span class="ident">into_inner</span>() {
-                            <span class="kw">match</span> <span class="ident">p3</span>.<span class="ident">as_rule</span>() {
-                                <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="ident">arg_name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">p3</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>()),
-                                <span class="comment">// no filters allowed on macro definition</span>
-                                <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">default_val</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Expr</span>::<span class="ident">new</span>(<span class="ident">parse_basic_expression</span>(<span class="ident">p3</span>))),
-                            };
+            <span class="ident">Rule</span>::<span class="ident">macro_tag</span> <span class="op">=&gt;</span> {
+                <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
+                    <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
+                        <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">start_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">p2</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>()),
+                        <span class="ident">Rule</span>::<span class="ident">macro_def_arg</span> <span class="op">=&gt;</span> {
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arg_name</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">default_val</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                            <span class="kw">for</span> <span class="ident">p3</span> <span class="kw">in</span> <span class="ident">p2</span>.<span class="ident">into_inner</span>() {
+                                <span class="kw">match</span> <span class="ident">p3</span>.<span class="ident">as_rule</span>() {
+                                    <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="ident">arg_name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">p3</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>()),
+                                    <span class="comment">// no filters allowed on macro definition</span>
+                                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="ident">default_val</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Expr</span>::<span class="ident">new</span>(<span class="ident">parse_basic_expression</span>(<span class="ident">p3</span>))),
+                                };
+                            }
+                            <span class="ident">args</span>.<span class="ident">insert</span>(<span class="ident">arg_name</span>.<span class="ident">unwrap</span>(), <span class="ident">default_val</span>);
                         }
-                        <span class="ident">args</span>.<span class="ident">insert</span>(<span class="ident">arg_name</span>.<span class="ident">unwrap</span>(), <span class="ident">default_val</span>);
-                    }
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">continue</span>,
-                };
-            },
+                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="kw">continue</span>,
+                    };
+                }
+            }
             <span class="ident">Rule</span>::<span class="ident">macro_content</span> <span class="op">=&gt;</span> <span class="ident">body</span>.<span class="ident">extend</span>(<span class="ident">parse_content</span>(<span class="ident">p</span>)),
-            <span class="ident">Rule</span>::<span class="ident">endmacro_tag</span> <span class="op">=&gt;</span> <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
-                <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
-                    <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> (),
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
-                };
-            },
+            <span class="ident">Rule</span>::<span class="ident">endmacro_tag</span> <span class="op">=&gt;</span> {
+                <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
+                    <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
+                        <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> (),
+                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                    };
+                }
+            }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;unexpected {:?} rule in parse_macro_definition&quot;</span>, <span class="ident">p</span>.<span class="ident">as_rule</span>()),
         }
     }
@@ -1577,7 +1609,7 @@
                         <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> <span class="ident">idents</span>.<span class="ident">push</span>(<span class="ident">p2</span>.<span class="ident">as_str</span>().<span class="ident">to_string</span>()),
                         <span class="ident">Rule</span>::<span class="ident">basic_expr_filter</span> <span class="op">=&gt;</span> {
                             <span class="ident">container</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">parse_basic_expr_with_filters</span>(<span class="ident">p2</span>));
-                        },
+                        }
                         <span class="ident">Rule</span>::<span class="ident">array</span> <span class="op">=&gt;</span> <span class="ident">container</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Expr</span>::<span class="ident">new</span>(<span class="ident">parse_array</span>(<span class="ident">p2</span>))),
                         <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
                     };
@@ -1597,26 +1629,23 @@
             <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">for_content</span> <span class="op">=&gt;</span> {
                 <span class="ident">body</span>.<span class="ident">extend</span>(<span class="ident">parse_content</span>(<span class="ident">p</span>));
             }
-            <span class="ident">Rule</span>::<span class="ident">endfor_tag</span> <span class="op">=&gt;</span> <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
-                <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
-                    <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
-                    <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> (),
-                    <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
-                };
-            },
+            <span class="ident">Rule</span>::<span class="ident">endfor_tag</span> <span class="op">=&gt;</span> {
+                <span class="kw">for</span> <span class="ident">p2</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">into_inner</span>() {
+                    <span class="kw">match</span> <span class="ident">p2</span>.<span class="ident">as_rule</span>() {
+                        <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> <span class="ident">end_ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p2</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>,
+                        <span class="ident">Rule</span>::<span class="ident">ident</span> <span class="op">=&gt;</span> (),
+                        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                    };
+                }
+            }
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;unexpected {:?} rule in parse_forloop&quot;</span>, <span class="ident">p</span>.<span class="ident">as_rule</span>()),
         };
     }
 
     <span class="ident">Node</span>::<span class="ident">Forloop</span>(
         <span class="ident">start_ws</span>,
-        <span class="ident">Forloop</span> {
-            <span class="ident">key</span>,
-            <span class="ident">value</span>: <span class="ident">value</span>.<span class="ident">unwrap</span>(),
-            <span class="ident">container</span>: <span class="ident">container</span>.<span class="ident">unwrap</span>(),
-            <span class="ident">body</span>,
-        },
+        <span class="ident">Forloop</span> { <span class="ident">key</span>, <span class="ident">value</span>: <span class="ident">value</span>.<span class="ident">unwrap</span>(), <span class="ident">container</span>: <span class="ident">container</span>.<span class="ident">unwrap</span>(), <span class="ident">body</span> },
         <span class="ident">end_ws</span>,
     )
 }
@@ -1628,13 +1657,13 @@
         <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">as_rule</span>() {
             <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> {
                 <span class="ident">ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>;
-            },
+            }
             <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> {
                 <span class="ident">ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>;
             }
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>()
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         };
-    };
+    }
 
     <span class="ident">Node</span>::<span class="ident">Break</span>(<span class="ident">ws</span>)
 }
@@ -1646,13 +1675,13 @@
         <span class="kw">match</span> <span class="ident">p</span>.<span class="ident">as_rule</span>() {
             <span class="ident">Rule</span>::<span class="ident">tag_start</span> <span class="op">=&gt;</span> {
                 <span class="ident">ws</span>.<span class="ident">left</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;{%-&quot;</span>;
-            },
+            }
             <span class="ident">Rule</span>::<span class="ident">tag_end</span> <span class="op">=&gt;</span> {
                 <span class="ident">ws</span>.<span class="ident">right</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;-%}&quot;</span>;
             }
-            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>()
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
         };
-    };
+    }
 
     <span class="ident">Node</span>::<span class="ident">Continue</span>(<span class="ident">ws</span>)
 }
@@ -1693,9 +1722,7 @@
             <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">macro_content</span>
             <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">block_content</span>
             <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">for_content</span>
-            <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">filter_section_content</span> <span class="op">=&gt;</span> {
-                <span class="ident">current_body</span>.<span class="ident">extend</span>(<span class="ident">parse_content</span>(<span class="ident">p</span>))
-            }
+            <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">filter_section_content</span> <span class="op">=&gt;</span> <span class="ident">current_body</span>.<span class="ident">extend</span>(<span class="ident">parse_content</span>(<span class="ident">p</span>)),
             <span class="ident">Rule</span>::<span class="ident">else_tag</span> <span class="op">=&gt;</span> {
                 <span class="comment">// had an elif before the else</span>
                 <span class="kw">if</span> <span class="ident">expr</span>.<span class="ident">is_some</span>() {
@@ -1762,9 +1789,7 @@
             <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">macro_if</span>
             <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">block_if</span>
             <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">for_if</span>
-            <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">filter_section_if</span> <span class="op">=&gt;</span> {
-                <span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">parse_if</span>(<span class="ident">p</span>))
-            },
+            <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">filter_section_if</span> <span class="op">=&gt;</span> <span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">parse_if</span>(<span class="ident">p</span>)),
             <span class="ident">Rule</span>::<span class="ident">filter_section</span> <span class="op">=&gt;</span> <span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">parse_filter_section</span>(<span class="ident">p</span>)),
             <span class="ident">Rule</span>::<span class="ident">text</span> <span class="op">=&gt;</span> <span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">Node</span>::<span class="ident">Text</span>(<span class="ident">p</span>.<span class="ident">into_span</span>().<span class="ident">as_str</span>().<span class="ident">to_string</span>())),
             <span class="ident">Rule</span>::<span class="ident">block</span> <span class="op">=&gt;</span> <span class="ident">nodes</span>.<span class="ident">push</span>(<span class="ident">parse_block</span>(<span class="ident">p</span>)),
@@ -1781,6 +1806,7 @@
         <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> {
             <span class="kw">let</span> <span class="ident">fancy_e</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">renamed_rules</span>(<span class="op">|</span><span class="ident">rule</span><span class="op">|</span> {
                 <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">rule</span> {
+                    <span class="ident">Rule</span>::<span class="ident">EOI</span> <span class="op">=&gt;</span> <span class="string">&quot;end of input&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">int</span> <span class="op">=&gt;</span> <span class="string">&quot;an integer&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">float</span> <span class="op">=&gt;</span> <span class="string">&quot;a float&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">string</span>
@@ -1840,7 +1866,6 @@
                     <span class="ident">Rule</span>::<span class="ident">filter_section_content</span> <span class="op">=&gt;</span> <span class="string">&quot;the filter section content&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">set_tag</span> <span class="op">=&gt;</span> <span class="string">&quot;a `set` tag`&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">set_global_tag</span> <span class="op">=&gt;</span> <span class="string">&quot;a `set_global` tag`&quot;</span>.<span class="ident">to_string</span>(),
-                    <span class="ident">Rule</span>::<span class="ident">endif_tag</span> <span class="op">=&gt;</span> <span class="string">&quot;a `endif` tag`&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">block_content</span> <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">content</span> <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">for_content</span> <span class="op">=&gt;</span> {
                         <span class="string">&quot;some content&quot;</span>.<span class="ident">to_string</span>()
                     },
@@ -1877,7 +1902,7 @@
                     <span class="ident">Rule</span>::<span class="ident">elif_tag</span> <span class="op">=&gt;</span> <span class="string">&quot;an `elif` tag&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">else_tag</span> <span class="op">=&gt;</span> <span class="string">&quot;an `else` tag&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">endif_tag</span> <span class="op">=&gt;</span> <span class="string">&quot;an endif tag (`{% endif %}`)&quot;</span>.<span class="ident">to_string</span>(),
-                    <span class="ident">Rule</span>::<span class="ident">whitespace</span> <span class="op">=&gt;</span> <span class="string">&quot;whitespace&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">Rule</span>::<span class="ident">WHITESPACE</span> <span class="op">=&gt;</span> <span class="string">&quot;whitespace&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">variable_start</span> <span class="op">=&gt;</span> <span class="string">&quot;a variable start (`{{`)&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">variable_end</span> <span class="op">=&gt;</span> <span class="string">&quot;a variable end (`}}`)&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">comment_start</span> <span class="op">=&gt;</span> <span class="string">&quot;a comment start (`{#`)&quot;</span>.<span class="ident">to_string</span>(),
@@ -1885,7 +1910,7 @@
                     <span class="ident">Rule</span>::<span class="ident">block_start</span> <span class="op">=&gt;</span> <span class="string">&quot;`{{`, `{%` or `{#`&quot;</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">import_macro_tag</span> <span class="op">=&gt;</span> <span class="string">r#&quot;an import macro tag (`{% import &quot;filename&quot; as namespace %}`&quot;#</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">block</span> <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">block_tag</span> <span class="op">=&gt;</span> <span class="string">r#&quot;a block tag (`{% block block_name %}`&quot;#</span>.<span class="ident">to_string</span>(),
-                    <span class="ident">Rule</span>::<span class="ident">endblock_tag</span> <span class="op">=&gt;</span> <span class="string">r#&quot;an enblock tag (`{% endblock block_name %}`&quot;#</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">Rule</span>::<span class="ident">endblock_tag</span> <span class="op">=&gt;</span> <span class="string">r#&quot;an endblock tag (`{% endblock block_name %}`&quot;#</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">macro_definition</span>
                     <span class="op">|</span> <span class="ident">Rule</span>::<span class="ident">macro_tag</span> <span class="op">=&gt;</span> <span class="string">r#&quot;a macro definition tag (`{% macro my_macro() %}`&quot;#</span>.<span class="ident">to_string</span>(),
                     <span class="ident">Rule</span>::<span class="ident">extends_tag</span> <span class="op">=&gt;</span> <span class="string">r#&quot;an extends tag (`{% extends &quot;myfile&quot; %}`&quot;#</span>.<span class="ident">to_string</span>(),
@@ -1909,6 +1934,7 @@
             }
             <span class="ident">Rule</span>::<span class="ident">content</span> <span class="op">=&gt;</span> <span class="ident">nodes</span>.<span class="ident">extend</span>(<span class="ident">parse_content</span>(<span class="ident">p</span>)),
             <span class="ident">Rule</span>::<span class="ident">comment_tag</span> <span class="op">=&gt;</span> (),
+            <span class="ident">Rule</span>::<span class="ident">EOI</span> <span class="op">=&gt;</span> (),
             <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;unknown tpl rule: {:?}&quot;</span>, <span class="ident">p</span>.<span class="ident">as_rule</span>()),
         }
     }

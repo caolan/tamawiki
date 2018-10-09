@@ -1,22 +1,22 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `pest_derive` crate."><meta name="keywords" content="rust, rustlang, rust-lang, pest_derive"><title>pest_derive - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Crate pest_derive</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#functions">Functions</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'pest_derive', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>pest_derive</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/pest_derive/lib.rs.html#10-400' title='goto source code'>[src]</a></span></h1><div class='docblock'><h1 id="pest-the-elegant-parser" class="section-header"><a href="#pest-the-elegant-parser">pest. The Elegant Parser</a></h1>
-<p>pest is a <a href="https://en.wikipedia.org/wiki/Parsing_expression_grammar">PEG</a> parser built with
-<em>simplicity</em> and <em>speed</em> in mind.</p>
-<p>This crate works in conjunction with the <a href="https://docs.rs/pest"><code>pest</code> crate</a> by
-deriving a grammar implementation based on a provided grammar.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `pest_derive` crate."><meta name="keywords" content="rust, rustlang, rust-lang, pest_derive"><title>pest_derive - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../dark.css"><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script src="../storage.js"></script></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><p class='location'>Crate pest_derive</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#functions">Functions</a></li></ul></div><p class='location'></p><script>window.sidebarCurrent = {name: 'pest_derive', ty: 'mod', relpath: '../'};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class='fqn'><span class='in-band'>Crate <a class="mod" href=''>pest_derive</a></span><span class='out-of-band'><span id='render-detail'><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class='inner'>&#x2212;</span>]</a></span><a class='srclink' href='../src/pest_derive/lib.rs.html#10-277' title='goto source code'>[src]</a></span></h1><div class='docblock'><h1 id="pest-the-elegant-parser" class="section-header"><a href="#pest-the-elegant-parser">pest. The Elegant Parser</a></h1>
+<p>pest is a general purpose parser written in Rust with a focus on accessibility, correctness,
+and performance. It uses parsing expression grammars (or <a href="https://en.wikipedia.org/wiki/Parsing_expression_grammar">PEG</a>) as input, which are similar in
+spirit to regular expressions, but which offer the enhanced expressivity needed to parse
+complex languages.</p>
+<h2 id="getting-started" class="section-header"><a href="#getting-started">Getting started</a></h2>
+<p>The recommended way to start parsing with pest is to read the official <a href="https://pest-parser.github.io/book">book</a>.</p>
+<p>Other helpful resources:</p>
+<ul>
+<li>API reference on <a href="https://docs.rs/pest">docs.rs</a></li>
+<li>play with grammars and share them on our <a href="https://pest-parser.github.io/#editor">fiddle</a></li>
+<li>leave feedback, ask questions, or greet us on <a href="https://gitter.im/dragostis/pest">Gitter</a></li>
+</ul>
 <h2 id="pest-files" class="section-header"><a href="#pest-files"><code>.pest</code> files</a></h2>
 <p>Grammar definitions reside in custom <code>.pest</code> files located in the <code>src</code> directory. Their path is
 relative to <code>src</code> and is specified between the <code>derive</code> attribute and empty <code>struct</code> that
 <code>Parser</code> will be derived on.</p>
-<p>Because of a limitation in procedural macros, there is no way for Cargo to know that a module
-needs to be recompiled based on the file that the procedural macro is opening. This leads to the
-case where modifying a <code>.pest</code> file without touching the file where the <code>derive</code> is does not
-recompile it if it already has a working binary in the cache. To avoid this issue, the grammar
-file can be included in a dummy <code>const</code> definition while debugging.</p>
 
 <div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-<span class="kw">const</span> <span class="ident">_GRAMMAR</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="macro">include_str</span><span class="macro">!</span>(<span class="string">&quot;path/to/my_grammar.pest&quot;</span>); <span class="comment">// relative to this file</span>
-
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Parser</span>)]</span>
 <span class="attribute">#[<span class="ident">grammar</span> <span class="op">=</span> <span class="string">&quot;path/to/my_grammar.pest&quot;</span>]</span> <span class="comment">// relative to src</span>
 <span class="kw">struct</span> <span class="ident">MyParser</span>;</pre>
@@ -62,7 +62,7 @@ rules behave atomically.</p>
 <span class="ident">a</span> <span class="op">=</span>  { <span class="string">&quot;a&quot;</span> }
 <span class="ident">b</span> <span class="op">=</span> @{ <span class="ident">a</span> ~ <span class="string">&quot;b&quot;</span> }
 
-<span class="ident">whitespace</span> <span class="op">=</span> <span class="kw">_</span>{ <span class="string">&quot; &quot;</span> }</pre>
+<span class="ident">WHITESPACE</span> <span class="op">=</span> <span class="kw">_</span>{ <span class="string">&quot; &quot;</span> }</pre>
 <p>Parsing <code>&quot;ab&quot;</code> produces the token pair <code>b()</code>, while <code>&quot;a b&quot;</code> produces an error.</p>
 </li>
 <li>
@@ -74,7 +74,7 @@ not forbidden from generating token pairs.</p>
 <span class="ident">a</span> <span class="op">=</span>  { <span class="string">&quot;a&quot;</span> }
 <span class="ident">b</span> <span class="op">=</span> ${ <span class="ident">a</span> ~ <span class="string">&quot;b&quot;</span> }
 
-<span class="ident">whitespace</span> <span class="op">=</span> <span class="kw">_</span>{ <span class="string">&quot; &quot;</span> }</pre>
+<span class="ident">WHITESPACE</span> <span class="op">=</span> <span class="kw">_</span>{ <span class="string">&quot; &quot;</span> }</pre>
 <p>Parsing <code>&quot;ab&quot;</code> produces the token pairs <code>b(a())</code>, while <code>&quot;a b&quot;</code> produces an error.</p>
 </li>
 <li>
@@ -87,7 +87,7 @@ of atomic and compound-atomic rules.</p>
 <span class="ident">b</span> <span class="op">=</span> <span class="op">!</span>{ <span class="ident">a</span> ~ <span class="string">&quot;b&quot;</span> }
 <span class="ident">c</span> <span class="op">=</span> @{ <span class="ident">b</span> }
 
-<span class="ident">whitespace</span> <span class="op">=</span> <span class="kw">_</span>{ <span class="string">&quot; &quot;</span> }</pre>
+<span class="ident">WHITESPACE</span> <span class="op">=</span> <span class="kw">_</span>{ <span class="string">&quot; &quot;</span> }</pre>
 <p>Parsing both <code>&quot;ab&quot;</code> and <code>&quot;a b&quot;</code> produce the token pairs <code>c(a())</code>.</p>
 </li>
 </ol>
@@ -111,69 +111,96 @@ start with a digit.</p>
 <ol start="2">
 <li>
 <p>Non-terminals</p>
-<table><thead><tr><th> Non-terminal </th><th> Usage                                                      </th></tr></thead><tbody>
-<tr><td> <code>(e)</code>        </td><td> matches <code>e</code>                                                </td></tr>
-<tr><td> <code>e1 ~ e2</code>    </td><td> matches the sequence <code>e1</code> <code>e2</code>                             </td></tr>
-<tr><td> `e1 </td><td> e2`    </td><td> matches either <code>e1</code> or <code>e2</code>                                </td></tr>
-<tr><td> <code>e*</code>         </td><td> matches <code>e</code> zero or more times                             </td></tr>
-<tr><td> <code>e+</code>         </td><td> matches <code>e</code> one or more times                              </td></tr>
-<tr><td> <code>e{n}</code>       </td><td> matches <code>e</code> exactly <code>n</code> times                              </td></tr>
-<tr><td> <code>e{, n}</code>     </td><td> matches <code>e</code> at most <code>n</code> times                              </td></tr>
-<tr><td> <code>e{n,}</code>     </td><td> matches <code>e</code> at least <code>n</code> times                             </td></tr>
-<tr><td> <code>e{m, n}</code>    </td><td> matches <code>e</code> between <code>m</code> and <code>n</code> times inclusively          </td></tr>
-<tr><td> <code>e?</code>         </td><td> optionally matches <code>e</code>                                     </td></tr>
-<tr><td> <code>&amp;e</code>         </td><td> matches <code>e</code> without making progress                        </td></tr>
-<tr><td> <code>!e</code>         </td><td> matches if <code>e</code> doesn't match without making progress       </td></tr>
-<tr><td> <code>push(e)</code>    </td><td> matches <code>e</code> and pushes it's captured string down the stack </td></tr>
+<table><thead><tr><th> Non-terminal          </th><th> Usage                                                      </th></tr></thead><tbody>
+<tr><td> <code>(e)</code>                 </td><td> matches <code>e</code>                                                </td></tr>
+<tr><td> <code>e1 ~ e2</code>             </td><td> matches the sequence <code>e1</code> <code>e2</code>                             </td></tr>
+<tr><td> <code>e1 | e2</code> </td><td> matches either <code>e1</code> or <code>e2</code>                                </td></tr>
+<tr><td> <code>e*</code>                  </td><td> matches <code>e</code> zero or more times                             </td></tr>
+<tr><td> <code>e+</code>                  </td><td> matches <code>e</code> one or more times                              </td></tr>
+<tr><td> <code>e{n}</code>                </td><td> matches <code>e</code> exactly <code>n</code> times                              </td></tr>
+<tr><td> <code>e{, n}</code>              </td><td> matches <code>e</code> at most <code>n</code> times                              </td></tr>
+<tr><td> <code>e{n,}</code>              </td><td> matches <code>e</code> at least <code>n</code> times                             </td></tr>
+<tr><td> <code>e{m, n}</code>             </td><td> matches <code>e</code> between <code>m</code> and <code>n</code> times inclusively          </td></tr>
+<tr><td> <code>e?</code>                  </td><td> optionally matches <code>e</code>                                     </td></tr>
+<tr><td> <code>&amp;e</code>                  </td><td> matches <code>e</code> without making progress                        </td></tr>
+<tr><td> <code>!e</code>                  </td><td> matches if <code>e</code> doesn't match without making progress       </td></tr>
+<tr><td> <code>PUSH(e)</code>             </td><td> matches <code>e</code> and pushes it's captured string down the stack </td></tr>
 </tbody></table>
 <p>where <code>e</code>, <code>e1</code>, and <code>e2</code> are expressions.</p>
 </li>
 </ol>
+<p>Expressions can modify the stack only if they match the input. For example,
+if <code>e1</code> in the compound expression <code>e1 | e2</code> does not match the input, then
+it does not modify the stack, so <code>e2</code> sees the stack in the same state as
+<code>e1</code> did. Repetitions and optionals (<code>e*</code>, <code>e+</code>, <code>e{, n}</code>, <code>e{n,}</code>,
+<code>e{m,n}</code>, <code>e?</code>) can modify the stack each time <code>e</code> matches. The <code>!e</code> and <code>&amp;e</code>
+expressions are a special case; they never modify the stack.</p>
 <h2 id="special-rules" class="section-header"><a href="#special-rules">Special rules</a></h2>
 <p>Special rules can be called within the grammar. They are:</p>
 <ul>
-<li><code>whitespace</code> - gets run between rules and sub-rules</li>
-<li><code>comment</code> - gets run between rules and sub-rules</li>
-<li><code>any</code> - matches exactly one <code>char</code></li>
-<li><code>soi</code> - (start-of-input) matches only when a <code>Parser</code> is still at the starting position</li>
-<li><code>eoi</code> - (end-of-input) matches only when a <code>Parser</code> has reached its end</li>
-<li><code>pop</code> - pops a string from the stack and matches it</li>
-<li><code>peek</code> - peeks a string from the stack and matches it</li>
+<li><code>WHITESPACE</code> - runs between rules and sub-rules</li>
+<li><code>COMMENT</code> - runs between rules and sub-rules</li>
+<li><code>ANY</code> - matches exactly one <code>char</code></li>
+<li><code>SOI</code> - (start-of-input) matches only when a <code>Parser</code> is still at the starting position</li>
+<li><code>EOI</code> - (end-of-input) matches only when a <code>Parser</code> has reached its end</li>
+<li><code>POP</code> - pops a string from the stack and matches it</li>
+<li><code>POP_ALL</code> - pops the entire state of the stack and matches it</li>
+<li><code>PEEK</code> - peeks a string from the stack and matches it</li>
+<li><code>PEEK_ALL</code> - peeks the entire state of the stack and matches it</li>
+<li><code>DROP</code> - drops the top of the stack (fails to match if the stack is empty)</li>
 </ul>
-<p><code>whitespace</code> and <code>comment</code> should be defined manually if needed. All other rules cannot be
+<p><code>WHITESPACE</code> and <code>COMMENT</code> should be defined manually if needed. All other rules cannot be
 overridden.</p>
-<h2 id="whitespace-and-comment" class="section-header"><a href="#whitespace-and-comment"><code>whitespace</code> and <code>comment</code></a></h2>
+<h2 id="whitespace-and-comment" class="section-header"><a href="#whitespace-and-comment"><code>WHITESPACE</code> and <code>COMMENT</code></a></h2>
 <p>When defined, these rules get matched automatically in sequences (<code>~</code>) and repetitions
 (<code>*</code>, <code>+</code>) between expressions. Atomic rules and those rules called by atomic rules are exempt
 from this behavior.</p>
 <p>These rules should be defined so as to match one whitespace character and one comment only since
 they are run in repetitions.</p>
-<p>If both <code>whitespace</code> and <code>comment</code> are defined, this grammar:</p>
+<p>If both <code>WHITESPACE</code> and <code>COMMENT</code> are defined, this grammar:</p>
 
 <div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
 <span class="ident">a</span> <span class="op">=</span> { <span class="ident">b</span> ~ <span class="ident">c</span> }</pre>
 <p>is effectively transformed into this one behind the scenes:</p>
 
 <div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
-<span class="ident">a</span> <span class="op">=</span> { <span class="ident">b</span> ~ <span class="ident">whitespace</span><span class="op">*</span> ~ (<span class="ident">comment</span> ~ <span class="ident">whitespace</span><span class="kw-2">*</span>)<span class="op">*</span> ~ <span class="ident">c</span> }</pre>
-<h2 id="push-pop-and-peek" class="section-header"><a href="#push-pop-and-peek"><code>push</code>, <code>pop</code>, and <code>peek</code></a></h2>
-<p><code>push(e)</code> simply pushes the captured string of the expression <code>e</code> down a stack. This stack can
-then later be used to match grammar based on its content with <code>pop</code> and <code>peek</code>.</p>
-<p><code>peek</code> always matches the string at the top of stack. So, if the stack contains <code>[&quot;a&quot;, &quot;b&quot;]</code>,
+<span class="ident">a</span> <span class="op">=</span> { <span class="ident">b</span> ~ <span class="ident">WHITESPACE</span><span class="op">*</span> ~ (<span class="ident">COMMENT</span> ~ <span class="ident">WHITESPACE</span><span class="kw-2">*</span>)<span class="op">*</span> ~ <span class="ident">c</span> }</pre>
+<h2 id="push-pop-drop-and-peek" class="section-header"><a href="#push-pop-drop-and-peek"><code>PUSH</code>, <code>POP</code>, <code>DROP</code>, and <code>PEEK</code></a></h2>
+<p><code>PUSH(e)</code> simply pushes the captured string of the expression <code>e</code> down a stack. This stack can
+then later be used to match grammar based on its content with <code>POP</code> and <code>PEEK</code>.</p>
+<p><code>PEEK</code> always matches the string at the top of stack. So, if the stack contains <code>[&quot;a&quot;, &quot;b&quot;]</code>,
 the this grammar:</p>
 
 <div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
-<span class="ident">a</span> <span class="op">=</span> { <span class="ident">peek</span> }</pre>
+<span class="ident">a</span> <span class="op">=</span> { <span class="ident">PEEK</span> }</pre>
 <p>is effectively transformed into at parse time:</p>
 
 <div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><pre class="rust rust-example-rendered ignore">
 <span class="ident">a</span> <span class="op">=</span> { <span class="string">&quot;a&quot;</span> }</pre>
-<p><code>pop</code> works the same way with the exception that it pops the string off of the stack if the
-the match worked. With the stack from above, if <code>pop</code> matches <code>&quot;a&quot;</code>, the stack will be mutated
+<p><code>POP</code> works the same way with the exception that it pops the string off of the stack if the
+the match worked. With the stack from above, if <code>POP</code> matches <code>&quot;a&quot;</code>, the stack will be mutated
 to <code>[&quot;b&quot;]</code>.</p>
+<p><code>DROP</code> makes it possible to remove the string at the top of the stack
+without matching it. If the stack is nonempty, <code>DROP</code> drops the top of the
+stack. If the stack is empty, then <code>DROP</code> fails to match.</p>
 <h2 id="rule" class="section-header"><a href="#rule"><code>Rule</code></a></h2>
 <p>All rules defined or used in the grammar populate a generated <code>enum</code> called <code>Rule</code>. This
 implements <code>pest</code>'s <code>RuleType</code> and can be used throughout the API.</p>
+<h2 id="built-in-rules" class="section-header"><a href="#built-in-rules"><code>Built-in rules</code></a></h2>
+<p>Pest also comes with a number of built-in rules for convenience. They are:</p>
+<ul>
+<li><code>ASCII_DIGIT</code> - matches a numeric character from 0..9</li>
+<li><code>ASCII_NONZERO_DIGIT</code> - matches a numeric character from 1..9</li>
+<li><code>ASCII_BIN_DIGIT</code> - matches a numeric character from 0..1</li>
+<li><code>ASCII_OCT_DIGIT</code> - matches a numeric character from 0..7</li>
+<li><code>ASCII_HEX_DIGIT</code> - matches a numeric character from 0..9 or a..f or A..F</li>
+<li><code>ASCII_ALPHA_LOWER</code> - matches a character from a..z</li>
+<li><code>ASCII_ALPHA_UPPER</code> - matches a character from A..Z</li>
+<li><code>ASCII_ALPHA</code> - matches a character from a..z or A..Z</li>
+<li><code>ASCII_ALPHANUMERIC</code> - matches a character from a..z or A..Z or 0..9</li>
+<li><code>ASCII</code> - matches a character from \x00..\x7f</li>
+<li><code>NEWLINE</code> - matches either &quot;\n&quot; or &quot;\r\n&quot; or &quot;\r&quot;</li>
+</ul>
 </div><h2 id='functions' class='section-header'><a href="#functions">Functions</a></h2>
 <table>
                        <tr class=' module-item'>

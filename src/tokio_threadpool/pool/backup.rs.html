@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.5/src/pool/backup.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backup.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-threadpool-0.1.7/src/pool/backup.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backup.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script src="../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -302,6 +302,12 @@
 <span id="302">302</span>
 <span id="303">303</span>
 <span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">park</span>::<span class="ident">DefaultPark</span>;
 <span class="kw">use</span> <span class="ident">worker</span>::{<span class="ident">WorkerId</span>};
@@ -310,6 +316,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">AtomicUsize</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">Ordering</span>::{<span class="self">self</span>, <span class="ident">Acquire</span>, <span class="ident">AcqRel</span>, <span class="ident">Relaxed</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>};
 
 <span class="doccomment">/// State associated with a thread in the thread pool.</span>
 <span class="doccomment">///</span>
@@ -344,7 +351,7 @@
     <span class="doccomment">/// * If the thread is running</span>
     <span class="ident">state</span>: <span class="ident">AtomicUsize</span>,
 
-    <span class="doccomment">/// Next entry in the treiber stack.</span>
+    <span class="doccomment">/// Next entry in the Treiber stack.</span>
     <span class="ident">next_sleeper</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">BackupId</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Used to put the thread to sleep</span>
@@ -460,7 +467,8 @@
     }
 
     <span class="doccomment">/// Wait for a worker handoff</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait_for_handoff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sleep</span>: <span class="ident">bool</span>) <span class="op">-&gt;</span> <span class="ident">Handoff</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait_for_handoff</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Duration</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">Handoff</span> {
+        <span class="kw">let</span> <span class="ident">sleep_until</span> <span class="op">=</span> <span class="ident">timeout</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">dur</span><span class="op">|</span> <span class="ident">Instant</span>::<span class="ident">now</span>() <span class="op">+</span> <span class="ident">dur</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span>: <span class="ident">State</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>).<span class="ident">into</span>();
 
         <span class="comment">// Run in a loop since there can be spurious wakeups</span>
@@ -474,36 +482,40 @@
                     (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">handoff</span>.<span class="ident">get</span>()).<span class="ident">take</span>()
                         .<span class="ident">expect</span>(<span class="string">&quot;no worker handoff&quot;</span>)
                 };
-
                 <span class="kw">return</span> <span class="ident">Handoff</span>::<span class="ident">Worker</span>(<span class="ident">worker_id</span>);
             }
 
-            <span class="kw">if</span> <span class="ident">sleep</span> {
-                <span class="comment">// TODO: Park with a timeout</span>
-                <span class="self">self</span>.<span class="ident">park</span>.<span class="ident">park_sync</span>(<span class="prelude-val">None</span>);
-
-                <span class="comment">// Reload the state</span>
-                <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>).<span class="ident">into</span>();
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">state</span>.<span class="ident">is_running</span>());
-            } <span class="kw">else</span> {
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">state</span>.<span class="ident">is_running</span>());
-
-                <span class="comment">// Transition out of running</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">state</span>;
-                <span class="ident">next</span>.<span class="ident">unset_running</span>();
-
-                <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_and_swap</span>(
-                    <span class="ident">state</span>.<span class="ident">into</span>(),
-                    <span class="ident">next</span>.<span class="ident">into</span>(),
-                    <span class="ident">AcqRel</span>).<span class="ident">into</span>();
-
-                <span class="kw">if</span> <span class="ident">actual</span> <span class="op">==</span> <span class="ident">state</span> {
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">next</span>.<span class="ident">is_running</span>());
-
-                    <span class="kw">return</span> <span class="ident">Handoff</span>::<span class="ident">Idle</span>;
+            <span class="kw">match</span> <span class="ident">sleep_until</span> {
+                <span class="prelude-val">None</span> <span class="op">=&gt;</span> {
+                    <span class="self">self</span>.<span class="ident">park</span>.<span class="ident">park_sync</span>(<span class="prelude-val">None</span>);
+                    <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>).<span class="ident">into</span>();
                 }
+                <span class="prelude-val">Some</span>(<span class="ident">when</span>) <span class="op">=&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant</span>::<span class="ident">now</span>();
 
-                <span class="ident">state</span> <span class="op">=</span> <span class="ident">actual</span>;
+                    <span class="kw">if</span> <span class="ident">now</span> <span class="op">&lt;</span> <span class="ident">when</span> {
+                        <span class="self">self</span>.<span class="ident">park</span>.<span class="ident">park_sync</span>(<span class="prelude-val">Some</span>(<span class="ident">when</span> <span class="op">-</span> <span class="ident">now</span>));
+                        <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">Acquire</span>).<span class="ident">into</span>();
+                    } <span class="kw">else</span> {
+                        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">state</span>.<span class="ident">is_running</span>());
+
+                        <span class="comment">// Transition out of running</span>
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">state</span>;
+                        <span class="ident">next</span>.<span class="ident">unset_running</span>();
+
+                        <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">compare_and_swap</span>(
+                            <span class="ident">state</span>.<span class="ident">into</span>(),
+                            <span class="ident">next</span>.<span class="ident">into</span>(),
+                            <span class="ident">AcqRel</span>).<span class="ident">into</span>();
+
+                        <span class="kw">if</span> <span class="ident">actual</span> <span class="op">==</span> <span class="ident">state</span> {
+                            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">next</span>.<span class="ident">is_running</span>());
+                            <span class="kw">return</span> <span class="ident">Handoff</span>::<span class="ident">Idle</span>;
+                        }
+
+                        <span class="ident">state</span> <span class="op">=</span> <span class="ident">actual</span>;
+                    }
+                }
             }
         }
     }

@@ -10,8 +10,8 @@ supplied closure. The closure is permitted to block indefinitely.</p>
 calls complete. The maximum value is specified when creating a thread pool
 using <a href="struct.Builder.html#method.max_blocking"><code>Builder::max_blocking</code></a></p>
 <h1 id="return" class="section-header"><a href="#return">Return</a></h1>
-<p>When the blocking closure is executed, <code>Ok(T)</code> is returned, where <code>T</code> is the
-closure's return value.</p>
+<p>When the blocking closure is executed, <code>Ok(Ready(T))</code> is returned, where
+<code>T</code> is the closure's return value.</p>
 <p>If the thread pool has shutdown, <code>Err</code> is returned.</p>
 <p>If the number of concurrent <code>blocking</code> calls has reached the maximum,
 <code>Ok(NotReady)</code> is returned and the current task is notified when a call to

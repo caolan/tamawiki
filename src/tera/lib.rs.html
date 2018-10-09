@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.12/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/tera-0.11.17/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1"> 1</span>
 <span id="2"> 2</span>
 <span id="3"> 3</span>
 <span id="4"> 4</span>
@@ -65,20 +65,20 @@
 <span id="65">65</span>
 <span id="66">66</span>
 </pre><pre class="rust ">
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/tera/0.11&quot;</span>)]</span>
+
 <span class="doccomment">//! # Tera</span>
 <span class="doccomment">//! Tera is a template engine based on [Jinja2](http://jinja.pocoo.org/)</span>
 <span class="doccomment">//! and the [Django template language](https://docs.djangoproject.com/en/1.9/topics/templates/).</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! See the [site](https://tera.netlify.com) for features and to get started.</span>
 
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="comment">//#![deny(missing_docs)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
+<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">glob</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">pest</span>;
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">serde</span>;
-<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">macro_use</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">serde_json</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">pest_derive</span>;
@@ -101,31 +101,31 @@
 
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">mod</span> <span class="ident">macros</span>;
-<span class="kw">mod</span> <span class="ident">errors</span>;
-<span class="kw">mod</span> <span class="ident">context</span>;
-<span class="kw">mod</span> <span class="ident">parser</span>;
-<span class="kw">mod</span> <span class="ident">template</span>;
-<span class="kw">mod</span> <span class="ident">utils</span>;
-<span class="kw">mod</span> <span class="ident">sort_utils</span>;
 <span class="kw">mod</span> <span class="ident">builtins</span>;
+<span class="kw">mod</span> <span class="ident">context</span>;
+<span class="kw">mod</span> <span class="ident">errors</span>;
+<span class="kw">mod</span> <span class="ident">parser</span>;
 <span class="kw">mod</span> <span class="ident">renderer</span>;
+<span class="kw">mod</span> <span class="ident">sort_utils</span>;
+<span class="kw">mod</span> <span class="ident">template</span>;
 <span class="kw">mod</span> <span class="ident">tera</span>;
+<span class="kw">mod</span> <span class="ident">utils</span>;
 
 <span class="comment">// Library exports.</span>
 
 <span class="comment">// Template is meant to be used internally only but is exported for test/bench.</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">builtins</span>::<span class="ident">filters</span>::<span class="ident">FilterFn</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">builtins</span>::<span class="ident">functions</span>::<span class="ident">GlobalFn</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">builtins</span>::<span class="ident">testers</span>::<span class="ident">TesterFn</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">context</span>::<span class="ident">Context</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">errors</span>::{<span class="ident">Error</span>, <span class="ident">ErrorKind</span>, <span class="prelude-ty">Result</span>};
+<span class="doccomment">/// Re-export Value and other useful things from serde</span>
+<span class="doccomment">/// so apps/tools can encode data in Tera types</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">value</span>::{<span class="ident">from_value</span>, <span class="ident">to_value</span>, <span class="ident">Map</span>, <span class="ident">Number</span>, <span class="ident">Value</span>};
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">template</span>::<span class="ident">Template</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">context</span>::<span class="ident">Context</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tera</span>::<span class="ident">Tera</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">errors</span>::{<span class="ident">Error</span>, <span class="ident">ErrorKind</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">utils</span>::<span class="ident">escape_html</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">builtins</span>::<span class="ident">global_functions</span>::<span class="ident">GlobalFn</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">builtins</span>::<span class="ident">filters</span>::<span class="ident">FilterFn</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">builtins</span>::<span class="ident">testers</span>::<span class="ident">TesterFn</span>;
-<span class="comment">//// Re-export Value so apps/tools can encode data in Tera types</span>
-<span class="comment">//// for now it&#39;s just an alias to serde_json::Value</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">serde_json</span>::<span class="ident">value</span>::{<span class="ident">from_value</span>, <span class="ident">to_value</span>, <span class="ident">Map</span>, <span class="ident">Number</span>, <span class="ident">Value</span>};
 
 <span class="comment">// Exposes the AST if one needs it but changing the AST is not considered</span>
 <span class="comment">// a breaking change so it isn&#39;t public</span>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.12.7/src/proto/h1/conn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>conn.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.12.11/src/proto/h1/conn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>conn.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1198,6 +1198,34 @@
 <span id="1198">1198</span>
 <span id="1199">1199</span>
 <span id="1200">1200</span>
+<span id="1201">1201</span>
+<span id="1202">1202</span>
+<span id="1203">1203</span>
+<span id="1204">1204</span>
+<span id="1205">1205</span>
+<span id="1206">1206</span>
+<span id="1207">1207</span>
+<span id="1208">1208</span>
+<span id="1209">1209</span>
+<span id="1210">1210</span>
+<span id="1211">1211</span>
+<span id="1212">1212</span>
+<span id="1213">1213</span>
+<span id="1214">1214</span>
+<span id="1215">1215</span>
+<span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
+<span id="1221">1221</span>
+<span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>};
@@ -1206,10 +1234,12 @@
 <span class="kw">use</span> <span class="ident">bytes</span>::{<span class="ident">Buf</span>, <span class="ident">Bytes</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Async</span>, <span class="ident">Poll</span>};
 <span class="kw">use</span> <span class="ident">http</span>::{<span class="ident">HeaderMap</span>, <span class="ident">Method</span>, <span class="ident">Version</span>};
+<span class="kw">use</span> <span class="ident">http</span>::<span class="ident">header</span>::{<span class="ident">HeaderValue</span>, <span class="ident">CONNECTION</span>};
 <span class="kw">use</span> <span class="ident">tokio_io</span>::{<span class="ident">AsyncRead</span>, <span class="ident">AsyncWrite</span>};
 
 <span class="kw">use</span> ::<span class="ident">Chunk</span>;
 <span class="kw">use</span> <span class="ident">proto</span>::{<span class="ident">BodyLength</span>, <span class="ident">DecodedLength</span>, <span class="ident">MessageHead</span>};
+<span class="kw">use</span> <span class="ident">headers</span>::<span class="ident">connection_keep_alive</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">io</span>::{<span class="ident">Buffered</span>};
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">EncodedBuf</span>, <span class="ident">Encode</span>, <span class="ident">Encoder</span>, <span class="comment">/*Decode,*/</span> <span class="ident">Decoder</span>, <span class="ident">Http1Transaction</span>, <span class="ident">ParseContext</span>};
 
@@ -1639,12 +1669,38 @@
         }
     }
 
+    <span class="comment">// Fix keep-alives when Connection: keep-alive header is not present</span>
+    <span class="kw">fn</span> <span class="ident">fix_keep_alive</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">Outgoing</span><span class="op">&gt;</span>) {
+        <span class="kw">let</span> <span class="ident">outgoing_is_keep_alive</span> <span class="op">=</span> <span class="ident">head</span>
+            .<span class="ident">headers</span>
+            .<span class="ident">get</span>(<span class="ident">CONNECTION</span>)
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">connection_keep_alive</span>(<span class="ident">value</span>)))
+            .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">outgoing_is_keep_alive</span> {
+            <span class="kw">match</span> <span class="ident">head</span>.<span class="ident">version</span> {
+                <span class="comment">// If response is version 1.0 and keep-alive is not present in the response,</span>
+                <span class="comment">// disable keep-alive so the server closes the connection</span>
+                <span class="ident">Version</span>::<span class="ident">HTTP_10</span> <span class="op">=&gt;</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">disable_keep_alive</span>(),
+                <span class="comment">// If response is version 1.1 and keep-alive is wanted, add</span>
+                <span class="comment">// Connection: keep-alive header when not present</span>
+                <span class="ident">Version</span>::<span class="ident">HTTP_11</span> <span class="op">=&gt;</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">wants_keep_alive</span>() {
+                    <span class="ident">head</span>.<span class="ident">headers</span>
+                        .<span class="ident">insert</span>(<span class="ident">CONNECTION</span>, <span class="ident">HeaderValue</span>::<span class="ident">from_static</span>(<span class="string">&quot;keep-alive&quot;</span>));
+                },
+                <span class="kw">_</span> <span class="op">=&gt;</span> (),
+            }
+        }
+    }
+
     <span class="comment">// If we know the remote speaks an older version, we try to fix up any messages</span>
     <span class="comment">// to work with our older peer.</span>
     <span class="kw">fn</span> <span class="ident">enforce_version</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident">T</span>::<span class="ident">Outgoing</span><span class="op">&gt;</span>) {
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">version</span> {
             <span class="ident">Version</span>::<span class="ident">HTTP_10</span> <span class="op">=&gt;</span> {
+                <span class="comment">// Fixes response or connection when keep-alive header is not present</span>
+                <span class="self">self</span>.<span class="ident">fix_keep_alive</span>(<span class="ident">head</span>);
                 <span class="comment">// If the remote only knows HTTP/1.0, we should force ourselves</span>
                 <span class="comment">// to do only speak HTTP/1.0 as well.</span>
                 <span class="ident">head</span>.<span class="ident">version</span> <span class="op">=</span> <span class="ident">Version</span>::<span class="ident">HTTP_10</span>;

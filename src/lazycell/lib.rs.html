@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/lazycell-0.6.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/lazycell-1.2.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css"><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script src="../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -412,9 +412,178 @@
 <span id="412">412</span>
 <span id="413">413</span>
 <span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
 </pre><pre class="rust ">
 <span class="comment">// Original work Copyright (c) 2014 The Rust Project Developers</span>
-<span class="comment">// Modified work Copyright (c) 2016-2017 Nikita Pekin and the lazycell contributors</span>
+<span class="comment">// Modified work Copyright (c) 2016-2018 Nikita Pekin and the lazycell contributors</span>
 <span class="comment">// See the README.md file at the top-level directory of this distribution.</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
@@ -423,20 +592,19 @@
 <span class="comment">// option. This file may not be copied, modified, or distributed</span>
 <span class="comment">// except according to those terms.</span>
 
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">test</span>), <span class="ident">no_std</span>)]</span>
+
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>, <span class="ident">feature</span>(<span class="ident">plugin</span>))]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clippy&quot;</span>, <span class="ident">plugin</span>(<span class="ident">clippy</span>))]</span>
 
 <span class="doccomment">//! This crate provides a `LazyCell` struct which acts as a lazily filled</span>
-<span class="doccomment">//! `Cell`, but with frozen contents.</span>
+<span class="doccomment">//! `Cell`.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! With a `RefCell`, the inner contents cannot be borrowed for the lifetime of</span>
 <span class="doccomment">//! the entire object, but only of the borrows returned. A `LazyCell` is a</span>
 <span class="doccomment">//! variation on `RefCell` which allows borrows to be tied to the lifetime of</span>
 <span class="doccomment">//! the outer object.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The limitation of a `LazyCell` is that after it is initialized and shared,</span>
-<span class="doccomment">//! it can be modified.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Example</span>
 <span class="doccomment">//!</span>
@@ -457,12 +625,23 @@
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `AtomicLazyCell` is a variant that uses an atomic variable to manage</span>
-<span class="doccomment">//! coordination in a thread-safe fashion.</span>
+<span class="doccomment">//! coordination in a thread-safe fashion. The limitation of an `AtomicLazyCell`</span>
+<span class="doccomment">//! is that after it is initialized, it can&#39;t be modified.</span>
+
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">core</span> <span class="kw">as</span> <span class="ident">std</span>;
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">UnsafeCell</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>};
 
-<span class="doccomment">/// A lazily filled `Cell`, with frozen contents.</span>
+<span class="doccomment">/// A lazily filled `Cell`, with mutable contents.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// A `LazyCell` is completely frozen once filled, **unless** you have `&amp;mut`</span>
+<span class="doccomment">/// access to it, in which case `LazyCell::borrow_mut` may be used to mutate the</span>
+<span class="doccomment">/// contents.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LazyCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">inner</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
@@ -478,13 +657,27 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function will return `Err(value)` is the cell is already full.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slot</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>() };
+        <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>() };
         <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">is_some</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>);
         }
         <span class="kw-2">*</span><span class="ident">slot</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
 
         <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Put a value into this cell.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that this function is infallible but requires `&amp;mut self`. By</span>
+    <span class="doccomment">/// requiring `&amp;mut self` we&#39;re guaranteed that no active borrows to this</span>
+    <span class="doccomment">/// cell can exist so we can always fill in the value. This may not always</span>
+    <span class="doccomment">/// be usable, however, as `&amp;mut self` may not be possible to borrow.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Return value</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function returns the previous value, if any.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>() }, <span class="prelude-val">Some</span>(<span class="ident">value</span>))
     }
 
     <span class="doccomment">/// Test whether this cell has been previously filled.</span>
@@ -530,6 +723,26 @@
         <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">unwrap</span>()
     }
 
+    <span class="doccomment">/// Borrows the contents of this `LazyCell` mutably for the duration of the</span>
+    <span class="doccomment">/// cell itself.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the cell has not yet been filled, the cell is first filled using the</span>
+    <span class="doccomment">/// function provided.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Panics if the cell becomes filled as a side effect of `f`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut_with</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">filled</span>() {
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">f</span>();
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">value</span>).<span class="ident">is_err</span>() {
+                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;borrow_mut_with: cell was filled by closure&quot;</span>)
+            }
+        }
+
+        <span class="self">self</span>.<span class="ident">borrow_mut</span>().<span class="ident">unwrap</span>()
+    }
+
     <span class="doccomment">/// Same as `borrow_with`, but allows the initializing function to fail.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
@@ -548,8 +761,30 @@
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">unwrap</span>())
     }
 
+    <span class="doccomment">/// Same as `borrow_mut_with`, but allows the initializing function to fail.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Panics if the cell becomes filled as a side effect of `f`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow_mut_with</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>
+    {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">filled</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">borrow_mut</span>().<span class="ident">unwrap</span>());
+        }
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">f</span>()<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">value</span>).<span class="ident">is_err</span>() {
+            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;try_borrow_mut_with: cell was filled by closure&quot;</span>)
+        }
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">borrow_mut</span>().<span class="ident">unwrap</span>())
+    }
+
     <span class="doccomment">/// Consumes this `LazyCell`, returning the underlying value.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="comment">// Rust 1.25 changed UnsafeCell::into_inner() from unsafe to safe</span>
+        <span class="comment">// function. This unsafe can be removed when supporting Rust older than</span>
+        <span class="comment">// 1.25 is not needed.</span>
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_unsafe</span>)]</span>
         <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">into_inner</span>() }
     }
 }
@@ -569,7 +804,7 @@
 <span class="kw">const</span> <span class="ident">LOCK</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">const</span> <span class="ident">SOME</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
 
-<span class="doccomment">/// A lazily filled `Cell`, with frozen contents.</span>
+<span class="doccomment">/// A lazily filled and thread-safe `Cell`, with frozen contents.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AtomicLazyCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="ident">inner</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
@@ -577,12 +812,15 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">AtomicLazyCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// An empty `AtomicLazyCell`.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NONE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="self">Self</span> {
+        <span class="ident">inner</span>: <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>),
+        <span class="ident">state</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="ident">NONE</span>),
+    };
+
     <span class="doccomment">/// Creates a new, empty, `AtomicLazyCell`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-&gt;</span> <span class="ident">AtomicLazyCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">AtomicLazyCell</span> {
-            <span class="ident">inner</span>: <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="prelude-val">None</span>),
-            <span class="ident">state</span>: <span class="ident">AtomicUsize</span>::<span class="ident">new</span>(<span class="ident">NONE</span>),
-        }
+        <span class="self">Self</span>::<span class="ident">NONE</span>
     }
 
     <span class="doccomment">/// Put a value into this cell.</span>
@@ -600,6 +838,24 @@
         }
 
         <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Put a value into this cell.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that this function is infallible but requires `&amp;mut self`. By</span>
+    <span class="doccomment">/// requiring `&amp;mut self` we&#39;re guaranteed that no active borrows to this</span>
+    <span class="doccomment">/// cell can exist so we can always fill in the value. This may not always</span>
+    <span class="doccomment">/// be usable, however, as `&amp;mut self` may not be possible to borrow.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Return value</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function returns the previous value, if any.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">get_mut</span>(), <span class="ident">SOME</span>) {
+            <span class="ident">NONE</span> <span class="op">|</span> <span class="ident">SOME</span> <span class="op">=&gt;</span> {}
+            <span class="kw">_</span> <span class="op">=&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;cell in inconsistent state&quot;</span>),
+        }
+        <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>() }, <span class="prelude-val">Some</span>(<span class="ident">value</span>))
     }
 
     <span class="doccomment">/// Test whether this cell has been previously filled.</span>
@@ -621,6 +877,10 @@
 
     <span class="doccomment">/// Consumes this `LazyCell`, returning the underlying value.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_inner</span>(<span class="self">self</span>) <span class="op">-&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="comment">// Rust 1.25 changed UnsafeCell::into_inner() from unsafe to safe</span>
+        <span class="comment">// function. This unsafe can be removed when supporting Rust older than</span>
+        <span class="comment">// 1.25 is not needed.</span>
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_unsafe</span>)]</span>
         <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">into_inner</span>() }
     }
 }
@@ -740,6 +1000,37 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_borrow_mut_with</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lazycell</span> <span class="op">=</span> <span class="ident">LazyCell</span>::<span class="ident">new</span>();
+
+        {
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">lazycell</span>.<span class="ident">borrow_mut_with</span>(<span class="op">||</span> <span class="number">1</span>);
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="number">1</span>, <span class="ident">value</span>);
+            <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="number">2</span>;
+        }
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="number">2</span>, <span class="ident">lazycell</span>.<span class="ident">borrow</span>().<span class="ident">unwrap</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_borrow_mut_with_already_filled</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lazycell</span> <span class="op">=</span> <span class="ident">LazyCell</span>::<span class="ident">new</span>();
+        <span class="ident">lazycell</span>.<span class="ident">fill</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">lazycell</span>.<span class="ident">borrow_mut_with</span>(<span class="op">||</span> <span class="number">1</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="number">1</span>, <span class="ident">value</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_borrow_mut_with_not_called_when_filled</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lazycell</span> <span class="op">=</span> <span class="ident">LazyCell</span>::<span class="ident">new</span>();
+
+        <span class="ident">lazycell</span>.<span class="ident">fill</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">lazycell</span>.<span class="ident">borrow_mut_with</span>(<span class="op">||</span> <span class="number">2</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="number">1</span>, <span class="ident">value</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_try_borrow_with_ok</span>() {
         <span class="kw">let</span> <span class="ident">lazycell</span> <span class="op">=</span> <span class="ident">LazyCell</span>::<span class="ident">new</span>();
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lazycell</span>.<span class="ident">try_borrow_with</span>::<span class="op">&lt;</span>(), <span class="kw">_</span><span class="op">&gt;</span>(<span class="op">||</span> <span class="prelude-val">Ok</span>(<span class="number">1</span>));
@@ -773,6 +1064,32 @@
             <span class="ident">reference</span> <span class="op">=</span> <span class="ident">lazycell</span>.<span class="ident">borrow</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">r</span>);
             <span class="prelude-val">Ok</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="number">2</span>))
         });
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_try_borrow_mut_with_ok</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lazycell</span> <span class="op">=</span> <span class="ident">LazyCell</span>::<span class="ident">new</span>();
+        {
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lazycell</span>.<span class="ident">try_borrow_mut_with</span>::<span class="op">&lt;</span>(), <span class="kw">_</span><span class="op">&gt;</span>(<span class="op">||</span> <span class="prelude-val">Ok</span>(<span class="number">1</span>));
+            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="number">1</span>));
+            <span class="kw-2">*</span><span class="ident">result</span>.<span class="ident">unwrap</span>() <span class="op">=</span> <span class="number">2</span>;
+        }
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="number">2</span>, <span class="ident">lazycell</span>.<span class="ident">borrow</span>().<span class="ident">unwrap</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_try_borrow_mut_with_err</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lazycell</span> <span class="op">=</span> <span class="ident">LazyCell</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lazycell</span>.<span class="ident">try_borrow_mut_with</span>(<span class="op">||</span> <span class="prelude-val">Err</span>(<span class="number">1</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="prelude-val">Err</span>(<span class="number">1</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_try_borrow_mut_with_already_filled</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lazycell</span> <span class="op">=</span> <span class="ident">LazyCell</span>::<span class="ident">new</span>();
+        <span class="ident">lazycell</span>.<span class="ident">fill</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">lazycell</span>.<span class="ident">try_borrow_mut_with</span>::<span class="op">&lt;</span>(), <span class="kw">_</span><span class="op">&gt;</span>(<span class="op">||</span> <span class="macro">unreachable</span><span class="macro">!</span>());
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="number">1</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -825,6 +1142,27 @@
         <span class="ident">lazycell</span>.<span class="ident">fill</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">lazycell</span>.<span class="ident">into_inner</span>();
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">value</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">normal_replace</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cell</span> <span class="op">=</span> <span class="ident">LazyCell</span>::<span class="ident">new</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cell</span>.<span class="ident">fill</span>(<span class="number">1</span>), <span class="prelude-val">Ok</span>(()));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cell</span>.<span class="ident">replace</span>(<span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cell</span>.<span class="ident">replace</span>(<span class="number">3</span>), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cell</span>.<span class="ident">borrow</span>(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cell</span> <span class="op">=</span> <span class="ident">LazyCell</span>::<span class="ident">new</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cell</span>.<span class="ident">replace</span>(<span class="number">2</span>), <span class="prelude-val">None</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">atomic_replace</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cell</span> <span class="op">=</span> <span class="ident">AtomicLazyCell</span>::<span class="ident">new</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cell</span>.<span class="ident">fill</span>(<span class="number">1</span>), <span class="prelude-val">Ok</span>(()));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cell</span>.<span class="ident">replace</span>(<span class="number">2</span>), <span class="prelude-val">Some</span>(<span class="number">1</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cell</span>.<span class="ident">replace</span>(<span class="number">3</span>), <span class="prelude-val">Some</span>(<span class="number">2</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">cell</span>.<span class="ident">borrow</span>(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
     }
 }
 </pre>

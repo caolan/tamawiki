@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.6.15/src/sys/unix/ready.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ready.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source to the Rust file `/home/travis/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.6.16/src/sys/unix/ready.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ready.rs.html -- source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css"><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script src="../../../../storage.js"></script></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!"><img src="../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form js-only"><div class="search-container"><input class="search-input" name="search" autocomplete="off" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -426,6 +426,59 @@
 <span id="426">426</span>
 <span id="427">427</span>
 <span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
 </pre><pre class="rust ">
 <span class="kw">use</span> <span class="ident">event_imp</span>::{<span class="ident">Ready</span>, <span class="ident">ready_as_usize</span>, <span class="ident">ready_from_usize</span>};
 
@@ -538,6 +591,11 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>)))]</span>
 <span class="kw">const</span> <span class="ident">LIO</span>: <span class="ident">usize</span>   <span class="op">=</span> <span class="number">0b000000</span>;
 
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
+<span class="kw">const</span> <span class="ident">PRI</span>: <span class="ident">usize</span> <span class="op">=</span> ::<span class="ident">libc</span>::<span class="ident">EPOLLPRI</span> <span class="kw">as</span> <span class="ident">usize</span>;
+
+
 <span class="comment">// Export to support `Ready::all`</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">READY_ALL</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">ERROR</span> <span class="op">|</span> <span class="ident">HUP</span> <span class="op">|</span> <span class="ident">AIO</span> <span class="op">|</span> <span class="ident">LIO</span>;
 
@@ -648,6 +706,28 @@
         <span class="ident">UnixReady</span>(<span class="ident">ready_from_usize</span>(<span class="ident">LIO</span>))
     }
 
+    <span class="doccomment">/// Returns a `Ready` representing priority (`EPOLLPRI`) readiness</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See [`Poll`] for more documentation on polling.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use mio::unix::UnixReady;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let ready = UnixReady::priority();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert!(ready.is_priority());</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Poll`]: struct.Poll.html</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">priority</span>() <span class="op">-&gt;</span> <span class="ident">UnixReady</span> {
+        <span class="ident">UnixReady</span>(<span class="ident">ready_from_usize</span>(<span class="ident">PRI</span>))
+    }
+
     <span class="doccomment">/// Returns true if `Ready` contains AIO readiness</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See [`Poll`] for more documentation on polling.</span>
@@ -752,6 +832,28 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_lio</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident">ready_from_usize</span>(<span class="ident">LIO</span>))
     }
+
+    <span class="doccomment">/// Returns true if `Ready` contains priority (`EPOLLPRI`) readiness</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See [`Poll`] for more documentation on polling.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use mio::unix::UnixReady;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let ready = UnixReady::priority();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert!(ready.is_priority());</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Poll`]: struct.Poll.html</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_priority</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident">ready_from_usize</span>(<span class="ident">PRI</span>))
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Ready</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">UnixReady</span> {
@@ -837,7 +939,11 @@
             (<span class="ident">UnixReady</span>::<span class="ident">error</span>(), <span class="string">&quot;Error&quot;</span>),
             (<span class="ident">UnixReady</span>::<span class="ident">hup</span>(), <span class="string">&quot;Hup&quot;</span>),
             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            (<span class="ident">UnixReady</span>::<span class="ident">aio</span>(), <span class="string">&quot;Aio&quot;</span>)];
+            (<span class="ident">UnixReady</span>::<span class="ident">aio</span>(), <span class="string">&quot;Aio&quot;</span>),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
+            (<span class="ident">UnixReady</span>::<span class="ident">priority</span>(), <span class="string">&quot;Priority&quot;</span>),
+        ];
 
         <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">flag</span>, <span class="ident">msg</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">flags</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">contains</span>(<span class="ident">flag</span>) {
