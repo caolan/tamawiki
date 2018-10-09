@@ -56,7 +56,7 @@ fn connect_via_websocket() {
         "index.html" => "Welcome to TamaWiki.\n"
     };
     let server = Server::bind(&addr)
-        .serve(TamaWiki::new(store, "public"));
+        .serve(TamaWiki::new(store, "public/dist"));
 
     // find out which port number we got
     let port = server.local_addr().port();
@@ -85,7 +85,7 @@ fn websocket_connections_get_different_ids() {
         "index.html" => "Welcome to TamaWiki.\n"
     };
     let server = Server::bind(&addr)
-        .serve(TamaWiki::new(store, "public"));
+        .serve(TamaWiki::new(store, "public/dist"));
 
     // find out which port number we got
     let port = server.local_addr().port();
@@ -147,7 +147,7 @@ fn websocket_join_and_leave_notifications() {
     let addr = ([127, 0, 0, 1], 0).into();
     let store = MemoryStore::default();
     let server = Server::bind(&addr)
-        .serve(TamaWiki::new(store, "public"));
+        .serve(TamaWiki::new(store, "public/dist"));
 
     // find out which port number we got
     let port = server.local_addr().port();
@@ -215,7 +215,7 @@ fn websocket_edits() {
     let addr = ([127, 0, 0, 1], 0).into();
     let store = MemoryStore::default();
     let server = Server::bind(&addr)
-        .serve(TamaWiki::new(store, "public"));
+        .serve(TamaWiki::new(store, "public/dist"));
 
     // find out which port number we got
     let port = server.local_addr().port();

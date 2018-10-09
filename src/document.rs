@@ -20,7 +20,8 @@ pub struct Document {
 /// Edit session participant data relevant to displaying a document
 #[derive(Debug, PartialEq, Eq, Hash, Default, Clone, Serialize)]
 pub struct DocumentParticipant {
-    id: ParticipantId
+    /// ID of the participant
+    pub id: ParticipantId
 }
 
 impl Document {
@@ -707,7 +708,7 @@ mod tests {
         );
         assert_eq!(doc, Document {
             content: String::from("foobar"),
-            participants: vec![1].into_iter().collect(),
+            participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
         });
         assert_eq!(
             doc.apply(&Event::Join(Join {id: 2})),
@@ -715,7 +716,10 @@ mod tests {
         );
         assert_eq!(doc, Document {
             content: String::from("foobar"),
-            participants: vec![1, 2].into_iter().collect(),
+            participants: vec![
+                DocumentParticipant {id: 1},
+                DocumentParticipant {id: 2}
+            ].into_iter().collect(),
         });
         assert_eq!(
             doc.apply(&Event::Leave(Leave {id: 1})),
@@ -723,7 +727,7 @@ mod tests {
         );
         assert_eq!(doc, Document {
             content: String::from("foobar"),
-            participants: vec![2].into_iter().collect(),
+            participants: vec![DocumentParticipant {id: 2}].into_iter().collect(),
         });
     }
 

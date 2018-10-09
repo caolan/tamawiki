@@ -16,7 +16,7 @@ use tamawiki::store::memory::MemoryStore;
 #[test]
 fn get_missing_page() {
     let store = MemoryStore::default();
-    let mut service = TamaWiki::new(store, "public");
+    let mut service = TamaWiki::new(store, "public/dist");
 
     let request = Request::get("/missing.html")
         .body(Body::from(""))
@@ -31,7 +31,7 @@ fn get_page_content_from_store() {
     let store = memorystore! {
         "test.html" => "Testing 123"
     };
-    let mut service = TamaWiki::new(store, "public");
+    let mut service = TamaWiki::new(store, "public/dist");
 
     let request = Request::get("/test.html")
         .body(Body::from(""))
@@ -60,9 +60,9 @@ fn get_page_content_from_store() {
 
 fn get_static_file() {
     let store = MemoryStore::default();
-    let mut service = TamaWiki::new(store, "public");
+    let mut service = TamaWiki::new(store, "public/dist");
 
-    let request = Request::get("/_static/css/style.css")
+    let request = Request::get("/_static/css/main.css")
         .body(Body::from(""))
         .unwrap();
     
@@ -76,7 +76,7 @@ fn get_static_file() {
 #[test]
 fn request_missing_page_with_edit_action() {
     let store = MemoryStore::default();
-    let mut service = TamaWiki::new(store, "public");
+    let mut service = TamaWiki::new(store, "public/dist");
 
     let request = Request::get("/missing.html?action=edit")
         .body(Body::from(""))
@@ -105,7 +105,7 @@ fn request_existing_page_with_edit_action() {
     let store = memorystore! {
         "example.html" => "test"
     };
-    let mut service = TamaWiki::new(store, "public");
+    let mut service = TamaWiki::new(store, "public/dist");
 
     let request = Request::get("/example.html?action=edit")
         .body(Body::from(""))

@@ -227,7 +227,7 @@ impl Stream for MemoryStoreStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use document::{Operation, Insert, Join};
+    use document::{DocumentParticipant, Operation, Insert, Join};
     use std::collections::HashSet;
     
     #[test]
@@ -537,7 +537,7 @@ mod tests {
             assert_eq!(seq, 3);
             assert_eq!(doc, Document {
                 content: String::from("Hello, world"),
-                participants: vec![1].into_iter().collect(),
+                participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
             });
         });
 
@@ -559,7 +559,7 @@ mod tests {
             assert_eq!(seq, 3);
             assert_eq!(doc, Document {
                 content: String::from("Hello, world"),
-                participants: vec![1].into_iter().collect(),
+                participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
             });
         });
 
@@ -624,7 +624,7 @@ mod tests {
         ).map(|doc| {
             assert_eq!(doc, Document {
                 content: String::from(""),
-                participants: vec![1].into_iter().collect(),
+                participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
             });
         });
 
@@ -634,7 +634,7 @@ mod tests {
         ).map(|doc| {
             assert_eq!(doc, Document {
                 content: String::from("Hello"),
-                participants: vec![1].into_iter().collect(),
+                participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
             });
         });
 
@@ -644,7 +644,7 @@ mod tests {
         ).map(|doc| {
             assert_eq!(doc, Document {
                 content: String::from("Hello, world"),
-                participants: vec![1].into_iter().collect(),
+                participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
             });
         });
         
