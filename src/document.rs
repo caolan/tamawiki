@@ -345,22 +345,27 @@ impl Edit {
                         } else if other.pos < this.end {
                             // need to split the delete into two parts
                             // to avoid clobbering the new insert
+                            
+                            // create a new operation for the first
+                            // part of the range
+                            let op = Op::Delete(Delete {
+                                start: this.start,
+                                end: other.pos,
+                                cursor_pos: this.cursor_pos,
+                            });
+
+                            // adjust the current operation to cover
+                            // the end second part of the range
                             let len = other.content.chars().count();
-                            let start2 = other.pos + len;
-                            let end2 = this.end + len;
-                            this.end = other.pos;
-                            let first_del_len = other.pos - this.start;
-                            new_operations.push(
-                                Op::Delete(Delete {
-                                    // the start and end will be affected
-                                    // by the first delete range, so we
-                                    // need to adjust the indices
-                                    // accordingly
-                                    start: start2 - first_del_len,
-                                    end: end2 - first_del_len,
-                                    cursor_pos: this.cursor_pos,
-                                })
-                            );
+                            this.start = other.pos + len;
+                            this.end = this.end + len;
+
+                            // push the operation covering the first
+                            // part of the range to new_operations.
+                            // This means it's applied after the
+                            // second part of the range and the cursor
+                            // ends in the correct position.
+                            new_operations.push(op);
                         }
                     },
                     (Op::Delete(ref mut this), &Op::Delete(ref other)) => {
@@ -1863,17 +1868,13 @@ mod tests {
         });
         assert_eq!(msg.operations, vec![
             Operation::Delete(Delete {
-                start: 0,
-                end: 2,
+                start: 6,
+                end: 8,
                 cursor_pos: 0,
             }),
-            // start and end indices are -2 because the first
-            // operation will affect the second. The cursor_pos is the
-            // same as the original, since splitting the delete
-            // doesn't affect where there author cursor ended up.
             Operation::Delete(Delete {
-                start: 4,
-                end: 6,
+                start: 0,
+                end: 2,
                 cursor_pos: 0,
             }),
         ]);
@@ -1922,17 +1923,13 @@ mod tests {
         });
         assert_eq!(msg.operations, vec![
             Operation::Delete(Delete {
-                start: 0,
-                end: 5,
+                start: 10,
+                end: 22,
                 cursor_pos: 0,
             }),
-            // start and end indices are -5 because the first
-            // operation will affect the second. The cursor_pos is the
-            // same as the original, since splitting the delete
-            // doesn't affect where there author cursor ended.
             Operation::Delete(Delete {
-                start: 5,
-                end: 17,
+                start: 0,
+                end: 5,
                 cursor_pos: 0,
             }),
         ]);
