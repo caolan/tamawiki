@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 
 use super::{Store, StoreError, SequenceId};
-use document::{Document, Event, Edit, Operation, Insert};
+use document::{Document, Event, Edit, Join, Leave, Operation, Insert};
 
 
 type Events = Arc<RwLock<Vec<Event>>>;
@@ -149,15 +149,19 @@ impl From<HashMap<String, String>> for MemoryStore {
         for (k, v) in data {
             documents.insert(
                 PathBuf::from(k),
-                Arc::new(RwLock::new(vec![Event::Edit(Edit {
-                    author: 1,
-                    operations: vec![
-                        Operation::Insert(Insert {
-                            pos: 0,
-                            content: v
-                        })
-                    ]
-                })]))
+                Arc::new(RwLock::new(vec![
+                    Event::Join(Join {id: 1}),
+                    Event::Edit(Edit {
+                        author: 1,
+                        operations: vec![
+                            Operation::Insert(Insert {
+                                pos: 0,
+                                content: v
+                            })
+                        ]
+                    }),
+                    Event::Leave(Leave {id: 1}),
+                ]))
             );
         }
         MemoryStore {
@@ -228,7 +232,6 @@ impl Stream for MemoryStoreStream {
 mod tests {
     use super::*;
     use document::{DocumentParticipant, Operation, Insert, Join};
-    use std::collections::HashSet;
     
     #[test]
     fn memory_store_push() {
@@ -537,7 +540,9 @@ mod tests {
             assert_eq!(seq, 3);
             assert_eq!(doc, Document {
                 content: String::from("Hello, world"),
-                participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
+                participants: vec![
+                    (1, DocumentParticipant {cursor_pos: 12}),
+                ].into_iter().collect(),
             });
         });
 
@@ -559,7 +564,9 @@ mod tests {
             assert_eq!(seq, 3);
             assert_eq!(doc, Document {
                 content: String::from("Hello, world"),
-                participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
+                participants: vec![
+                    (1, DocumentParticipant {cursor_pos: 12}),
+                ].into_iter().collect(),
             });
         });
 
@@ -614,7 +621,7 @@ mod tests {
         ).map(|doc| {
             assert_eq!(doc, Document {
                 content: String::from(""),
-                participants: HashSet::new(),
+                participants: HashMap::new(),
             });
         });
         
@@ -624,7 +631,9 @@ mod tests {
         ).map(|doc| {
             assert_eq!(doc, Document {
                 content: String::from(""),
-                participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
+                participants: vec![
+                    (1, DocumentParticipant {cursor_pos: 0}),
+                ].into_iter().collect(),
             });
         });
 
@@ -634,7 +643,9 @@ mod tests {
         ).map(|doc| {
             assert_eq!(doc, Document {
                 content: String::from("Hello"),
-                participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
+                participants: vec![
+                    (1, DocumentParticipant {cursor_pos: 5}),
+                ].into_iter().collect(),
             });
         });
 
@@ -644,7 +655,9 @@ mod tests {
         ).map(|doc| {
             assert_eq!(doc, Document {
                 content: String::from("Hello, world"),
-                participants: vec![DocumentParticipant {id: 1}].into_iter().collect(),
+                participants: vec![
+                    (1, DocumentParticipant {cursor_pos: 12}),
+                ].into_iter().collect(),
             });
         });
         

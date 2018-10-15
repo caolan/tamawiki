@@ -24,21 +24,21 @@ var editor = CodeMirror(editor_el, {
 });
 
 
-var participants = JSON.parse(editor_el.dataset.participants || '[]');
+var participants = JSON.parse(editor_el.dataset.participants || '{}');
 var connection_id = null;
 
 var participants_el = document.getElementById('participants');
 
 function displayParticipants() {
     var ul = document.createElement('ul');
-    participants.forEach(function (p) {
+    for (var id in participants) {
         var li = document.createElement('li');
-        li.textContent = 'Guest ' + p.id;
-        if (p.id == connection_id) {
+        li.textContent = 'Guest ' + id;
+        if (id == connection_id) {
             li.className = 'you';
         }
         ul.appendChild(li);
-    });
+    }
     participants_el.innerHTML = '';
     participants_el.appendChild(ul);
 }
@@ -178,17 +178,8 @@ editor.on('cursorActivity', function (...args) {
     }
 });
 
-function getParticipant(participants, id) {
-    for (var i = 0, len = participants.length; i < len; i++) {
-        if (participants[i].id === id) {
-            return participants[i];
-        }
-    }
-    return null;
-}
-
 function setParticipantCursor(id, pos) {
-    var participant = getParticipant(participants, id);
+    var participant = participants[id];
     if (participant.cursor) {
         participant.cursor.clear();
     }
@@ -239,9 +230,7 @@ ws.onmessage = function (event) {
     console.log('RECEIVED: ' + JSON.stringify(msg));
     if (msg.Connected) {
         connection_id = msg.Connected.id;
-        participants.push({
-            id: msg.Connected.id
-        });
+        participants[msg.Connected.id] = {};
         displayParticipants();
         setInterval(function () {
             if (operations.length) {
@@ -256,13 +245,11 @@ ws.onmessage = function (event) {
         }, 500);
     }
     else if (msg.Join) {
-        participants.push({id: msg.Join.id});
+        participants[msg.Join.id] = {};
         displayParticipants();
     }
     else if (msg.Leave) {
-        participants = participants.filter(function (p) {
-            return p.id != msg.Leave.id;
-        });
+        delete participants[msg.Leave.id];
         displayParticipants();
     }
     else if (msg.Edit) {
