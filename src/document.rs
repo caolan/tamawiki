@@ -152,7 +152,7 @@ impl Document {
                 }
                 for (id, participant) in self.participants.iter_mut() {
                     if *id == author {
-                        participant.cursor_pos = op.cursor_pos;
+                        participant.cursor_pos = op.start;
                     } else if participant.cursor_pos > op.start {
                         // participant.cursor_pos += op.end - op.start;
                         // TODO: test this cmp::min
@@ -195,10 +195,6 @@ pub struct Delete {
     /// Unicode Scalar Value to end the delete operation on (exclusive
     /// of the 'end' character)
     pub end: usize,
-    /// Final cursor position after the delete (in most cases this
-    /// will just be 'start' but can sometimes be altered during
-    /// transforms)
-    pub cursor_pos: usize,
 }
 
 /// Describes incremental changes to a Document's content. Through the
@@ -334,24 +330,22 @@ impl Edit {
                         }
                     },
                     (Op::Delete(ref mut this), &Op::Insert(ref other)) => {
-                        if other.pos < this.cursor_pos {
-                            let len = other.content.chars().count();
-                            this.cursor_pos += len;
-                        }
-                        if other.pos <= this.start {
+                        if other.pos < this.start {
                             let len = other.content.chars().count();
                             this.start += len;
                             this.end += len;
-                        } else if other.pos < this.end {
+                        } else if other.pos < this.end && this.end - this.start > 0 {
                             // need to split the delete into two parts
                             // to avoid clobbering the new insert
+                            // (only split when the delete has a range
+                            // greater than 0, otherwise it can only
+                            // produce a duplicate event)
                             
                             // create a new operation for the first
                             // part of the range
                             let op = Op::Delete(Delete {
                                 start: this.start,
                                 end: other.pos,
-                                cursor_pos: this.cursor_pos,
                             });
 
                             // adjust the current operation to cover
@@ -388,10 +382,6 @@ impl Edit {
                         }
                         this.start -= chars_deleted_before;
                         this.end -= chars_deleted_before + chars_deleted_inside;
-                        if other.start < this.cursor_pos {
-                            let end = cmp::min(this.cursor_pos, other.end);
-                            this.cursor_pos -= end - other.start;
-                        }
                     },
                 }
             }
@@ -509,7 +499,6 @@ mod tests {
             Operation::Delete(Delete {
                 start: 7,
                 end: 12,
-                cursor_pos: 7,
             }),
             "Hello, !"
         );
@@ -522,7 +511,6 @@ mod tests {
             Operation::Delete(Delete {
                 start: 0,
                 end: 4,
-                cursor_pos: 0,
             }),
             "Bar Baz"
         );
@@ -535,7 +523,6 @@ mod tests {
             Operation::Delete(Delete {
                 start: 7,
                 end: 11,
-                cursor_pos: 7,
             }),
             "Foo Bar"
         );
@@ -548,7 +535,6 @@ mod tests {
             Operation::Delete(Delete {
                 start: 3,
                 end: 3,
-                cursor_pos: 3,
             }),
             "Foo"
         );
@@ -561,7 +547,6 @@ mod tests {
             Operation::Delete(Delete {
                 start: 6,
                 end: 12,
-                cursor_pos: 6,
             }),
             "Здравс test"
         );
@@ -575,7 +560,6 @@ mod tests {
             Operation::Delete(Delete {
                 start: 6,
                 end: 12,
-                cursor_pos: 6,
             }),
             "Здравс"
         );
@@ -613,7 +597,6 @@ mod tests {
                     Operation::Delete(Delete {
                         start: 3,
                         end: 7,
-                        cursor_pos: 3,
                     })
                 ],
             })),
@@ -635,7 +618,6 @@ mod tests {
                     Operation::Delete(Delete {
                         start: 7,
                         end: 10,
-                        cursor_pos: 7,
                     })
                 ],
             })),
@@ -698,7 +680,6 @@ mod tests {
                 Operation::Delete(Delete {
                     start: 13,
                     end: 14,
-                    cursor_pos: 13,
                 })
             ],
         })).unwrap();
@@ -731,7 +712,6 @@ mod tests {
                     Operation::Delete(Delete {
                         start: 20,
                         end: 25,
-                        cursor_pos: 20,
                     })
                 ],
             })),
@@ -763,7 +743,6 @@ mod tests {
                 Operation::Delete(Delete {
                     start: 7,
                     end: 12,
-                    cursor_pos: 7,
                 }),
                 Operation::Insert(Insert {
                     pos: 7,
@@ -792,7 +771,6 @@ mod tests {
                     Operation::Delete(Delete {
                         start: 0,
                         end: 5,
-                        cursor_pos: 0,
                     }),
                     Operation::Insert(Insert {
                         pos: 5,
@@ -920,7 +898,6 @@ mod tests {
                 Operation::Delete(Delete {
                     start: 0,
                     end: 2,
-                    cursor_pos: 0,
                 })
             ],
         })).unwrap();
@@ -958,7 +935,6 @@ mod tests {
                 Operation::Delete(Delete {
                     start: 2,
                     end: 4,
-                    cursor_pos: 2,
                 })
             ],
         })).unwrap();
@@ -983,7 +959,6 @@ mod tests {
                 Operation::Delete(Delete {
                     start: 2,
                     end: 2,
-                    cursor_pos: 2,
                 })
             ],
         })).unwrap();
@@ -1090,7 +1065,6 @@ mod tests {
                     Operation::Delete (Delete {
                         start: 0,
                         end: 2,
-                        cursor_pos: 0,
                     })
                 ]
             })),
@@ -1103,7 +1077,6 @@ mod tests {
                     Operation::Delete (Delete {
                         start: 100,
                         end: 102,
-                        cursor_pos: 100,
                     })
                 ]
             })),
@@ -1116,7 +1089,6 @@ mod tests {
                     Operation::Delete (Delete {
                         start: 0,
                         end: 6,
-                        cursor_pos: 0,
                     })
                 ]
             })),
@@ -1129,7 +1101,6 @@ mod tests {
                     Operation::Delete (Delete {
                         start: 2,
                         end: 1,
-                        cursor_pos: 2,
                     })
                 ]
             })),
@@ -1162,19 +1133,16 @@ mod tests {
         assert!(Operation::Delete (Delete {
             start: 0,
             end: 10,
-            cursor_pos: 0,
         }).is_valid());
         
         assert!(Operation::Delete (Delete {
             start: 0,
             end: 0,
-            cursor_pos: 0,
         }).is_valid());
         
         assert!(!Operation::Delete (Delete {
             start: 10,
             end: 0,
-            cursor_pos: 10,
         }).is_valid());
     }
 
@@ -1295,7 +1263,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 5,
-                cursor_pos: 0,
             })]
         };
         msg.transform(&Edit {
@@ -1303,13 +1270,11 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 10,
                 end: 15,
-                cursor_pos: 10,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 0,
             end: 5,
-            cursor_pos: 0,
         })]);
     }
      
@@ -1320,7 +1285,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 10,
-                cursor_pos: 5,
             })]
         };
         msg.transform(&Edit {
@@ -1328,13 +1292,11 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 1,
-                cursor_pos: 0,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 4,
             end: 9,
-            cursor_pos: 4,
         })]);
     }
 
@@ -1345,7 +1307,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 2,
                 end: 4,
-                cursor_pos: 2,
             })]
         };
         msg.transform(&Edit {
@@ -1353,13 +1314,11 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 2,
-                cursor_pos: 0,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 0,
             end: 2,
-            cursor_pos: 0,
         })]);
     }
     
@@ -1370,7 +1329,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 3,
-                cursor_pos: 0,
             })]
         };
         msg.transform(&Edit {
@@ -1378,13 +1336,11 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 3,
                 end: 5,
-                cursor_pos: 3,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 0,
             end: 3,
-            cursor_pos: 0,
         })]);
     }
     
@@ -1395,7 +1351,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 15,
-                cursor_pos: 5,
             })]
         };
         msg.transform(&Edit {
@@ -1403,13 +1358,11 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 10,
-                cursor_pos: 0,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 0,
             end: 5,
-            cursor_pos: 0,
         })]);
     }
 
@@ -1420,7 +1373,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 4,
-                cursor_pos: 0,
             })]
         };
         msg.transform(&Edit {
@@ -1428,13 +1380,11 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 2,
                 end: 6,
-                cursor_pos: 2,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 0,
             end: 2,
-            cursor_pos: 0,
         })]);
     }
  
@@ -1445,7 +1395,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 10,
-                cursor_pos: 5,
             })]
         };
         msg.transform(&Edit {
@@ -1453,7 +1402,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 1,
                 end: 20,
-                cursor_pos: 1,
             })]
         });
         // keep the delete operation even though it will have no
@@ -1463,7 +1411,6 @@ mod tests {
             Operation::Delete(Delete {
                 start: 1,
                 end: 1,
-                cursor_pos: 1,
             })
         ]);
     }
@@ -1475,7 +1422,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 17,
-                cursor_pos: 0,
             })]
         };
         msg.transform(&Edit {
@@ -1483,13 +1429,11 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 10,
-                cursor_pos: 5,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 0,
             end: 12,
-            cursor_pos: 0,
         })]);
     }
 
@@ -1500,7 +1444,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 1,
-                cursor_pos: 0,
             })]
         };
         msg.transform(&Edit {
@@ -1508,7 +1451,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 1,
-                cursor_pos: 0,
             })]
         });
         // keep delete which has no effect since it will still set the
@@ -1516,7 +1458,6 @@ mod tests {
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 0,
             end: 0,
-            cursor_pos: 0,
         })]);
     }
 
@@ -1535,7 +1476,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 10,
                 end: 15,
-                cursor_pos: 10,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Insert(Insert {
@@ -1558,7 +1498,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 1,
-                cursor_pos: 0,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Insert(Insert {
@@ -1581,7 +1520,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 2,
-                cursor_pos: 0,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Insert(Insert {
@@ -1604,7 +1542,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 3,
                 end: 5,
-                cursor_pos: 3,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Insert(Insert {
@@ -1627,7 +1564,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 10,
-                cursor_pos: 0,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Insert(Insert {
@@ -1650,7 +1586,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 2,
                 end: 6,
-                cursor_pos: 2,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Insert(Insert {
@@ -1673,7 +1608,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 1,
                 end: 20,
-                cursor_pos: 1,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Insert(Insert {
@@ -1696,7 +1630,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 10,
-                cursor_pos: 5,
             })]
         });
         assert_eq!(msg.operations, vec![Operation::Insert(Insert {
@@ -1712,7 +1645,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 5,
-                cursor_pos: 0,
             })]
         };
         msg.transform(&Edit {
@@ -1725,7 +1657,6 @@ mod tests {
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 0,
             end: 5,
-            cursor_pos: 0,
         })]);
     }
     
@@ -1736,7 +1667,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 8,
-                cursor_pos: 5,
             })]
         };
         msg.transform(&Edit {
@@ -1749,7 +1679,6 @@ mod tests {
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 6,
             end: 9,
-            cursor_pos: 6,
         })]);
     }
 
@@ -1760,7 +1689,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 2,
                 end: 4,
-                cursor_pos: 2,
             })]
         };
         msg.transform(&Edit {
@@ -1773,7 +1701,6 @@ mod tests {
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 4,
             end: 6,
-            cursor_pos: 4,
         })]);
     }
     
@@ -1784,7 +1711,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 3,
-                cursor_pos: 0,
             })]
         };
         msg.transform(&Edit {
@@ -1797,7 +1723,6 @@ mod tests {
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 0,
             end: 3,
-            cursor_pos: 0,
         })]);
     }
     
@@ -1808,7 +1733,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 2,
                 end: 4,
-                cursor_pos: 2,
             })]
         };
         msg.transform(&Edit {
@@ -1818,11 +1742,16 @@ mod tests {
                 content: String::from("cd")
             })]
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 4,
-            end: 6,
-            cursor_pos: 2,
-        })]);
+        assert_eq!(msg.operations, vec![
+            Operation::Delete(Delete {
+                start: 4,
+                end: 6,
+            }),
+            Operation::Delete(Delete {
+                start: 2,
+                end: 2,
+            }),
+        ]);
     }
     
     #[test]
@@ -1832,7 +1761,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 15,
-                cursor_pos: 5,
             })]
         };
         msg.transform(&Edit {
@@ -1845,7 +1773,6 @@ mod tests {
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 15,
             end: 25,
-            cursor_pos: 15,
         })]);
     }
 
@@ -1856,7 +1783,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 4,
-                cursor_pos: 0,
             })]
         };
         msg.transform(&Edit {
@@ -1870,12 +1796,10 @@ mod tests {
             Operation::Delete(Delete {
                 start: 6,
                 end: 8,
-                cursor_pos: 0,
             }),
             Operation::Delete(Delete {
                 start: 0,
                 end: 2,
-                cursor_pos: 0,
             }),
         ]);
     }
@@ -1887,7 +1811,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 5,
                 end: 10,
-                cursor_pos: 5,
             })]
         };
         msg.transform(&Edit {
@@ -1900,7 +1823,6 @@ mod tests {
         assert_eq!(msg.operations, vec![Operation::Delete(Delete {
             start: 25,
             end: 30,
-            cursor_pos: 25,
         })]);
     }
 
@@ -1911,7 +1833,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 17,
-                cursor_pos: 0,
             })]
         };
         msg.transform(&Edit {
@@ -1925,12 +1846,10 @@ mod tests {
             Operation::Delete(Delete {
                 start: 10,
                 end: 22,
-                cursor_pos: 0,
             }),
             Operation::Delete(Delete {
                 start: 0,
                 end: 5,
-                cursor_pos: 0,
             }),
         ]);
     }
@@ -1944,7 +1863,6 @@ mod tests {
         let op1 = Operation::Delete(Delete {
             start: 0,
             end: 1,
-            cursor_pos: 0,
         });
         let op2 = Operation::Insert(Insert {
             pos: 1,
@@ -1971,7 +1889,6 @@ mod tests {
             operations: vec![Operation::Delete(Delete {
                 start: 0,
                 end: 1,
-                cursor_pos: 0,
             })]
         }));
         assert_eq!(b2, Event::Edit(Edit {
@@ -2033,7 +1950,6 @@ mod tests {
         let op1 = Operation::Delete(Delete {
             start: 0,
             end: 1,
-            cursor_pos: 0,
         });
         let op2 = Operation::Insert(Insert {
             pos: 0,
@@ -2121,7 +2037,6 @@ mod tests {
         let op1 = Operation::Delete(Delete {
             start: 0,
             end: 2,
-            cursor_pos: 0,
         });
         let op2 = Operation::Insert(Insert {
             pos: 1,
@@ -2200,7 +2115,6 @@ mod tests {
                 .prop_map(|v| Operation::Delete(Delete {
                     start: v.0,
                     end: v.1,
-                    cursor_pos: v.0,
                 }))
                 .boxed()
         }
