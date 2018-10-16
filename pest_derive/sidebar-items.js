@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["derive_parser",""]]});
+initSidebarItems({"derive":[["Parser",""]]});
