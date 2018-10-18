@@ -16,3 +16,12 @@ npx webpack
 cargo run -p tamawiki
 ```
 
+## Tests
+
+The test suite currently requires Rust 1.30.0 or newer
+
+```
+npm install
+npx webpack
+cargo +beta test
+```
