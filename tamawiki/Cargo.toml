@@ -18,7 +18,7 @@ tungstenite = "0.6"
 base64 = "0.9"
 sha-1 = "0.7"
 tokio = "0.1"
-tamawiki_test_macros = { path = "../tamawiki_test_macros" }
+tamawiki_macros = { path = "../tamawiki_macros" }
 
 [dev-dependencies]
 proptest = "0.8"

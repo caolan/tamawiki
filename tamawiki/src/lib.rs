@@ -3,7 +3,7 @@
 #![warn(missing_docs)]
 
 #[cfg(test)]
-extern crate tamawiki_test_macros;
+extern crate tamawiki_macros;
 
 #[cfg(test)]
 #[macro_use]

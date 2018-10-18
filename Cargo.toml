@@ -2,5 +2,5 @@
 
 members = [
     "tamawiki",
-    "tamawiki_test_macros",
+    "tamawiki_macros",
 ]

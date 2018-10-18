@@ -1,5 +1,5 @@
 [package]
-name = "tamawiki_test_macros"
+name = "tamawiki_macros"
 version = "0.1.0"
 authors = ["Caolan McMahon <caolan.mcmahon@gmail.com>"]
 
@@ -9,5 +9,5 @@ quote = "0.6"
 proc-macro2 = "0.4"
 
 [lib]
-name = "tamawiki_test_macros"
+name = "tamawiki_macros"
 proc-macro = true

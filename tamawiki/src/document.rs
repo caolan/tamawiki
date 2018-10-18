@@ -407,7 +407,7 @@ mod tests {
     use std::ops::Range;
     use proptest::prelude::*;
 
-    use tamawiki_test_macros::make_transform_tests;
+    use tamawiki_macros::make_transform_tests;
     make_transform_tests!("tests/transforms");
     
     fn operation_test(initial: &'static str, op: Operation, expected: &'static str) {
