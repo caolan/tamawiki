@@ -15,8 +15,6 @@ pub fn make_transform_tests(tokens: TokenStream) -> TokenStream {
     let dir = parse_macro_input!(tokens as LitStr).value();
     let mut output = vec![];
     
-    println!("dir: {:?}", dir);
-    
     for entry in fs::read_dir(&dir).unwrap() {
         let path = entry.unwrap().path();
         let name = path.file_stem().unwrap().to_str().unwrap();
