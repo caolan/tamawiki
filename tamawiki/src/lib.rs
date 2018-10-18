@@ -3,7 +3,11 @@
 #![warn(missing_docs)]
 
 #[cfg(test)]
-#[macro_use] extern crate proptest;
+extern crate tamawiki_test_macros;
+
+#[cfg(test)]
+#[macro_use]
+extern crate proptest;
 
 #[macro_use] extern crate tera;
 #[macro_use] extern crate lazy_static;

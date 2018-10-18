@@ -402,9 +402,13 @@ impl Edit {
 
 #[cfg(test)]
 mod tests {
+    
     use super::*;
     use std::ops::Range;
     use proptest::prelude::*;
+
+    use tamawiki_test_macros::make_transform_tests;
+    make_transform_tests!("transform_tests");
     
     fn operation_test(initial: &'static str, op: Operation, expected: &'static str) {
         let mut doc = Document::from(initial);

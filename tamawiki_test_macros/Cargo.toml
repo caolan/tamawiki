@@ -1,0 +1,13 @@
+[package]
+name = "tamawiki_test_macros"
+version = "0.1.0"
+authors = ["Caolan McMahon <caolan.mcmahon@gmail.com>"]
+
+[dependencies]
+syn = "0.15"
+quote = "0.6"
+proc-macro2 = "0.4"
+
+[lib]
+name = "tamawiki_test_macros"
+proc-macro = true
