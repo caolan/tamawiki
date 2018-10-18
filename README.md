@@ -13,6 +13,6 @@ I'm implementing a basic wiki to help me learn [Rust](https://rust-lang.org).
 ```
 npm install
 npx webpack
-cargo run
+cargo run -p tamawiki
 ```
 
