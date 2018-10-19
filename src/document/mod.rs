@@ -5,24 +5,11 @@ use std::cmp;
 use std::collections::HashMap;
 
 
-/// Connection identifier, which must be unique between concurrent events
-pub type ParticipantId = usize;
+// The base struct definitions are in another file so they can be used
+// by build.rs to generate rust test code for the JSON tests found in
+// tests/shared.
+include!("./types.rs");
 
-/// Represents some String content at a point in time
-#[derive(Debug, PartialEq, Default, Clone)]
-pub struct Document {
-    /// Current document content
-    pub content: String,
-    /// Current active editors
-    pub participants: HashMap<ParticipantId, DocumentParticipant>,
-}
-
-/// Edit session participant data relevant to displaying a document
-#[derive(Debug, PartialEq, Eq, Hash, Default, Clone, Serialize)]
-pub struct DocumentParticipant {
-    /// Unicode Scalar Value index of the participant's cursor
-    pub cursor_pos: usize
-}
 
 impl Document {
     /// Applies an Edit event to the Document's content. Either all
@@ -38,12 +25,12 @@ impl Document {
                 }
             },
             Event::Join(Join {id}) => {
-                self.participants.insert(*id, DocumentParticipant {
+                self.participants.entries.insert(*id, DocumentParticipant {
                     cursor_pos: 0
                 });
             },
             Event::Leave(Leave {id}) => {
-                self.participants.remove(&id);
+                self.participants.entries.remove(&id);
             },
         }
         Ok(())
@@ -55,7 +42,7 @@ impl Document {
     pub fn can_apply(&self, event: &Event) -> Result<(), EditError> {
         match event {
             Event::Edit(edit) => {
-                if !self.participants.contains_key(&edit.author) {
+                if !self.participants.entries.contains_key(&edit.author) {
                     // edit author is not currently a participant
                     return Err(EditError::InvalidOperation)
                 }
@@ -85,7 +72,7 @@ impl Document {
                 Ok(())
             },
             Event::Join(Join {id}) => {
-                if self.participants.contains_key(&id) {
+                if self.participants.entries.contains_key(&id) {
                     // id is already a participant
                     Err(EditError::InvalidOperation)
                 } else {
@@ -93,7 +80,7 @@ impl Document {
                 }
             },
             Event::Leave(Leave {id}) => {
-                if self.participants.contains_key(&id) {
+                if self.participants.entries.contains_key(&id) {
                     Ok(())
                 } else {
                     // id is not a current participant
@@ -123,7 +110,7 @@ impl Document {
                     },
                 }
                 let char_len = op.content.chars().count();
-                for (id, participant) in self.participants.iter_mut() {
+                for (id, participant) in self.participants.entries.iter_mut() {
                     if *id == author {
                         participant.cursor_pos = op.pos + char_len;
                     } else if participant.cursor_pos > op.pos {
@@ -150,7 +137,7 @@ impl Document {
                 } else {
                     panic!("Attempted to apply an operation outside of the document")
                 }
-                for (id, participant) in self.participants.iter_mut() {
+                for (id, participant) in self.participants.entries.iter_mut() {
                     if *id == author {
                         participant.cursor_pos = op.start;
                     } else if participant.cursor_pos > op.start {
@@ -176,37 +163,6 @@ impl<'a> From<&'a str> for Document {
     }
 }
 
-/// Inserts new content at a single position in the Document
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
-pub struct Insert {
-    /// Insert position as number of Unicode Scalar Values preceeding
-    /// the Insert operation, from the beginning of the document (not
-    /// byte position, or number of grapheme clusters)
-    pub pos: usize,
-    /// The String content to insert
-    pub content: String,
-}
-
-/// Deletes a contiguous region of content from the Document
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
-pub struct Delete {
-    /// First Unicode Scalar Value to remove in range
-    pub start: usize,
-    /// Unicode Scalar Value to end the delete operation on (exclusive
-    /// of the 'end' character)
-    pub end: usize,
-}
-
-/// Describes incremental changes to a Document's content. Through the
-/// accumulated application of Operations to a Document, the
-/// Document's content at a point in time can be derived.
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
-pub enum Operation {
-    /// Insert new content into the Docuemnt
-    Insert(Insert),
-    /// Remove content from the Document
-    Delete(Delete),
-}
 
 impl Operation {
     /// Returns false if the Operation would never describe a
@@ -253,17 +209,6 @@ impl error::Error for EditError {
     }
 }
 
-/// Describes an event corresponding to a single Document.
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
-pub enum Event {
-    /// A new participant has joined
-    Join (Join),
-    /// A participant has left
-    Leave (Leave),
-    /// An update was made to the document
-    Edit (Edit),
-}
-
 impl Event {
     /// Modifies the Event struct to accommodate a concurrent Event
     /// which has already been applied locally.
@@ -272,31 +217,6 @@ impl Event {
             a.transform(b)
         }
     }
-}
-
-/// A new participant has joined the DocumentSession
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
-pub struct Join {
-    /// The id of the newly joined participant
-    pub id: ParticipantId
-}
-
-/// A participant has left the DocumentSession
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
-pub struct Leave {
-    /// The id of the now departed participant
-    pub id: ParticipantId
-}
-
-/// An Edit combines multiple operations into a single Document
-/// change (i.e. all the operations are applied together, or not at
-/// all).
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
-pub struct Edit {
-    /// The ParticipantId for the original author of this edit
-    pub author: ParticipantId,
-    /// The Operations which describe this Edit
-    pub operations: Vec<Operation>,
 }
 
 impl Edit {
@@ -405,6 +325,10 @@ mod tests {
     use super::*;
     use std::ops::Range;
     use proptest::prelude::*;
+
+    // NOTE: these tests are generated by build.rs during cargo build
+    // and use the JSON test specifications found in tests/shared
+    include!(concat!(env!("OUT_DIR"), "/shared_tests.rs"));
     
     fn operation_test(initial: &'static str, op: Operation, expected: &'static str) {
         let mut doc = Document::from(initial);
@@ -418,17 +342,17 @@ mod tests {
         assert_eq!(doc.content, expected);
     }
     
-    #[test]
-    fn apply_insert_operation_in_middle() {
-        operation_test(
-            "Hello, !",
-            Operation::Insert(Insert {
-                pos: 7,
-                content: String::from("world"),
-            }),
-            "Hello, world!"
-        );
-    }
+    // #[test]
+    // fn apply_insert_operation_in_middle() {
+    //     operation_test(
+    //         "Hello, !",
+    //         Operation::Insert(Insert {
+    //             pos: 7,
+    //             content: String::from("world"),
+    //         }),
+    //         "Hello, world!"
+    //     );
+    // }
 
     #[test]
     fn apply_insert_operation_at_start() {
@@ -994,7 +918,7 @@ mod tests {
     fn apply_join_leave_events() {
         let mut doc = Document {
             content: String::from("foobar"),
-            participants: HashMap::new(),
+            participants: Default::default(),
         };
         assert_eq!(
             doc.apply(&Event::Join(Join {id: 1})),

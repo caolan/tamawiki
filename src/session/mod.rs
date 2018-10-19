@@ -59,7 +59,7 @@ impl<T: Store + Sync> DocumentSessionManager<T> {
                         data: Arc::new(Mutex::new(DocumentSessionData {
                             store: data.store.clone(),
                             path: PathBuf::from(path),
-                            next_id: 0,
+                            next_id: Default::default(),
                             last_seq: None,
                             waiting_tasks: vec![],
                         }))

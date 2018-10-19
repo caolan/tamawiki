@@ -621,7 +621,7 @@ mod tests {
         ).map(|doc| {
             assert_eq!(doc, Document {
                 content: String::from(""),
-                participants: HashMap::new(),
+                participants: Default::default(),
             });
         });
         
