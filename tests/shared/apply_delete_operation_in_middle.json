@@ -1,0 +1,23 @@
+{
+    "type": "apply",
+    "initial": {
+        "content": "Hello, world!",
+        "participants": [
+            {"id": 1, "cursor_pos": 0}
+        ]
+    },
+    "events": [
+        {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 7, "end": 12}}
+            ]
+        }}
+    ],
+    "expected": {
+        "content": "Hello, !",
+        "participants": [
+            {"id": 1, "cursor_pos": 7}
+        ]
+    }
+}

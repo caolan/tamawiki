@@ -1,0 +1,23 @@
+{
+    "type": "apply",
+    "initial": {
+        "content": "Foo",
+        "participants": [
+            {"id": 1, "cursor_pos": 0}
+        ]
+    },
+    "events": [
+        {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 3, "end": 3}}
+            ]
+        }}
+    ],
+    "expected": {
+        "content": "Foo",
+        "participants": [
+            {"id": 1, "cursor_pos": 3}
+        ]
+    }
+}

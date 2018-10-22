@@ -1,0 +1,23 @@
+{
+    "type": "apply",
+    "initial": {
+        "content": "Здравствуйте test",
+        "participants": [
+            {"id": 1, "cursor_pos": 0}
+        ]
+    },
+    "events": [
+        {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 6, "end": 12}}
+            ]
+        }}
+    ],
+    "expected": {
+        "content": "Здравс test",
+        "participants": [
+            {"id": 1, "cursor_pos": 6}
+        ]
+    }
+}
