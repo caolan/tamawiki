@@ -1,27 +1,26 @@
 //! Defines messages for client/server communication during an EditSession
 
-use store::{SequenceId, StoreError};
-use document::{ParticipantId, Operation};
+use document::{Operation, ParticipantId};
 use futures::future::FutureResult;
-use futures::stream::Stream;
 use futures::sink::Sink;
+use futures::stream::Stream;
 use serde_json;
-use std::fmt::{self, Display, Debug};
 use std::error::Error;
-
+use std::fmt::{self, Debug, Display};
+use store::{SequenceId, StoreError};
 
 /// Message sent from the server to the client
 #[derive(Serialize, Debug, PartialEq)]
 pub enum ServerMessage {
     /// Client successfully connected - always the first message sent
     /// to a client
-    Connected (ConnectedMessage),
+    Connected(ConnectedMessage),
     /// An update was made to the Document
-    Edit (EditMessage),
+    Edit(EditMessage),
     /// A new participant joined the DocumentSession
-    Join (JoinMessage),
+    Join(JoinMessage),
     /// A participant has left the DocumentSession
-    Leave (LeaveMessage),
+    Leave(LeaveMessage),
 }
 
 /// Client successfully connected
@@ -70,7 +69,7 @@ pub struct LeaveMessage {
 #[derive(Deserialize, Debug, PartialEq)]
 pub enum ClientMessage {
     /// A change was made to the document content
-    ClientEdit (ClientEditMessage),
+    ClientEdit(ClientEditMessage),
 }
 
 /// A change made to the document content by the client
@@ -92,12 +91,12 @@ pub enum MessageStreamError {
     /// Failed to serialize or deserialize message
     InvalidMessage {
         /// Detailed information on the error if available
-        reason: String
+        reason: String,
     },
     /// Errors from underlying protocol or event store
     Transport {
         /// The original error
-        error: Box<Debug + Send>
+        error: Box<Debug + Send>,
     },
 }
 
@@ -112,60 +111,51 @@ impl Error for MessageStreamError {}
 impl From<StoreError> for MessageStreamError {
     fn from(err: StoreError) -> Self {
         MessageStreamError::Transport {
-            error: Box::new(err)
+            error: Box::new(err),
         }
     }
 }
 
 /// Wraps an Sink + Stream which handles Strings so it can read
 /// ClientMessages and write ServerMessages.
-pub fn message_stream<T, E>(stream: T) ->
-impl Stream<Item=ClientMessage, Error=MessageStreamError> +
-    Sink<SinkItem=ServerMessage, SinkError=MessageStreamError>
+pub fn message_stream<T, E>(
+    stream: T,
+) -> impl Stream<Item = ClientMessage, Error = MessageStreamError>
+         + Sink<SinkItem = ServerMessage, SinkError = MessageStreamError>
 where
     E: Debug + Send + 'static,
-    T: Stream<Item=String, Error=E> + Sink<SinkItem=String, SinkError=E>
+    T: Stream<Item = String, Error = E> + Sink<SinkItem = String, SinkError = E>,
 {
     stream
-        .map_err(|err| {
-            MessageStreamError::Transport {
-                error: Box::new(err)
-            }
-        })
-        .and_then(|text| {
-            FutureResult::from(
-                serde_json::from_str(&text)
-                    .map_err(|err| MessageStreamError::InvalidMessage {
-                        reason: format!("{}", err),
-                    })
-            )
-        })
-        .sink_map_err(|err| {
-            MessageStreamError::Transport {
-                error: Box::new(err)
-            }
-        })
-        .with(|msg| {
-            FutureResult::from(
-                serde_json::to_string(&msg)
-                    .map_err(|err| MessageStreamError::InvalidMessage {
-                        reason: format!("{}", err),
-                    })
-            )
+        .map_err(|err| MessageStreamError::Transport {
+            error: Box::new(err),
+        }).and_then(|text| {
+            FutureResult::from(serde_json::from_str(&text).map_err(|err| {
+                MessageStreamError::InvalidMessage {
+                    reason: format!("{}", err),
+                }
+            }))
+        }).sink_map_err(|err| MessageStreamError::Transport {
+            error: Box::new(err),
+        }).with(|msg| {
+            FutureResult::from(serde_json::to_string(&msg).map_err(|err| {
+                MessageStreamError::InvalidMessage {
+                    reason: format!("{}", err),
+                }
+            }))
         })
 }
-
 
 // #[cfg(test)]
 // mod tests {
 //     extern crate tokio;
-    
+
 //     use super::*;
 //     use futures::sync::mpsc::channel;
 //     use futures::future::Future;
 //     use document::{Operation, Insert};
 //     use self::tokio::runtime::current_thread::Runtime;
-    
+
 //     #[test]
 //     fn test_message_stream() {
 //         let mut rt = Runtime::new().expect("new test runtime");
@@ -195,7 +185,7 @@ where
 //                 })
 //         ).unwrap();
 //     }
-    
+
 //     #[test]
 //     fn test_message_sink() {
 //         let mut rt = Runtime::new().expect("new test runtime");

@@ -1,15 +1,13 @@
 //! Documents and Operations on their content.
-use std::error;
-use std::fmt;
 use std::cmp;
 use std::collections::HashMap;
-
+use std::error;
+use std::fmt;
 
 // The base struct definitions are in another file so they can be used
 // by build.rs to generate rust test code for the JSON tests found in
 // tests/shared.
 include!("./types.rs");
-
 
 impl Document {
     /// Applies an Edit event to the Document's content. Either all
@@ -23,15 +21,15 @@ impl Document {
                 for op in &edit.operations {
                     self.perform_operation(edit.author, op);
                 }
-            },
-            Event::Join(Join {id}) => {
-                self.participants.entries.insert(*id, DocumentParticipant {
-                    cursor_pos: 0
-                });
-            },
-            Event::Leave(Leave {id}) => {
+            }
+            Event::Join(Join { id }) => {
+                self.participants
+                    .entries
+                    .insert(*id, DocumentParticipant { cursor_pos: 0 });
+            }
+            Event::Leave(Leave { id }) => {
                 self.participants.entries.remove(&id);
-            },
+            }
         }
         Ok(())
     }
@@ -44,52 +42,52 @@ impl Document {
             Event::Edit(edit) => {
                 if !self.participants.entries.contains_key(&edit.author) {
                     // edit author is not currently a participant
-                    return Err(EditError::InvalidOperation)
+                    return Err(EditError::InvalidOperation);
                 }
                 let mut length = self.content.chars().count();
-                
+
                 for op in &edit.operations {
                     if !op.is_valid() {
                         return Err(EditError::InvalidOperation);
                     }
                     match *op {
-                        Operation::Insert(Insert {pos, ref content}) => {
+                        Operation::Insert(Insert { pos, ref content }) => {
                             if pos > length {
                                 return Err(EditError::OutsideDocument);
                             } else {
                                 length += content.chars().count();
                             }
-                        },
-                        Operation::Delete(Delete {start, end, ..}) => {
+                        }
+                        Operation::Delete(Delete { start, end, .. }) => {
                             if start > length || end > length {
                                 return Err(EditError::OutsideDocument);
                             } else {
                                 length -= end - start;
                             }
-                        },
+                        }
                     }
                 }
                 Ok(())
-            },
-            Event::Join(Join {id}) => {
+            }
+            Event::Join(Join { id }) => {
                 if self.participants.entries.contains_key(&id) {
                     // id is already a participant
                     Err(EditError::InvalidOperation)
                 } else {
                     Ok(())
                 }
-            },
-            Event::Leave(Leave {id}) => {
+            }
+            Event::Leave(Leave { id }) => {
                 if self.participants.entries.contains_key(&id) {
                     Ok(())
                 } else {
                     // id is not a current participant
                     Err(EditError::InvalidOperation)
                 }
-            },
+            }
         }
     }
-    
+
     // Applies an Operation to the Document's content, updating the
     // Document struct in-place. At this point we must already have
     // validated that the operation can be applied_cleanly using
@@ -100,14 +98,14 @@ impl Document {
                 match self.content.char_indices().nth(op.pos) {
                     Some((byte_pos, _)) => {
                         self.content.insert_str(byte_pos, &op.content);
-                    },
+                    }
                     None => {
                         if op.pos == self.content.chars().count() {
                             self.content.push_str(&op.content);
                         } else {
                             panic!("Attempted to apply an operation outside of the document")
                         }
-                    },
+                    }
                 }
                 let char_len = op.content.chars().count();
                 for (id, participant) in self.participants.entries.iter_mut() {
@@ -115,21 +113,20 @@ impl Document {
                         participant.cursor_pos = op.pos + char_len;
                     } else if participant.cursor_pos > op.pos {
                         // || (participant.cursor_pos == op.pos && Edit::has_priority(author, *id)) {
-                            participant.cursor_pos += char_len;
-                        }
+                        participant.cursor_pos += char_len;
+                    }
                 }
-            },
+            }
             Operation::Delete(ref op) => {
-                let byte_position = |content: &String, index| {
-                    match content.char_indices().nth(index) {
+                let byte_position =
+                    |content: &String, index| match content.char_indices().nth(index) {
                         Some((byte_pos, _)) => Some(byte_pos),
                         None if index == content.chars().count() => Some(content.len()),
-                        None => None
-                    }   
-                };
+                        None => None,
+                    };
                 let start = byte_position(&self.content, op.start);
                 let end = byte_position(&self.content, op.end);
-                
+
                 if let (Some(start_byte), Some(end_byte)) = (start, end) {
                     let after = self.content.split_off(end_byte);
                     self.content.truncate(start_byte);
@@ -143,10 +140,8 @@ impl Document {
                     } else if participant.cursor_pos > op.start {
                         // participant.cursor_pos += op.end - op.start;
                         // TODO: test this cmp::min
-                        participant.cursor_pos -= cmp::min(
-                            op.end,
-                            participant.cursor_pos
-                        ) - op.start;
+                        participant.cursor_pos -=
+                            cmp::min(op.end, participant.cursor_pos) - op.start;
                     }
                 }
             }
@@ -163,7 +158,6 @@ impl<'a> From<&'a str> for Document {
     }
 }
 
-
 impl Operation {
     /// Returns false if the Operation would never describe a
     /// meaningful change for any given Document.
@@ -175,7 +169,7 @@ impl Operation {
     pub fn is_valid(&self) -> bool {
         match self {
             Operation::Insert(_) => true,
-            Operation::Delete(Delete { start, end, .. }) => end >= start
+            Operation::Delete(Delete { start, end, .. }) => end >= start,
         }
     }
 }
@@ -195,10 +189,11 @@ pub enum EditError {
 impl fmt::Display for EditError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            EditError::OutsideDocument =>
-                write!(f, "The operation's area of effect falls outside the document"),
-            EditError::InvalidOperation =>
-                write!(f, "The operation is invalid"),
+            EditError::OutsideDocument => write!(
+                f,
+                "The operation's area of effect falls outside the document"
+            ),
+            EditError::InvalidOperation => write!(f, "The operation is invalid"),
         }
     }
 }
@@ -225,7 +220,7 @@ impl Edit {
     fn has_priority(a: ParticipantId, b: ParticipantId) -> bool {
         a > b
     }
-    
+
     /// Modifies the `operations` inside the Edit struct to
     /// accommodate a concurrent Edit entry whose operations have
     /// already been applied locally.
@@ -237,18 +232,19 @@ impl Edit {
             for operation in &mut self.operations {
                 match (operation, op) {
                     (Op::Insert(ref mut this), &Op::Insert(ref other)) => {
-                        if other.pos < this.pos ||
-                            (other.pos == this.pos &&
-                             Edit::has_priority(concurrent.author, self.author)) {
-                                this.pos += other.content.chars().count();
-                            }
-                    },
+                        if other.pos < this.pos
+                            || (other.pos == this.pos
+                                && Edit::has_priority(concurrent.author, self.author))
+                        {
+                            this.pos += other.content.chars().count();
+                        }
+                    }
                     (Op::Insert(ref mut this), &Op::Delete(ref other)) => {
                         if other.start < this.pos {
                             let end = cmp::min(this.pos, other.end);
                             this.pos -= end - other.start;
                         }
-                    },
+                    }
                     (Op::Delete(ref mut this), &Op::Insert(ref other)) => {
                         if other.pos < this.start {
                             let len = other.content.chars().count();
@@ -260,7 +256,7 @@ impl Edit {
                             // (only split when the delete has a range
                             // greater than 0, otherwise it can only
                             // produce a duplicate event)
-                            
+
                             // create a new operation for the first
                             // part of the range
                             let op = Op::Delete(Delete {
@@ -281,15 +277,14 @@ impl Edit {
                             // ends in the correct position.
                             new_operations.push(op);
                         }
-                    },
+                    }
                     (Op::Delete(ref mut this), &Op::Delete(ref other)) => {
-                        let mut chars_deleted_before =
-                            if other.start < this.start {
-                                let end = cmp::min(this.start, other.end);
-                                end - other.start
-                            } else {
-                                0
-                            };
+                        let mut chars_deleted_before = if other.start < this.start {
+                            let end = cmp::min(this.start, other.end);
+                            end - other.start
+                        } else {
+                            0
+                        };
                         let mut chars_deleted_inside = 0;
                         if other.start < this.start {
                             if other.end > this.start {
@@ -302,7 +297,7 @@ impl Edit {
                         }
                         this.start -= chars_deleted_before;
                         this.end -= chars_deleted_before + chars_deleted_inside;
-                    },
+                    }
                 }
             }
             self.operations.append(&mut new_operations);
@@ -319,29 +314,28 @@ impl Edit {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::ops::Range;
     use proptest::prelude::*;
+    use std::ops::Range;
 
     // NOTE: these tests are generated by build.rs during cargo build
     // and use the JSON test specifications found in tests/shared
     include!(concat!(env!("OUT_DIR"), "/shared_tests.rs"));
-    
+
     fn operation_test(initial: &'static str, op: Operation, expected: &'static str) {
         let mut doc = Document::from(initial);
-        
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
+
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
         doc.apply(&Event::Edit(Edit {
             author: 1,
-            operations: vec![op]
+            operations: vec![op],
         })).unwrap();
-        
+
         assert_eq!(doc.content, expected);
     }
-    
+
     // #[test]
     // fn apply_insert_operation_in_middle() {
     //     operation_test(
@@ -362,7 +356,7 @@ mod tests {
                 pos: 0,
                 content: String::from("Baz "),
             }),
-            "Baz Foo Bar"
+            "Baz Foo Bar",
         )
     }
 
@@ -376,10 +370,10 @@ mod tests {
                 pos: len,
                 content: String::from(" Baz"),
             }),
-            "Foo Bar Baz"
+            "Foo Bar Baz",
         );
     }
-    
+
     #[test]
     fn apply_insert_middle_with_multibyte_chars_in_doc() {
         operation_test(
@@ -388,7 +382,7 @@ mod tests {
                 pos: 6,
                 content: String::from("-"),
             }),
-            "Здравс-твуйте"
+            "Здравс-твуйте",
         );
     }
 
@@ -400,7 +394,7 @@ mod tests {
                 pos: 6,
                 content: String::from("..."),
             }),
-            "Здравс..."
+            "Здравс...",
         );
     }
 
@@ -412,7 +406,7 @@ mod tests {
                 pos: 8,
                 content: String::from("Здравствуйте"),
             }),
-            "Hello / Здравствуйте!"
+            "Hello / Здравствуйте!",
         );
     }
 
@@ -420,11 +414,8 @@ mod tests {
     fn apply_delete_operation_in_middle() {
         operation_test(
             "Hello, world!",
-            Operation::Delete(Delete {
-                start: 7,
-                end: 12,
-            }),
-            "Hello, !"
+            Operation::Delete(Delete { start: 7, end: 12 }),
+            "Hello, !",
         );
     }
 
@@ -432,11 +423,8 @@ mod tests {
     fn apply_delete_operation_at_start() {
         operation_test(
             "Foo Bar Baz",
-            Operation::Delete(Delete {
-                start: 0,
-                end: 4,
-            }),
-            "Bar Baz"
+            Operation::Delete(Delete { start: 0, end: 4 }),
+            "Bar Baz",
         );
     }
 
@@ -444,64 +432,44 @@ mod tests {
     fn apply_delete_operation_at_end() {
         operation_test(
             "Foo Bar Baz",
-            Operation::Delete(Delete {
-                start: 7,
-                end: 11,
-            }),
-            "Foo Bar"
+            Operation::Delete(Delete { start: 7, end: 11 }),
+            "Foo Bar",
         );
     }
 
     #[test]
     fn apply_empty_delete_operation_at_very_end() {
-        operation_test(
-            "Foo",
-            Operation::Delete(Delete {
-                start: 3,
-                end: 3,
-            }),
-            "Foo"
-        );
+        operation_test("Foo", Operation::Delete(Delete { start: 3, end: 3 }), "Foo");
     }
 
     #[test]
     fn apply_delete_with_multibyte_chars() {
         operation_test(
             "Здравствуйте test",
-            Operation::Delete(Delete {
-                start: 6,
-                end: 12,
-            }),
-            "Здравс test"
+            Operation::Delete(Delete { start: 6, end: 12 }),
+            "Здравс test",
         );
     }
 
-    
     #[test]
     fn apply_delete_to_end_with_multibyte_chars() {
         operation_test(
             "Здравствуйте",
-            Operation::Delete(Delete {
-                start: 6,
-                end: 12,
-            }),
-            "Здравс"
+            Operation::Delete(Delete { start: 6, end: 12 }),
+            "Здравс",
         );
     }
 
-    
     #[test]
     fn edit_from_missing_participant() {
         let mut doc = Document::from("");
         assert_eq!(
             doc.apply(&Event::Edit(Edit {
                 author: 1,
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 0,
-                        content: String::from("test"),
-                    })
-                ],
+                operations: vec![Operation::Insert(Insert {
+                    pos: 0,
+                    content: String::from("test"),
+                })],
             })),
             Err(EditError::InvalidOperation)
         );
@@ -512,115 +480,111 @@ mod tests {
     #[test]
     fn delete_outside_of_bounds() {
         let mut doc = Document::from("foobar");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+
         assert_eq!(
             doc.apply(&Event::Edit(Edit {
                 author: 1,
-                operations: vec![
-                    Operation::Delete(Delete {
-                        start: 3,
-                        end: 7,
-                    })
-                ],
+                operations: vec![Operation::Delete(Delete { start: 3, end: 7 })],
             })),
             Err(EditError::OutsideDocument)
         );
-        
+
         // document should remain unchanged
-        assert_eq!(doc, Document {
-            content: String::from("foobar"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 0}),
-            ].into_iter().collect()
-        });
-        
+        assert_eq!(
+            doc,
+            Document {
+                content: String::from("foobar"),
+                participants: vec![(1, DocumentParticipant { cursor_pos: 0 }),]
+                    .into_iter()
+                    .collect()
+            }
+        );
+
         assert_eq!(
             doc.apply(&Event::Edit(Edit {
                 author: 1,
-                operations: vec![
-                    Operation::Delete(Delete {
-                        start: 7,
-                        end: 10,
-                    })
-                ],
+                operations: vec![Operation::Delete(Delete { start: 7, end: 10 })],
             })),
             Err(EditError::OutsideDocument)
         );
-        
+
         // document should remain unchanged
-        assert_eq!(doc, Document {
-            content: String::from("foobar"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 0}),
-            ].into_iter().collect()
-        });
+        assert_eq!(
+            doc,
+            Document {
+                content: String::from("foobar"),
+                participants: vec![(1, DocumentParticipant { cursor_pos: 0 }),]
+                    .into_iter()
+                    .collect()
+            }
+        );
     }
 
-    
     #[test]
     fn insert_outside_of_bounds() {
         let mut doc = Document::from("foobar");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+
         assert_eq!(
             doc.apply(&Event::Edit(Edit {
                 author: 1,
-                operations: vec![
-                    Operation::Insert(Insert {
-                        pos: 8,
-                        content: String::from("test")
-                    })
-                ],
+                operations: vec![Operation::Insert(Insert {
+                    pos: 8,
+                    content: String::from("test")
+                })],
             })),
             Err(EditError::OutsideDocument)
         );
-        
+
         // document should be unchanged
-        assert_eq!(doc, Document {
-            content: String::from("foobar"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 0}),
-            ].into_iter().collect()
-        });
+        assert_eq!(
+            doc,
+            Document {
+                content: String::from("foobar"),
+                participants: vec![(1, DocumentParticipant { cursor_pos: 0 }),]
+                    .into_iter()
+                    .collect()
+            }
+        );
     }
 
     #[test]
     fn apply_multiple_operations_in_single_edit() {
         let mut doc = Document::from("Hello");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+
         doc.apply(&Event::Edit(Edit {
             author: 1,
             operations: vec![
                 Operation::Insert(Insert {
                     pos: 5,
-                    content: String::from(", ")
+                    content: String::from(", "),
                 }),
                 Operation::Insert(Insert {
                     pos: 7,
-                    content: String::from("world!!")
+                    content: String::from("world!!"),
                 }),
-                Operation::Delete(Delete {
-                    start: 13,
-                    end: 14,
-                })
+                Operation::Delete(Delete { start: 13, end: 14 }),
             ],
         })).unwrap();
-        
-        assert_eq!(doc, Document {
-            content: String::from("Hello, world!"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 13}),
-            ].into_iter().collect()
-        });
+
+        assert_eq!(
+            doc,
+            Document {
+                content: String::from("Hello, world!"),
+                participants: vec![(1, DocumentParticipant { cursor_pos: 13 }),]
+                    .into_iter()
+                    .collect()
+            }
+        );
     }
 
     #[test]
     fn apply_edit_with_single_failing_operation() {
         let mut doc = Document::from("a");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+
         assert_eq!(
             doc.apply(&Event::Edit(Edit {
                 author: 1,
@@ -633,69 +597,65 @@ mod tests {
                         pos: 0,
                         content: String::from("c")
                     }),
-                    Operation::Delete(Delete {
-                        start: 20,
-                        end: 25,
-                    })
+                    Operation::Delete(Delete { start: 20, end: 25 })
                 ],
             })),
             Err(EditError::OutsideDocument)
         );
-        
+
         // document should remain unchanged
-        assert_eq!(doc, Document {
-            content: String::from("a"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 0}),
-            ].into_iter().collect()
-        });
+        assert_eq!(
+            doc,
+            Document {
+                content: String::from("a"),
+                participants: vec![(1, DocumentParticipant { cursor_pos: 0 }),]
+                    .into_iter()
+                    .collect()
+            }
+        );
     }
 
-    
     #[test]
     fn apply_previous_operation_makes_later_operation_valid() {
         let mut doc = Document::from("Hello");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+
         doc.apply(&Event::Edit(Edit {
             author: 1,
             operations: vec![
                 Operation::Insert(Insert {
                     pos: 5,
-                    content: String::from(", world!")
+                    content: String::from(", world!"),
                 }),
-                Operation::Delete(Delete {
-                    start: 7,
-                    end: 12,
-                }),
+                Operation::Delete(Delete { start: 7, end: 12 }),
                 Operation::Insert(Insert {
                     pos: 7,
-                    content: String::from("galaxy")
+                    content: String::from("galaxy"),
                 }),
             ],
         })).unwrap();
-        
-        assert_eq!(doc, Document {
-            content: String::from("Hello, galaxy!"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 13}),
-            ].into_iter().collect()
-        });
+
+        assert_eq!(
+            doc,
+            Document {
+                content: String::from("Hello, galaxy!"),
+                participants: vec![(1, DocumentParticipant { cursor_pos: 13 }),]
+                    .into_iter()
+                    .collect()
+            }
+        );
     }
 
     #[test]
     fn apply_previous_operation_makes_later_operation_invalid() {
         let mut doc = Document::from("Hello");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+
         assert_eq!(
             doc.apply(&Event::Edit(Edit {
                 author: 1,
                 operations: vec![
-                    Operation::Delete(Delete {
-                        start: 0,
-                        end: 5,
-                    }),
+                    Operation::Delete(Delete { start: 0, end: 5 }),
                     Operation::Insert(Insert {
                         pos: 5,
                         content: String::from(", world!")
@@ -704,51 +664,58 @@ mod tests {
             })),
             Err(EditError::OutsideDocument)
         );
-        
+
         // document should remain unchanged
-        assert_eq!(doc, Document {
-            content: String::from("Hello"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 0}),
-            ].into_iter().collect()
-        });
+        assert_eq!(
+            doc,
+            Document {
+                content: String::from("Hello"),
+                participants: vec![(1, DocumentParticipant { cursor_pos: 0 }),]
+                    .into_iter()
+                    .collect()
+            }
+        );
     }
 
     #[test]
     fn apply_insert_which_moves_another_participants_cursor() {
         let mut doc = Document::from("");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        doc.apply(&Event::Join(Join {id: 2})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+        doc.apply(&Event::Join(Join { id: 2 })).unwrap();
+
         doc.apply(&Event::Edit(Edit {
             author: 1,
-            operations: vec![
-                Operation::Insert(Insert {
-                    pos: 0,
-                    content: String::from(", world!")
-                })
-            ],
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from(", world!"),
+            })],
         })).unwrap();
 
-        assert_eq!(doc.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 8}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 8 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc.apply(&Event::Edit(Edit {
             author: 2,
-            operations: vec![
-                Operation::Insert(Insert {
-                    pos: 0,
-                    content: String::from("Hello")
-                })
-            ],
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("Hello"),
+            })],
         })).unwrap();
-        
-        assert_eq!(doc.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 13}),
-            (2, DocumentParticipant {cursor_pos: 5}),
-        ].into_iter().collect());
+
+        assert_eq!(
+            doc.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 13 }),
+                (2, DocumentParticipant { cursor_pos: 5 }),
+            ].into_iter()
+            .collect()
+        );
     }
 
     // #[test]
@@ -756,7 +723,7 @@ mod tests {
     //     let mut doc = Document::from("");
     //     doc.apply(&Event::Join(Join {id: 1})).unwrap();
     //     doc.apply(&Event::Join(Join {id: 2})).unwrap();
-        
+
     //     doc.apply(&Event::Edit(Edit {
     //         author: 2,
     //         operations: vec![
@@ -776,142 +743,145 @@ mod tests {
     #[test]
     fn apply_insert_without_priority_at_other_participants_cursor_position() {
         let mut doc = Document::from("");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        doc.apply(&Event::Join(Join {id: 2})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+        doc.apply(&Event::Join(Join { id: 2 })).unwrap();
+
         doc.apply(&Event::Edit(Edit {
             author: 1,
-            operations: vec![
-                Operation::Insert(Insert {
-                    pos: 0,
-                    content: String::from("test")
-                })
-            ],
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("test"),
+            })],
         })).unwrap();
 
-        assert_eq!(doc.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 4}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
+        assert_eq!(
+            doc.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 4 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
     }
 
     #[test]
     fn apply_delete_which_moves_another_participants_cursor() {
         let mut doc = Document::from("");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        doc.apply(&Event::Join(Join {id: 2})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+        doc.apply(&Event::Join(Join { id: 2 })).unwrap();
+
         doc.apply(&Event::Edit(Edit {
             author: 1,
-            operations: vec![
-                Operation::Insert(Insert {
-                    pos: 0,
-                    content: String::from("test")
-                })
-            ],
+            operations: vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("test"),
+            })],
         })).unwrap();
 
-        assert_eq!(doc.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 4}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 4 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc.apply(&Event::Edit(Edit {
             author: 2,
-            operations: vec![
-                Operation::Delete(Delete {
-                    start: 0,
-                    end: 2,
-                })
-            ],
+            operations: vec![Operation::Delete(Delete { start: 0, end: 2 })],
         })).unwrap();
-        
-        assert_eq!(doc.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 2}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
+
+        assert_eq!(
+            doc.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 2 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
     }
-    
+
     #[test]
     fn apply_delete_which_partially_moves_another_participants_cursor() {
         let mut doc = Document::from("foo");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        doc.apply(&Event::Join(Join {id: 2})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+        doc.apply(&Event::Join(Join { id: 2 })).unwrap();
+
         doc.apply(&Event::Edit(Edit {
             author: 1,
-            operations: vec![
-                Operation::Insert(Insert {
-                    pos: 3,
-                    content: String::from("bar")
-                })
-            ],
+            operations: vec![Operation::Insert(Insert {
+                pos: 3,
+                content: String::from("bar"),
+            })],
         })).unwrap();
 
-        assert_eq!(doc.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 6}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 6 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc.apply(&Event::Edit(Edit {
             author: 2,
-            operations: vec![
-                Operation::Delete(Delete {
-                    start: 2,
-                    end: 4,
-                })
-            ],
+            operations: vec![Operation::Delete(Delete { start: 2, end: 4 })],
         })).unwrap();
 
-        assert_eq!(doc.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 4}),
-            (2, DocumentParticipant {cursor_pos: 2}),
-        ].into_iter().collect());
+        assert_eq!(
+            doc.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 4 }),
+                (2, DocumentParticipant { cursor_pos: 2 }),
+            ].into_iter()
+            .collect()
+        );
     }
 
     #[test]
     fn apply_operations_that_have_no_effect_on_content() {
         // these should be permitted as they can still affect
         // participant state (e.g. cursor position)
-        
+
         let mut doc = Document::from("Hello");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+
         doc.apply(&Event::Edit(Edit {
             author: 1,
-            operations: vec![
-                Operation::Delete(Delete {
-                    start: 2,
-                    end: 2,
-                })
-            ],
+            operations: vec![Operation::Delete(Delete { start: 2, end: 2 })],
         })).unwrap();
 
         // content should be unchanged, but cursor position updated
-        assert_eq!(doc, Document {
-            content: String::from("Hello"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 2}),
-            ].into_iter().collect()
-        });
-                
+        assert_eq!(
+            doc,
+            Document {
+                content: String::from("Hello"),
+                participants: vec![(1, DocumentParticipant { cursor_pos: 2 }),]
+                    .into_iter()
+                    .collect()
+            }
+        );
+
         doc.apply(&Event::Edit(Edit {
             author: 1,
-            operations: vec![
-                Operation::Insert(Insert {
-                    pos: 4,
-                    content: String::new()
-                })
-            ],
+            operations: vec![Operation::Insert(Insert {
+                pos: 4,
+                content: String::new(),
+            })],
         })).unwrap();
 
         // content should be unchanged, but cursor position updated
-        assert_eq!(doc, Document {
-            content: String::from("Hello"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 4}),
-            ].into_iter().collect()
-        });
+        assert_eq!(
+            doc,
+            Document {
+                content: String::from("Hello"),
+                participants: vec![(1, DocumentParticipant { cursor_pos: 4 }),]
+                    .into_iter()
+                    .collect()
+            }
+        );
     }
 
     #[test]
@@ -920,240 +890,226 @@ mod tests {
             content: String::from("foobar"),
             participants: Default::default(),
         };
+        assert_eq!(doc.apply(&Event::Join(Join { id: 1 })), Ok(()));
         assert_eq!(
-            doc.apply(&Event::Join(Join {id: 1})),
-            Ok(())
+            doc,
+            Document {
+                content: String::from("foobar"),
+                participants: vec![(1, DocumentParticipant { cursor_pos: 0 }),]
+                    .into_iter()
+                    .collect(),
+            }
         );
-        assert_eq!(doc, Document {
-            content: String::from("foobar"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 0}),
-            ].into_iter().collect(),
-        });
+        assert_eq!(doc.apply(&Event::Join(Join { id: 2 })), Ok(()));
         assert_eq!(
-            doc.apply(&Event::Join(Join {id: 2})),
-            Ok(())
+            doc,
+            Document {
+                content: String::from("foobar"),
+                participants: vec![
+                    (1, DocumentParticipant { cursor_pos: 0 }),
+                    (2, DocumentParticipant { cursor_pos: 0 }),
+                ].into_iter()
+                .collect(),
+            }
         );
-        assert_eq!(doc, Document {
-            content: String::from("foobar"),
-            participants: vec![
-                (1, DocumentParticipant {cursor_pos: 0}),
-                (2, DocumentParticipant {cursor_pos: 0}),
-            ].into_iter().collect(),
-        });
+        assert_eq!(doc.apply(&Event::Leave(Leave { id: 1 })), Ok(()));
         assert_eq!(
-            doc.apply(&Event::Leave(Leave {id: 1})),
-            Ok(())
+            doc,
+            Document {
+                content: String::from("foobar"),
+                participants: vec![(2, DocumentParticipant { cursor_pos: 0 }),]
+                    .into_iter()
+                    .collect(),
+            }
         );
-        assert_eq!(doc, Document {
-            content: String::from("foobar"),
-            participants: vec![
-                (2, DocumentParticipant {cursor_pos: 0}),
-            ].into_iter().collect(),
-        });
     }
 
     #[test]
     fn can_apply() {
         let mut doc = Document::from("Hello");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+
         assert_eq!(
             doc.can_apply(&Event::Edit(Edit {
                 author: 1,
-                operations: vec![
-                    Operation::Insert (Insert {
-                        pos: 0,
-                        content: String::from("test")
-                    })
-                ]
+                operations: vec![Operation::Insert(Insert {
+                    pos: 0,
+                    content: String::from("test")
+                })]
             })),
             Ok(())
         );
         assert_eq!(
             doc.can_apply(&Event::Edit(Edit {
                 author: 1,
-                operations: vec![
-                    Operation::Insert (Insert {
-                        pos: 100,
-                        content: String::from("test")
-                    })
-                ]
+                operations: vec![Operation::Insert(Insert {
+                    pos: 100,
+                    content: String::from("test")
+                })]
             })),
             Err(EditError::OutsideDocument)
         );
         assert_eq!(
             doc.can_apply(&Event::Edit(Edit {
                 author: 1,
-                operations: vec![
-                    Operation::Delete (Delete {
-                        start: 0,
-                        end: 2,
-                    })
-                ]
+                operations: vec![Operation::Delete(Delete { start: 0, end: 2 })]
             })),
             Ok(())
         );
         assert_eq!(
             doc.can_apply(&Event::Edit(Edit {
                 author: 1,
-                operations: vec![
-                    Operation::Delete (Delete {
-                        start: 100,
-                        end: 102,
-                    })
-                ]
+                operations: vec![Operation::Delete(Delete {
+                    start: 100,
+                    end: 102,
+                })]
             })),
             Err(EditError::OutsideDocument)
         );
         assert_eq!(
             doc.can_apply(&Event::Edit(Edit {
                 author: 1,
-                operations: vec![
-                    Operation::Delete (Delete {
-                        start: 0,
-                        end: 6,
-                    })
-                ]
+                operations: vec![Operation::Delete(Delete { start: 0, end: 6 })]
             })),
             Err(EditError::OutsideDocument)
         );
         assert_eq!(
             doc.can_apply(&Event::Edit(Edit {
                 author: 1,
-                operations: vec![
-                    Operation::Delete (Delete {
-                        start: 2,
-                        end: 1,
-                    })
-                ]
+                operations: vec![Operation::Delete(Delete { start: 2, end: 1 })]
             })),
             Err(EditError::InvalidOperation)
         );
         // joining participant id already exists in document
         assert_eq!(
-            doc.can_apply(&Event::Join(Join {id: 1})),
+            doc.can_apply(&Event::Join(Join { id: 1 })),
             Err(EditError::InvalidOperation)
         );
         // leaving participant id does not exist in document
         assert_eq!(
-            doc.can_apply(&Event::Leave(Leave {id: 2})),
+            doc.can_apply(&Event::Leave(Leave { id: 2 })),
             Err(EditError::InvalidOperation)
         );
     }
 
     #[test]
     fn operation_is_valid() {
-        assert!(Operation::Insert (Insert {
-            pos: 0,
-            content: String::from("test"),
-        }).is_valid());
-        
-        assert!(Operation::Insert (Insert {
-            pos: 0,
-            content: String::from(""),
-        }).is_valid());
-        
-        assert!(Operation::Delete (Delete {
-            start: 0,
-            end: 10,
-        }).is_valid());
-        
-        assert!(Operation::Delete (Delete {
-            start: 0,
-            end: 0,
-        }).is_valid());
-        
-        assert!(!Operation::Delete (Delete {
-            start: 10,
-            end: 0,
-        }).is_valid());
+        assert!(
+            Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("test"),
+            }).is_valid()
+        );
+
+        assert!(
+            Operation::Insert(Insert {
+                pos: 0,
+                content: String::from(""),
+            }).is_valid()
+        );
+
+        assert!(Operation::Delete(Delete { start: 0, end: 10 }).is_valid());
+
+        assert!(Operation::Delete(Delete { start: 0, end: 0 }).is_valid());
+
+        assert!(!Operation::Delete(Delete { start: 10, end: 0 }).is_valid());
     }
 
-    
     #[test]
     fn transform_insert_before_insert() {
         let mut h = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
-                content: String::from("Test")
-            })]
+                content: String::from("Test"),
+            })],
         };
         h.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 10,
-                content: String::from("foo")
-            })]
+                content: String::from("foo"),
+            })],
         });
-        assert_eq!(h.operations, vec![Operation::Insert(Insert {
-            pos: 0,
-            content: String::from("Test")
-        })]);
+        assert_eq!(
+            h.operations,
+            vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("Test")
+            })]
+        );
     }
-    
+
     #[test]
     fn transform_insert_after_insert() {
         let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 10,
-                content: String::from("Test")
-            })]
+                content: String::from("Test"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 2,
-                content: String::from("foo")
-            })]
+                content: String::from("foo"),
+            })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 13,
-            content: String::from("Test")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 13,
+                content: String::from("Test")
+            })]
+        );
     }
-    
+
     #[test]
     fn transform_inserts_at_same_point_checks_priority() {
         let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
-                content: String::from("Test")
-            })]
+                content: String::from("Test"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
-                content: String::from("foo")
-            })]
+                content: String::from("foo"),
+            })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 8,
-            content: String::from("Test")
-        })]);
-        
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 8,
+                content: String::from("Test")
+            })]
+        );
+
         let mut msg = Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
-                content: String::from("Test")
-            })]
+                content: String::from("Test"),
+            })],
         };
         msg.transform(&Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
-                content: String::from("foo")
-            })]
+                content: String::from("foo"),
+            })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 5,
-            content: String::from("Test")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 5,
+                content: String::from("Test")
+            })]
+        );
     }
 
     #[test]
@@ -1162,229 +1118,175 @@ mod tests {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
-                content: String::from("Test")
-            })]
+                content: String::from("Test"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
                 // 2-byte unicode scalar value
-                content: String::from("д")
-            })]
+                content: String::from("д"),
+            })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            // 6 is char index, 7 would be byte index
-            pos: 6,
-            content: String::from("Test")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                // 6 is char index, 7 would be byte index
+                pos: 6,
+                content: String::from("Test")
+            })]
+        );
     }
 
     #[test]
     fn transform_delete_delete_non_overlapping_after() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 5,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 5 })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 10,
-                end: 15,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 10, end: 15 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 0,
-            end: 5,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 0, end: 5 })]
+        );
     }
-     
+
     #[test]
     fn transform_delete_delete_non_overlapping_before() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 5,
-                end: 10,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 5, end: 10 })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 1,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 1 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 4,
-            end: 9,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 4, end: 9 })]
+        );
     }
 
     #[test]
     fn transform_delete_delete_adjacent_before() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 2,
-                end: 4,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 2, end: 4 })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 2,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 2 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 0,
-            end: 2,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 0, end: 2 })]
+        );
     }
-    
+
     #[test]
     fn transform_delete_delete_adjacent_after() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 3,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 3 })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 3,
-                end: 5,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 3, end: 5 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 0,
-            end: 3,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 0, end: 3 })]
+        );
     }
-    
+
     #[test]
     fn transform_delete_delete_overlapping_start() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 5,
-                end: 15,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 5, end: 15 })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 10,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 10 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 0,
-            end: 5,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 0, end: 5 })]
+        );
     }
 
     #[test]
     fn transform_delete_delete_overlapping_end() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 4,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 4 })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 2,
-                end: 6,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 2, end: 6 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 0,
-            end: 2,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 0, end: 2 })]
+        );
     }
- 
+
     #[test]
     fn transform_delete_delete_subset() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 5,
-                end: 10,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 5, end: 10 })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 1,
-                end: 20,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 1, end: 20 })],
         });
         // keep the delete operation even though it will have no
         // effect on the content, since it will still set the cursor
         // position for it's author
-        assert_eq!(msg.operations, vec![
-            Operation::Delete(Delete {
-                start: 1,
-                end: 1,
-            })
-        ]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 1, end: 1 })]
+        );
     }
 
     #[test]
     fn transform_delete_delete_superset() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 17,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 17 })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 5,
-                end: 10,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 5, end: 10 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 0,
-            end: 12,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 0, end: 12 })]
+        );
     }
 
     #[test]
     fn transform_delete_delete_same_range() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 1,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 1 })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 1,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 1 })],
         });
         // keep delete which has no effect since it will still set the
         // appropriate cursor position for the author
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 0,
-            end: 0,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 0, end: 0 })]
+        );
     }
-
 
     #[test]
     fn transform_insert_delete_non_overlapping_after() {
@@ -1392,42 +1294,42 @@ mod tests {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
-                content: String::from("12345")
-            })]
+                content: String::from("12345"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 10,
-                end: 15,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 10, end: 15 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 0,
-            content: String::from("12345")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("12345")
+            })]
+        );
     }
-    
+
     #[test]
     fn transform_insert_delete_non_overlapping_before() {
         let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
-                content: String::from("foo")
-            })]
+                content: String::from("foo"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 1,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 1 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 4,
-            content: String::from("foo")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 4,
+                content: String::from("foo")
+            })]
+        );
     }
 
     #[test]
@@ -1436,64 +1338,64 @@ mod tests {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 2,
-                content: String::from("ab")
-            })]
+                content: String::from("ab"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 2,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 2 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 0,
-            content: String::from("ab")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("ab")
+            })]
+        );
     }
-    
+
     #[test]
     fn transform_insert_delete_adjacent_after() {
         let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
-                content: String::from("foo")
-            })]
+                content: String::from("foo"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 3,
-                end: 5,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 3, end: 5 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 0,
-            content: String::from("foo")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("foo")
+            })]
+        );
     }
-    
+
     #[test]
     fn transform_insert_delete_overlapping_start() {
         let mut msg = Edit {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
-                content: String::from("1234567890")
-            })]
+                content: String::from("1234567890"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 10,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 10 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 0,
-            content: String::from("1234567890")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("1234567890")
+            })]
+        );
     }
 
     #[test]
@@ -1502,20 +1404,20 @@ mod tests {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
-                content: String::from("abcd")
-            })]
+                content: String::from("abcd"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 2,
-                end: 6,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 2, end: 6 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 0,
-            content: String::from("abcd")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("abcd")
+            })]
+        );
     }
 
     #[test]
@@ -1524,20 +1426,20 @@ mod tests {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
-                content: String::from("12345")
-            })]
+                content: String::from("12345"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 1,
-                end: 20,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 1, end: 20 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 1,
-            content: String::from("12345")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 1,
+                content: String::from("12345")
+            })]
+        );
     }
 
     #[test]
@@ -1546,260 +1448,221 @@ mod tests {
             author: 1,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
-                content: String::from("12345678901234567")
-            })]
+                content: String::from("12345678901234567"),
+            })],
         };
         msg.transform(&Edit {
             author: 2,
-            operations: vec![Operation::Delete(Delete {
-                start: 5,
-                end: 10,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 5, end: 10 })],
         });
-        assert_eq!(msg.operations, vec![Operation::Insert(Insert {
-            pos: 0,
-            content: String::from("12345678901234567")
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Insert(Insert {
+                pos: 0,
+                content: String::from("12345678901234567")
+            })]
+        );
     }
 
     #[test]
     fn transform_delete_insert_non_overlapping_after() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 5,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 5 })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 10,
-                content: String::from("12345")
-            })]
+                content: String::from("12345"),
+            })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 0,
-            end: 5,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 0, end: 5 })]
+        );
     }
-    
+
     #[test]
     fn transform_delete_insert_non_overlapping_before() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 5,
-                end: 8,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 5, end: 8 })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
-                content: String::from("a")
-            })]
+                content: String::from("a"),
+            })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 6,
-            end: 9,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 6, end: 9 })]
+        );
     }
 
     #[test]
     fn transform_delete_insert_adjacent_before() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 2,
-                end: 4,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 2, end: 4 })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
-                content: String::from("ab")
-            })]
+                content: String::from("ab"),
+            })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 4,
-            end: 6,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 4, end: 6 })]
+        );
     }
-    
+
     #[test]
     fn transform_delete_insert_adjacent_after() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 3,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 3 })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 3,
-                content: String::from("ab")
-            })]
+                content: String::from("ab"),
+            })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 0,
-            end: 3,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 0, end: 3 })]
+        );
     }
-    
+
     #[test]
     fn transform_delete_insert_same_start_position() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 2,
-                end: 4,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 2, end: 4 })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 2,
-                content: String::from("cd")
-            })]
+                content: String::from("cd"),
+            })],
         });
-        assert_eq!(msg.operations, vec![
-            Operation::Delete(Delete {
-                start: 4,
-                end: 6,
-            }),
-            Operation::Delete(Delete {
-                start: 2,
-                end: 2,
-            }),
-        ]);
+        assert_eq!(
+            msg.operations,
+            vec![
+                Operation::Delete(Delete { start: 4, end: 6 }),
+                Operation::Delete(Delete { start: 2, end: 2 }),
+            ]
+        );
     }
-    
+
     #[test]
     fn transform_delete_insert_overlapping_start() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 5,
-                end: 15,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 5, end: 15 })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 0,
-                content: String::from("1234567890")
-            })]
+                content: String::from("1234567890"),
+            })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 15,
-            end: 25,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 15, end: 25 })]
+        );
     }
 
     #[test]
     fn transform_delete_insert_overlapping_end() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 4,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 4 })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 2,
-                content: String::from("abcd")
-            })]
+                content: String::from("abcd"),
+            })],
         });
-        assert_eq!(msg.operations, vec![
-            Operation::Delete(Delete {
-                start: 6,
-                end: 8,
-            }),
-            Operation::Delete(Delete {
-                start: 0,
-                end: 2,
-            }),
-        ]);
+        assert_eq!(
+            msg.operations,
+            vec![
+                Operation::Delete(Delete { start: 6, end: 8 }),
+                Operation::Delete(Delete { start: 0, end: 2 }),
+            ]
+        );
     }
 
     #[test]
     fn transform_delete_insert_subset() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 5,
-                end: 10,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 5, end: 10 })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 1,
-                content: String::from("12345678901234567890")
-            })]
+                content: String::from("12345678901234567890"),
+            })],
         });
-        assert_eq!(msg.operations, vec![Operation::Delete(Delete {
-            start: 25,
-            end: 30,
-        })]);
+        assert_eq!(
+            msg.operations,
+            vec![Operation::Delete(Delete { start: 25, end: 30 })]
+        );
     }
 
     #[test]
     fn transform_delete_insert_superset() {
         let mut msg = Edit {
             author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 17,
-            })]
+            operations: vec![Operation::Delete(Delete { start: 0, end: 17 })],
         };
         msg.transform(&Edit {
             author: 2,
             operations: vec![Operation::Insert(Insert {
                 pos: 5,
-                content: String::from("12345")
-            })]
+                content: String::from("12345"),
+            })],
         });
-        assert_eq!(msg.operations, vec![
-            Operation::Delete(Delete {
-                start: 10,
-                end: 22,
-            }),
-            Operation::Delete(Delete {
-                start: 0,
-                end: 5,
-            }),
-        ]);
+        assert_eq!(
+            msg.operations,
+            vec![
+                Operation::Delete(Delete { start: 10, end: 22 }),
+                Operation::Delete(Delete { start: 0, end: 5 }),
+            ]
+        );
     }
 
     #[test]
     fn concurrent_delete_and_insert() {
         let mut doc = Document::from("ab");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        doc.apply(&Event::Join(Join {id: 2})).unwrap();
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+        doc.apply(&Event::Join(Join { id: 2 })).unwrap();
 
-        let op1 = Operation::Delete(Delete {
-            start: 0,
-            end: 1,
-        });
+        let op1 = Operation::Delete(Delete { start: 0, end: 1 });
         let op2 = Operation::Insert(Insert {
             pos: 1,
-            content: String::from("c")
+            content: String::from("c"),
         });
-        
+
         let mut a1 = Event::Edit(Edit {
             author: 1,
-            operations: vec![op1.clone()]
+            operations: vec![op1.clone()],
         });
         let b1 = Event::Edit(Edit {
             author: 2,
-            operations: vec![op2.clone()]
+            operations: vec![op2.clone()],
         });
         let a2 = a1.clone();
         let mut b2 = b1.clone();
@@ -1808,59 +1671,86 @@ mod tests {
         a1.transform(&b1);
         b2.transform(&a2);
 
-        assert_eq!(a2, Event::Edit(Edit {
-            author: 1,
-            operations: vec![Operation::Delete(Delete {
-                start: 0,
-                end: 1,
-            })]
-        }));
-        assert_eq!(b2, Event::Edit(Edit {
-            author: 2,
-            operations: vec![Operation::Insert(Insert {
-                pos: 0,
-                content: String::from("c")
-            })]
-        }));
+        assert_eq!(
+            a2,
+            Event::Edit(Edit {
+                author: 1,
+                operations: vec![Operation::Delete(Delete { start: 0, end: 1 })]
+            })
+        );
+        assert_eq!(
+            b2,
+            Event::Edit(Edit {
+                author: 2,
+                operations: vec![Operation::Insert(Insert {
+                    pos: 0,
+                    content: String::from("c")
+                })]
+            })
+        );
 
         // doc1
-        
-        assert_eq!(doc1.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-        
+
+        assert_eq!(
+            doc1.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc1.apply(&b1).unwrap();
-        assert_eq!(doc1.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 2}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc1.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 2 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc1.apply(&a1).unwrap();
-        assert_eq!(doc1.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 1}),
-        ].into_iter().collect());
+        assert_eq!(
+            doc1.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 1 }),
+            ].into_iter()
+            .collect()
+        );
 
         // doc2
-        
-        assert_eq!(doc2.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-                
+
+        assert_eq!(
+            doc2.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc2.apply(&a2).unwrap();
-        assert_eq!(doc2.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc2.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc2.apply(&b2).unwrap();
-        assert_eq!(doc2.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 1}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc2.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 1 }),
+            ].into_iter()
+            .collect()
+        );
+
         // check the results converge
         assert_eq!(doc1, doc2);
     }
@@ -1868,25 +1758,22 @@ mod tests {
     #[test]
     fn concurrent_delete_and_insert_2() {
         let mut doc = Document::from("a");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        doc.apply(&Event::Join(Join {id: 2})).unwrap();
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+        doc.apply(&Event::Join(Join { id: 2 })).unwrap();
 
-        let op1 = Operation::Delete(Delete {
-            start: 0,
-            end: 1,
-        });
+        let op1 = Operation::Delete(Delete { start: 0, end: 1 });
         let op2 = Operation::Insert(Insert {
             pos: 0,
-            content: String::from("b")
+            content: String::from("b"),
         });
-        
+
         let mut a1 = Event::Edit(Edit {
             author: 1,
-            operations: vec![op1.clone()]
+            operations: vec![op1.clone()],
         });
         let b1 = Event::Edit(Edit {
             author: 2,
-            operations: vec![op2.clone()]
+            operations: vec![op2.clone()],
         });
         let a2 = a1.clone();
         let mut b2 = b1.clone();
@@ -1911,43 +1798,67 @@ mod tests {
         // }));
 
         // doc1 (insert then delete)
-        
-        assert_eq!(doc1.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-        
+
+        assert_eq!(
+            doc1.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc1.apply(&b1).unwrap();
-        assert_eq!(doc1.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 1}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc1.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 1 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc1.apply(&a1).unwrap();
-        assert_eq!(doc1.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 1}),
-        ].into_iter().collect());
+        assert_eq!(
+            doc1.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 1 }),
+            ].into_iter()
+            .collect()
+        );
 
         // doc2 (delete then insert)
-        
-        assert_eq!(doc2.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-                
+
+        assert_eq!(
+            doc2.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc2.apply(&a2).unwrap();
-        assert_eq!(doc2.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc2.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc2.apply(&b2).unwrap();
-        assert_eq!(doc2.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 1}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc2.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 1 }),
+            ].into_iter()
+            .collect()
+        );
+
         // check the results converge
         assert_eq!(doc1, doc2);
     }
@@ -1955,25 +1866,22 @@ mod tests {
     #[test]
     fn concurrent_delete_and_insert_3() {
         let mut doc = Document::from("ab");
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        doc.apply(&Event::Join(Join {id: 2})).unwrap();
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+        doc.apply(&Event::Join(Join { id: 2 })).unwrap();
 
-        let op1 = Operation::Delete(Delete {
-            start: 0,
-            end: 2,
-        });
+        let op1 = Operation::Delete(Delete { start: 0, end: 2 });
         let op2 = Operation::Insert(Insert {
             pos: 1,
-            content: String::from("c")
+            content: String::from("c"),
         });
-        
+
         let mut a1 = Event::Edit(Edit {
             author: 1,
-            operations: vec![op1.clone()]
+            operations: vec![op1.clone()],
         });
         let b1 = Event::Edit(Edit {
             author: 2,
-            operations: vec![op2.clone()]
+            operations: vec![op2.clone()],
         });
         let a2 = a1.clone();
         let mut b2 = b1.clone();
@@ -1983,43 +1891,67 @@ mod tests {
         b2.transform(&a2);
 
         // doc1 (insert then delete)
-        
-        assert_eq!(doc1.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-        
+
+        assert_eq!(
+            doc1.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc1.apply(&b1).unwrap();
-        assert_eq!(doc1.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 2}),
-        ].into_iter().collect());
+        assert_eq!(
+            doc1.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 2 }),
+            ].into_iter()
+            .collect()
+        );
 
         doc1.apply(&a1).unwrap();
-        assert_eq!(doc1.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 1}),
-        ].into_iter().collect());
+        assert_eq!(
+            doc1.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 1 }),
+            ].into_iter()
+            .collect()
+        );
 
         // doc2 (delete then insert)
-        
-        assert_eq!(doc2.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-                
+
+        assert_eq!(
+            doc2.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc2.apply(&a2).unwrap();
-        assert_eq!(doc2.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 0}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc2.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 0 }),
+            ].into_iter()
+            .collect()
+        );
+
         doc2.apply(&b2).unwrap();
-        assert_eq!(doc2.participants, vec![
-            (1, DocumentParticipant {cursor_pos: 0}),
-            (2, DocumentParticipant {cursor_pos: 1}),
-        ].into_iter().collect());
-        
+        assert_eq!(
+            doc2.participants,
+            vec![
+                (1, DocumentParticipant { cursor_pos: 0 }),
+                (2, DocumentParticipant { cursor_pos: 1 }),
+            ].into_iter()
+            .collect()
+        );
+
         // check the results converge
         assert_eq!(doc1, doc2);
     }
@@ -2030,63 +1962,83 @@ mod tests {
 
     impl GenerateStrategy for Delete {
         fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation> {
-            (Range { start: 0, end: doc_size + 1 },
-             Range { start: 0, end: doc_size + 1 })
+            (
+                Range {
+                    start: 0,
+                    end: doc_size + 1,
+                },
+                Range {
+                    start: 0,
+                    end: doc_size + 1,
+                },
+            )
                 .prop_filter(
                     "Delete operation start index must be smaller than end index".to_owned(),
-                    |v| v.0 < v.1
-                )
-                .prop_map(|v| Operation::Delete(Delete {
-                    start: v.0,
-                    end: v.1,
-                }))
-                .boxed()
+                    |v| v.0 < v.1,
+                ).prop_map(|v| {
+                    Operation::Delete(Delete {
+                        start: v.0,
+                        end: v.1,
+                    })
+                }).boxed()
         }
     }
 
     impl GenerateStrategy for Insert {
         fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation> {
-            (Range { start: 0, end: doc_size }, ".{1,100}")
-                .prop_map(|v| Operation::Insert(Insert { pos: v.0, content: v.1 }))
-                .boxed()
+            (
+                Range {
+                    start: 0,
+                    end: doc_size,
+                },
+                ".{1,100}",
+            )
+                .prop_map(|v| {
+                    Operation::Insert(Insert {
+                        pos: v.0,
+                        content: v.1,
+                    })
+                }).boxed()
         }
     }
-    
+
     fn generate_document_data() -> BoxedStrategy<String> {
-        ".{1,100}".prop_filter(
-            "Document must contain at least one unicode scalar value".to_owned(),
-            |v| v.chars().count() > 0
-        ).boxed()
+        ".{1,100}"
+            .prop_filter(
+                "Document must contain at least one unicode scalar value".to_owned(),
+                |v| v.chars().count() > 0,
+            ).boxed()
     }
 
     fn conflicting_operations<A, B>() -> BoxedStrategy<(String, Operation, Operation)>
-    where A: GenerateStrategy,
-          B: GenerateStrategy
+    where
+        A: GenerateStrategy,
+        B: GenerateStrategy,
     {
         generate_document_data()
             .prop_flat_map(|initial| {
                 let len = initial.chars().count();
-                (Just(initial),
-                 <A as GenerateStrategy>::generate_strategy(len),
-                 <B as GenerateStrategy>::generate_strategy(len),
+                (
+                    Just(initial),
+                    <A as GenerateStrategy>::generate_strategy(len),
+                    <B as GenerateStrategy>::generate_strategy(len),
                 )
-            })
-            .boxed()
+            }).boxed()
     }
 
     // helper function for proptest! block below
     fn check_order_of_application(initial: &str, op1: &Operation, op2: &Operation) {
         let mut doc = Document::from(initial);
-        doc.apply(&Event::Join(Join {id: 1})).unwrap();
-        doc.apply(&Event::Join(Join {id: 2})).unwrap();
-        
+        doc.apply(&Event::Join(Join { id: 1 })).unwrap();
+        doc.apply(&Event::Join(Join { id: 2 })).unwrap();
+
         let mut a1 = Event::Edit(Edit {
             author: 1,
-            operations: vec![op1.clone()]
+            operations: vec![op1.clone()],
         });
         let b1 = Event::Edit(Edit {
             author: 2,
-            operations: vec![op2.clone()]
+            operations: vec![op2.clone()],
         });
         let a2 = a1.clone();
         let mut b2 = b1.clone();
@@ -2129,7 +2081,7 @@ mod tests {
             ((ref initial, ref op1, ref op2) in conflicting_operations::<Insert, Delete>()) {
                 check_order_of_application(initial, op1, op2);
             }
-        
+
     }
 
 }

@@ -1,12 +1,11 @@
 use http::{Response, StatusCode};
 use hyper::Body;
 use serde_json;
-use std::fmt::{self, Display};
 use std::error::Error;
+use std::fmt::{self, Display};
 use tera;
 
 use templates::TERA;
-
 
 /// Error conditions that could not be handled as a HTTP response
 #[derive(Debug)]
@@ -44,39 +43,30 @@ impl HttpError {
     fn default_context(&self) -> serde_json::Value {
         use self::HttpError::*;
         match *self {
-            InternalServerError(ref err) =>
-                json!({
+            InternalServerError(ref err) => json!({
                     "title": "Internal Server Error",
                     "error": err
                 }),
-            _ =>
-                json!({
-                    "title": format!("{}", self)
-                })
+            _ => json!({ "title": format!("{}", self) }),
         }
     }
-    
+
     fn default_template(&self) -> String {
         format!("{}.html", self.status_code().as_u16())
     }
 
     fn render_html(&self) -> tera::Result<String> {
-        TERA.render(
-            &self.default_template(),
-            &self.default_context()
-        )
+        TERA.render(&self.default_template(), &self.default_context())
     }
 }
 
 impl Into<Response<Body>> for HttpError {
     fn into(self) -> Response<Body> {
         match self.render_html() {
-            Ok(html) => {
-                Response::builder()
-                    .status(self.status_code())
-                    .body(Body::from(html))
-                    .unwrap()
-            },
+            Ok(html) => Response::builder()
+                .status(self.status_code())
+                .body(Body::from(html))
+                .unwrap(),
             Err(err) => {
                 for e in err.iter() {
                     eprintln!("{}", e);
@@ -88,12 +78,9 @@ impl Into<Response<Body>> for HttpError {
                         .status(StatusCode::INTERNAL_SERVER_ERROR)
                         .body(Body::from("Internal Server Error\n"))
                         .unwrap()
-                    
                 } else {
                     // convert to a 500 error with the template error
-                    HttpError::InternalServerError(
-                        format!("Template error: {}", err)
-                    ).into()
+                    HttpError::InternalServerError(format!("Template error: {}", err)).into()
                 }
             }
         }
