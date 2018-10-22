@@ -20,31 +20,30 @@
 //!     .map_err(|err| eprintln!("Server error: {}", err));
 //! ```
 
-use hyper::{Response, Request};
+use futures::future::{self, Future, FutureResult};
+use futures::sink::Sink;
+use futures::stream::Stream;
+use http::StatusCode;
 use hyper::body::Body;
 use hyper::service::{NewService, Service};
-use futures::future::{self, Future, FutureResult};
-use http::StatusCode;
+use hyper::{Request, Response};
 use hyper_staticfile::{self, resolve};
 use std::path::PathBuf;
-use futures::stream::Stream;
-use futures::sink::Sink;
 
-use templates::TERA;
-use store::{Store, StoreError};
-use session::message::{message_stream, ServerMessage, ConnectedMessage, MessageStreamError};
+use session::message::{message_stream, ConnectedMessage, MessageStreamError, ServerMessage};
 use session::DocumentSessionManager;
+use store::{Store, StoreError};
+use templates::TERA;
 use websocket::websocket_text;
 
 mod error;
 mod request;
 mod upgrade;
 
-use service::error::{TamaWikiError, HttpError};
+use service::error::{HttpError, TamaWikiError};
 use service::request::query_params;
-use service::upgrade::{websocket_upgrade, is_websocket_upgrade_request};
+use service::upgrade::{is_websocket_upgrade_request, websocket_upgrade};
 use store::SequenceId;
-
 
 /// Handles a request and returns a response
 #[derive(Clone)]
@@ -68,46 +67,47 @@ impl<T: Store + Sync> TamaWiki<T> {
             store,
         }
     }
-    
-    fn serve_static(&mut self, req: Request<Body>) -> 
-        Box<Future<Item=Response<Body>, Error=HttpError> + Send>
-    {
+
+    fn serve_static(
+        &mut self,
+        req: Request<Body>,
+    ) -> Box<Future<Item = Response<Body>, Error = HttpError> + Send> {
         // First, resolve the request. Returns a `ResolveFuture` for a `ResolveResult`.
-        let result = resolve(&self.static_path.as_path(), &req).map_err(|err| {
-            eprintln!("Error serving static file: {}", err);
-            HttpError::InternalServerError(format!("{}", err))
-        }).and_then(|res| {
-            use hyper_staticfile::ResolveResult::*;
-            match res {
-                // The request was not `GET` or `HEAD` request,
-                MethodNotMatched => Err(HttpError::MethodNotAllowed),
-                // The request URI was not just a path.
-                UriNotMatched => Err(HttpError::BadRequest),
-                // The requested file does not exist.
-                NotFound => Err(HttpError::NotFound),
-                // The requested file could not be accessed.
-                PermissionDenied => Err(HttpError::Unauthorized),
-                // A directory was requested as a file.
-                IsDirectory => Ok(IsDirectory),
-                // The requested file was found.
-                Found(file, metadata) => Ok(Found(file, metadata)),
-            }
-        });
+        let result = resolve(&self.static_path.as_path(), &req)
+            .map_err(|err| {
+                eprintln!("Error serving static file: {}", err);
+                HttpError::InternalServerError(format!("{}", err))
+            }).and_then(|res| {
+                use hyper_staticfile::ResolveResult::*;
+                match res {
+                    // The request was not `GET` or `HEAD` request,
+                    MethodNotMatched => Err(HttpError::MethodNotAllowed),
+                    // The request URI was not just a path.
+                    UriNotMatched => Err(HttpError::BadRequest),
+                    // The requested file does not exist.
+                    NotFound => Err(HttpError::NotFound),
+                    // The requested file could not be accessed.
+                    PermissionDenied => Err(HttpError::Unauthorized),
+                    // A directory was requested as a file.
+                    IsDirectory => Ok(IsDirectory),
+                    // The requested file was found.
+                    Found(file, metadata) => Ok(Found(file, metadata)),
+                }
+            });
 
         // Then, build a response based on the result.
         // The `ResponseBuilder` is typically a short-lived, per-request instance.
-        Box::new(
-            result.map(move |result| {
-                hyper_staticfile::ResponseBuilder::new()
-                    .build(&req, result)
-                    .unwrap()
-            })
-        )
+        Box::new(result.map(move |result| {
+            hyper_staticfile::ResponseBuilder::new()
+                .build(&req, result)
+                .unwrap()
+        }))
     }
-    
-    fn serve_document(&mut self, req: &Request<Body>) ->
-        Box<Future<Item=Response<Body>, Error=HttpError> + Send>
-    {
+
+    fn serve_document(
+        &mut self,
+        req: &Request<Body>,
+    ) -> Box<Future<Item = Response<Body>, Error = HttpError> + Send> {
         let path = PathBuf::from(&req.uri().path()[1..]);
         let q = query_params(req);
         let edit = match q.get("action") {
@@ -115,8 +115,9 @@ impl<T: Store + Sync> TamaWiki<T> {
             _ => false,
         };
         Box::new(
-            self.store.content(&path.as_path()).then(move |result| {
-                match result {
+            self.store
+                .content(&path.as_path())
+                .then(move |result| match result {
                     Ok((seq, doc)) => {
                         let ctx = json!({
                             "title": "Document",
@@ -124,82 +125,78 @@ impl<T: Store + Sync> TamaWiki<T> {
                             "participants": doc.participants,
                             "seq": seq
                         });
-                        let tmpl = if edit {
-                            "editor.html"
-                        } else {
-                            "document.html"
-                        };
+                        let tmpl = if edit { "editor.html" } else { "document.html" };
                         let text = TERA.render(tmpl, &ctx).unwrap();
-                        Ok(Response::builder()
-                           .body(Body::from(text))
-                           .unwrap())
+                        Ok(Response::builder().body(Body::from(text)).unwrap())
                     }
                     Err(StoreError::NotFound) => {
                         let text = if edit {
-                            TERA.render("editor.html", &json!({
+                            TERA.render(
+                                "editor.html",
+                                &json!({
                                 "title": "Document (empty)",
                                 "content": "",
                                 "participants": [],
                                 "seq": 0
-                            })).unwrap()
+                            }),
+                            ).unwrap()
                         } else {
-                            TERA.render("new_document.html", &json!({
+                            TERA.render(
+                                "new_document.html",
+                                &json!({
                                 "title": "Document"
-                            })).unwrap()
+                            }),
+                            ).unwrap()
                         };
                         Ok(Response::builder()
-                           .status(StatusCode::NOT_FOUND)
-                           .body(Body::from(text))
-                           .unwrap())
-                    },
-                    Err(err) => {
-                        Err(HttpError::InternalServerError(format!("{}", err)))
+                            .status(StatusCode::NOT_FOUND)
+                            .body(Body::from(text))
+                            .unwrap())
                     }
-                }
-            })
+                    Err(err) => Err(HttpError::InternalServerError(format!("{}", err))),
+                }),
         )
     }
 
-    fn handle_websocket(&self, req: Request<Body>) ->
-        Box<Future<Item=Response<Body>, Error=HttpError> + Send>
-    {
+    fn handle_websocket(
+        &self,
+        req: Request<Body>,
+    ) -> Box<Future<Item = Response<Body>, Error = HttpError> + Send> {
         let path = PathBuf::from(&req.uri().path()[1..]);
         let q = query_params(&req);
-        
+
         let since: SequenceId = match q.get("seq") {
             // TODO: respond with http error message if seq parameter is invalid
             Some(x) => x.parse().unwrap_or(0),
-            None => 0
+            None => 0,
         };
-        
+
         let document_sessions = self.document_sessions.clone();
-        
+
         websocket_upgrade(req, move |websocket| {
-            document_sessions.join(&path.as_path(), since)
+            document_sessions
+                .join(&path.as_path(), since)
                 .map_err(|e| {
                     eprintln!("Error joining document session: {:?}", e);
-                })
-                .and_then(move |participant| {
+                }).and_then(move |participant| {
                     let id = participant.get_id();
                     let ws = message_stream(websocket_text(websocket));
                     let (wtx, wrx) = ws.split();
                     let (ptx, prx) = participant.split();
 
                     let send_client_msgs = wrx.forward(ptx).map(|_| ());
-                    let send_server_msgs = wtx.send(
-                        ServerMessage::Connected(ConnectedMessage {id})
-                    ).and_then(|wtx| {
-                        wtx.send_all(prx).map(|_| ())
-                    });
-                    
-                    send_client_msgs
-                        .select(send_server_msgs)
-                        .then(move |result: Result<_, (MessageStreamError, _)>| {
+                    let send_server_msgs = wtx
+                        .send(ServerMessage::Connected(ConnectedMessage { id }))
+                        .and_then(|wtx| wtx.send_all(prx).map(|_| ()));
+
+                    send_client_msgs.select(send_server_msgs).then(
+                        move |result: Result<_, (MessageStreamError, _)>| {
                             if let Err((err, _)) = result {
                                 eprintln!("WebSocket error: {:?}", err);
                             }
                             Ok(())
-                        })
+                        },
+                    )
                 })
         })
     }
@@ -212,7 +209,7 @@ impl<T: Store + Sync> NewService for TamaWiki<T> {
     type Service = TamaWiki<T>;
     type InitError = TamaWikiError;
     type Future = FutureResult<Self::Service, Self::InitError>;
-    
+
     fn new_service(&self) -> Self::Future {
         future::ok(self.clone())
     }
@@ -222,10 +219,8 @@ impl<T: Store + Sync> Service for TamaWiki<T> {
     type ReqBody = Body;
     type ResBody = Body;
     type Error = TamaWikiError;
-    type Future = Box<Future<Item=Response<Self::ResBody>,
-                             Error=Self::Error> +
-                      Send>;
-    
+    type Future = Box<Future<Item = Response<Self::ResBody>, Error = Self::Error> + Send>;
+
     fn call(&mut self, req: Request<Self::ReqBody>) -> Self::Future {
         let res = if req.uri().path().starts_with("/_static/") {
             self.serve_static(req)

@@ -7,16 +7,15 @@
 //! store implementation may checkpoint or cache these edit event
 //! applications in order to speed up this process.
 
-use std::fmt::{self, Display, Debug};
-use std::error::Error;
-use std::path::{PathBuf, Path};
-use futures::stream::Stream;
 use futures::future::Future;
+use futures::stream::Stream;
+use std::error::Error;
+use std::fmt::{self, Debug, Display};
+use std::path::{Path, PathBuf};
 
 use document::{Document, Event};
 
 pub mod memory;
-
 
 /// The sequence number for an Event. The first Event for a Document
 /// is SequenceId=1 (not 0). This is so requesting events since
@@ -28,14 +27,13 @@ pub type SequenceId = u64;
 /// multiple requests and orchestrating concurrent access (e.g. via
 /// locking and a connection pool) is left to the implementation.
 pub trait Store: Clone + Debug + Send + 'static {
-    
     /// Type for the stream of Events returned by `since()` calls
-    type Stream: Stream<Item=(SequenceId, Event), Error=StoreError> + Send;
+    type Stream: Stream<Item = (SequenceId, Event), Error = StoreError> + Send;
     /// The Future returned by `since()` calls
-    type SinceFuture: Future<Item=Self::Stream, Error=StoreError> + Send;
+    type SinceFuture: Future<Item = Self::Stream, Error = StoreError> + Send;
     /// The Future returned by `push()` calls
-    type PushFuture: Future<Item=SequenceId, Error=StoreError> + Send;
-    
+    type PushFuture: Future<Item = SequenceId, Error = StoreError> + Send;
+
     /// Adds a new Event to the document at 'path' and returns the
     /// new SequenceId. If the document does not exist, the act of
     /// pushing an Event creates it.
@@ -43,8 +41,7 @@ pub trait Store: Clone + Debug + Send + 'static {
 
     /// Requests the current SequenceId for the document at 'path',
     /// or StoreError::NotFound if it does not exist.
-    fn seq(&self, path: &Path) ->
-        Box<Future<Item=SequenceId, Error=StoreError> + Send>;
+    fn seq(&self, path: &Path) -> Box<Future<Item = SequenceId, Error = StoreError> + Send>;
 
     /// Requests a stream of Events starting *after* the provided
     /// SequenceId. Requesting the current (head) SequenceId is not an
@@ -56,8 +53,10 @@ pub trait Store: Clone + Debug + Send + 'static {
     /// Requests the current SequenceId and content for the document
     /// at 'path' (with all events applied), or StoreError::NotFound
     /// if the document does not exist.
-    fn content(&self, path: &Path) ->
-        Box<Future<Item=(SequenceId, Document), Error=StoreError> + Send>;
+    fn content(
+        &self,
+        path: &Path,
+    ) -> Box<Future<Item = (SequenceId, Document), Error = StoreError> + Send>;
 
     /// Requests a snapshot of the document's content at a specific
     /// SequenceId. All events from SequenceId=1 (inclusive) to
@@ -65,9 +64,11 @@ pub trait Store: Clone + Debug + Send + 'static {
     /// StoreError::NotFound if the document does not exist, and
     /// StoreError::InvalidSequenceId if the SequenceId does not
     /// exist.
-    fn content_at(&self, path: &Path, seq: SequenceId) ->
-        Box<Future<Item=Document, Error=StoreError> + Send>;
-    
+    fn content_at(
+        &self,
+        path: &Path,
+        seq: SequenceId,
+    ) -> Box<Future<Item = Document, Error = StoreError> + Send>;
 }
 
 /// Error conditions for reading data from, or writing data to, the
@@ -88,14 +89,10 @@ pub enum StoreError {
 impl Display for StoreError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            StoreError::NotFound => 
-                write!(f, "NotFound"),
-            StoreError::InvalidSequenceId =>
-                write!(f, "InvalidSequenceId"),
-            StoreError::InvalidDocument =>
-                write!(f, "InvalidDocument"),
-            StoreError::ConnectionError =>
-                write!(f, "ConnectionError"),
+            StoreError::NotFound => write!(f, "NotFound"),
+            StoreError::InvalidSequenceId => write!(f, "InvalidSequenceId"),
+            StoreError::InvalidDocument => write!(f, "InvalidDocument"),
+            StoreError::ConnectionError => write!(f, "ConnectionError"),
         }
     }
 }
@@ -103,14 +100,10 @@ impl Display for StoreError {
 impl Error for StoreError {
     fn description(&self) -> &str {
         match *self {
-            StoreError::NotFound =>
-                "StoreError: the document path is missing",
-            StoreError::InvalidSequenceId =>
-                "StoreError: sequence id has no matching event",
-            StoreError::InvalidDocument =>
-                "StoreError: failed to build document content",
-            StoreError::ConnectionError =>
-                "StoreError: connection error",
+            StoreError::NotFound => "StoreError: the document path is missing",
+            StoreError::InvalidSequenceId => "StoreError: sequence id has no matching event",
+            StoreError::InvalidDocument => "StoreError: failed to build document content",
+            StoreError::ConnectionError => "StoreError: connection error",
         }
     }
 }

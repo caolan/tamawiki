@@ -1,17 +1,16 @@
 //! Handles client communication with a DocumentSession
-use futures::{Async, Poll, StartSend, AsyncSink};
-use futures::stream::{self, Stream};
 use futures::future::Future;
 use futures::sink::Sink;
+use futures::stream::{self, Stream};
 use futures::task;
+use futures::{Async, AsyncSink, Poll, StartSend};
 use std::mem;
-use tokio::executor::{Executor, DefaultExecutor};
+use tokio::executor::{DefaultExecutor, Executor};
 
-use document::{Event, Join, Leave, Edit, ParticipantId};
-use store::{Store, StoreError, SequenceId};
-use super::DocumentSession;
 use super::message::*;
-
+use super::DocumentSession;
+use document::{Edit, Event, Join, Leave, ParticipantId};
+use store::{SequenceId, Store, StoreError};
 
 /// A client connected to a DocumentSession. This struct can be used
 /// as a Stream, to read ServerMessages applicable to the participant,
@@ -26,7 +25,7 @@ pub struct Participant<T: Store + Sync> {
     inner: stream::Flatten<stream::FuturesUnordered<T::SinceFuture>>,
     writing: Option<(
         SequenceId,
-        Box<Future<Item=SequenceId, Error=StoreError> + Send>
+        Box<Future<Item = SequenceId, Error = StoreError> + Send>,
     )>,
 }
 
@@ -67,9 +66,9 @@ impl<T: Store + Sync> Participant<T> {
     // the next event.
     fn ignored_event(&self, event: &Event) -> bool {
         match event {
-            &Event::Edit(Edit {author, ..}) => author == self.id,
-            &Event::Leave(Leave {id}) => id == self.id,
-            &Event::Join(Join {id}) => id == self.id,
+            &Event::Edit(Edit { author, .. }) => author == self.id,
+            &Event::Leave(Leave { id }) => id == self.id,
+            &Event::Join(Join { id }) => id == self.id,
         }
     }
 
@@ -78,28 +77,22 @@ impl<T: Store + Sync> Participant<T> {
     // sequence id from the participant.
     fn prepare_server_message(&self, seq: SequenceId, event: Event) -> ServerMessage {
         match event {
-            Event::Edit(Edit {author, operations}) => {
-                ServerMessage::Edit(EditMessage {
-                    client_seq: self.client_seq,
-                    seq,
-                    author,
-                    operations,
-                })
-            },
-            Event::Join(Join {id}) => {
-                ServerMessage::Join(JoinMessage {
-                    client_seq: self.client_seq,
-                    seq,
-                    id,
-                })
-            },
-            Event::Leave(Leave {id}) => {
-                ServerMessage::Leave(LeaveMessage {
-                    client_seq: self.client_seq,
-                    seq,
-                    id,
-                })
-            },
+            Event::Edit(Edit { author, operations }) => ServerMessage::Edit(EditMessage {
+                client_seq: self.client_seq,
+                seq,
+                author,
+                operations,
+            }),
+            Event::Join(Join { id }) => ServerMessage::Join(JoinMessage {
+                client_seq: self.client_seq,
+                seq,
+                id,
+            }),
+            Event::Leave(Leave { id }) => ServerMessage::Leave(LeaveMessage {
+                client_seq: self.client_seq,
+                seq,
+                id,
+            }),
         }
     }
 }
@@ -111,22 +104,18 @@ impl<T: Store + Sync> Stream for Participant<T> {
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         loop {
             match self.state {
-                ParticipantStreamState::ReadingStream => {
-                    match self.inner.poll()? {
-                        Async::Ready(None) => {
-                            self.state = ParticipantStreamState::WaitingForEvent;
-                        },
-                        Async::Ready(Some((seq, event))) => {
-                            self.seq = seq;
-                            if !self.ignored_event(&event) {
-                                let msg = self.prepare_server_message(seq, event);
-                                return Ok(Async::Ready(Some(msg)))
-                            }
-                        },
-                        Async::NotReady => {
-                            return Ok(Async::NotReady)
+                ParticipantStreamState::ReadingStream => match self.inner.poll()? {
+                    Async::Ready(None) => {
+                        self.state = ParticipantStreamState::WaitingForEvent;
+                    }
+                    Async::Ready(Some((seq, event))) => {
+                        self.seq = seq;
+                        if !self.ignored_event(&event) {
+                            let msg = self.prepare_server_message(seq, event);
+                            return Ok(Async::Ready(Some(msg)));
                         }
                     }
+                    Async::NotReady => return Ok(Async::NotReady),
                 },
                 ParticipantStreamState::WaitingForEvent => {
                     let last_seq = {
@@ -138,17 +127,17 @@ impl<T: Store + Sync> Stream for Participant<T> {
                             self.inner = {
                                 let data = self.session.data.lock().unwrap();
                                 stream::futures_unordered(vec![
-                                    data.store.since(&data.path.as_path(), self.seq)
+                                    data.store.since(&data.path.as_path(), self.seq),
                                 ]).flatten()
                             };
                             self.state = ParticipantStreamState::ReadingStream;
-                        },
+                        }
                         _ => {
                             self.session.notify_on_event(task::current());
-                            return Ok(Async::NotReady)
+                            return Ok(Async::NotReady);
                         }
                     }
-                },
+                }
             }
         }
     }
@@ -158,41 +147,35 @@ impl<T: Store + Sync> Sink for Participant<T> {
     type SinkItem = ClientMessage;
     type SinkError = MessageStreamError;
 
-    fn start_send(&mut self, item: Self::SinkItem) ->
-        StartSend<Self::SinkItem, Self::SinkError>
-    {
+    fn start_send(&mut self, item: Self::SinkItem) -> StartSend<Self::SinkItem, Self::SinkError> {
         loop {
             let writing = mem::replace(&mut self.writing, None);
             match writing {
-                None => {
-                    match item {
-                        ClientMessage::ClientEdit(data) => {
-                            let event = Event::Edit(Edit {
-                                author: self.id,
-                                operations: data.operations,
-                            });
-                            self.writing = Some((
-                                data.client_seq,
-                                Box::new(self.session.write_transformed(
-                                    self.id,
-                                    data.parent_seq,
-                                    event
-                                ))
-                            ));
-                            return Ok(AsyncSink::Ready)
-                        }
+                None => match item {
+                    ClientMessage::ClientEdit(data) => {
+                        let event = Event::Edit(Edit {
+                            author: self.id,
+                            operations: data.operations,
+                        });
+                        self.writing = Some((
+                            data.client_seq,
+                            Box::new(self.session.write_transformed(
+                                self.id,
+                                data.parent_seq,
+                                event,
+                            )),
+                        ));
+                        return Ok(AsyncSink::Ready);
                     }
                 },
-                Some((client_seq, mut push_future)) => {
-                    match push_future.poll()? {
-                        Async::NotReady => {
-                            self.writing = Some((client_seq, push_future));
-                            return Ok(AsyncSink::NotReady(item))
-                        },
-                        Async::Ready(_) => {
-                            self.client_seq = client_seq;
-                            return Ok(AsyncSink::Ready)
-                        }
+                Some((client_seq, mut push_future)) => match push_future.poll()? {
+                    Async::NotReady => {
+                        self.writing = Some((client_seq, push_future));
+                        return Ok(AsyncSink::NotReady(item));
+                    }
+                    Async::Ready(_) => {
+                        self.client_seq = client_seq;
+                        return Ok(AsyncSink::Ready);
                     }
                 },
             }
@@ -203,19 +186,17 @@ impl<T: Store + Sync> Sink for Participant<T> {
         let writing = mem::replace(&mut self.writing, None);
         match writing {
             None => Ok(Async::Ready(())),
-            Some((client_seq, mut push_future)) => {
-                match push_future.poll()? {
-                    Async::NotReady => {
-                        self.writing = Some((client_seq, push_future));
-                        Ok(Async::NotReady)
-                    },
-                    Async::Ready(_) => {
-                        self.client_seq = client_seq;
-                        self.writing = None;
-                        Ok(Async::Ready(()))
-                    },
+            Some((client_seq, mut push_future)) => match push_future.poll()? {
+                Async::NotReady => {
+                    self.writing = Some((client_seq, push_future));
+                    Ok(Async::NotReady)
                 }
-            }
+                Async::Ready(_) => {
+                    self.client_seq = client_seq;
+                    self.writing = None;
+                    Ok(Async::Ready(()))
+                }
+            },
         }
     }
 }
@@ -223,15 +204,14 @@ impl<T: Store + Sync> Sink for Participant<T> {
 impl<T: Store + Sync> Drop for Participant<T> {
     fn drop(&mut self) {
         let id = self.id;
-        let result = DefaultExecutor::current().spawn(
-            Box::new(
-                self.session.leave(id)
-                    .map(|_| ())
-                    .map_err(move |err| {
-                        eprintln!("Error when participant {} leaving document session: {}", id, err);
-                    })
-            )
-        );
+        let result = DefaultExecutor::current().spawn(Box::new(
+            self.session.leave(id).map(|_| ()).map_err(move |err| {
+                eprintln!(
+                    "Error when participant {} leaving document session: {}",
+                    id, err
+                );
+            }),
+        ));
         // ignore error spawning future for leave notifications if the
         // current executor is shutting down
         if let Err(err) = result {
