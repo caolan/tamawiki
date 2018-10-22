@@ -1,0 +1,23 @@
+{
+    "type": "apply",
+    "initial": {
+        "content": "Foo Bar Baz",
+        "participants": [
+            {"id": 1, "cursor_pos": 0}
+        ]
+    },
+    "events": [
+        {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 7, "end": 11}}
+            ]
+        }}
+    ],
+    "expected": {
+        "content": "Foo Bar",
+        "participants": [
+            {"id": 1, "cursor_pos": 7}
+        ]
+    }
+}
