@@ -207,41 +207,30 @@
 <span id="207">207</span>
 <span id="208">208</span>
 <span id="209">209</span>
-<span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Defines messages for client/server communication during an EditSession</span>
 
-<span class="kw">use</span> <span class="ident">store</span>::{<span class="ident">SequenceId</span>, <span class="ident">StoreError</span>};
-<span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">ParticipantId</span>, <span class="ident">Operation</span>};
+<span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">Operation</span>, <span class="ident">ParticipantId</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::<span class="ident">FutureResult</span>;
-<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">stream</span>::<span class="ident">Stream</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">sink</span>::<span class="ident">Sink</span>;
+<span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">stream</span>::<span class="ident">Stream</span>;
 <span class="kw">use</span> <span class="ident">serde_json</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>, <span class="ident">Debug</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
-
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
+<span class="kw">use</span> <span class="ident">store</span>::{<span class="ident">SequenceId</span>, <span class="ident">StoreError</span>};
 
 <span class="doccomment">/// Message sent from the server to the client</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ServerMessage</span> {
     <span class="doccomment">/// Client successfully connected - always the first message sent</span>
     <span class="doccomment">/// to a client</span>
-    <span class="ident">Connected</span> (<span class="ident">ConnectedMessage</span>),
+    <span class="ident">Connected</span>(<span class="ident">ConnectedMessage</span>),
     <span class="doccomment">/// An update was made to the Document</span>
-    <span class="ident">Edit</span> (<span class="ident">EditMessage</span>),
+    <span class="ident">Edit</span>(<span class="ident">EditMessage</span>),
     <span class="doccomment">/// A new participant joined the DocumentSession</span>
-    <span class="ident">Join</span> (<span class="ident">JoinMessage</span>),
+    <span class="ident">Join</span>(<span class="ident">JoinMessage</span>),
     <span class="doccomment">/// A participant has left the DocumentSession</span>
-    <span class="ident">Leave</span> (<span class="ident">LeaveMessage</span>),
+    <span class="ident">Leave</span>(<span class="ident">LeaveMessage</span>),
 }
 
 <span class="doccomment">/// Client successfully connected</span>
@@ -290,7 +279,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ClientMessage</span> {
     <span class="doccomment">/// A change was made to the document content</span>
-    <span class="ident">ClientEdit</span> (<span class="ident">ClientEditMessage</span>),
+    <span class="ident">ClientEdit</span>(<span class="ident">ClientEditMessage</span>),
 }
 
 <span class="doccomment">/// A change made to the document content by the client</span>
@@ -312,12 +301,12 @@
     <span class="doccomment">/// Failed to serialize or deserialize message</span>
     <span class="ident">InvalidMessage</span> {
         <span class="doccomment">/// Detailed information on the error if available</span>
-        <span class="ident">reason</span>: <span class="ident">String</span>
+        <span class="ident">reason</span>: <span class="ident">String</span>,
     },
     <span class="doccomment">/// Errors from underlying protocol or event store</span>
     <span class="ident">Transport</span> {
         <span class="doccomment">/// The original error</span>
-        <span class="ident">error</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>
+        <span class="ident">error</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>,
     },
 }
 
@@ -332,60 +321,51 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">StoreError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MessageStreamError</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">StoreError</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="ident">MessageStreamError</span>::<span class="ident">Transport</span> {
-            <span class="ident">error</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">err</span>)
+            <span class="ident">error</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">err</span>),
         }
     }
 }
 
 <span class="doccomment">/// Wraps an Sink + Stream which handles Strings so it can read</span>
 <span class="doccomment">/// ClientMessages and write ServerMessages.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">message_stream</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">T</span>) <span class="op">-&gt;</span>
-<span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">ClientMessage</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">MessageStreamError</span><span class="op">&gt;</span> <span class="op">+</span>
-    <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">SinkItem</span><span class="op">=</span><span class="ident">ServerMessage</span>, <span class="ident">SinkError</span><span class="op">=</span><span class="ident">MessageStreamError</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">message_stream</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>(
+    <span class="ident">stream</span>: <span class="ident">T</span>,
+) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">ClientMessage</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">MessageStreamError</span><span class="op">&gt;</span>
+         <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">SinkItem</span> <span class="op">=</span> <span class="ident">ServerMessage</span>, <span class="ident">SinkError</span> <span class="op">=</span> <span class="ident">MessageStreamError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">E</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">T</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">String</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">SinkItem</span><span class="op">=</span><span class="ident">String</span>, <span class="ident">SinkError</span><span class="op">=</span><span class="ident">E</span><span class="op">&gt;</span>
+    <span class="ident">T</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">String</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">SinkItem</span> <span class="op">=</span> <span class="ident">String</span>, <span class="ident">SinkError</span> <span class="op">=</span> <span class="ident">E</span><span class="op">&gt;</span>,
 {
     <span class="ident">stream</span>
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-            <span class="ident">MessageStreamError</span>::<span class="ident">Transport</span> {
-                <span class="ident">error</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">err</span>)
-            }
-        })
-        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">text</span><span class="op">|</span> {
-            <span class="ident">FutureResult</span>::<span class="ident">from</span>(
-                <span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>)
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">MessageStreamError</span>::<span class="ident">InvalidMessage</span> {
-                        <span class="ident">reason</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>),
-                    })
-            )
-        })
-        .<span class="ident">sink_map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-            <span class="ident">MessageStreamError</span>::<span class="ident">Transport</span> {
-                <span class="ident">error</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">err</span>)
-            }
-        })
-        .<span class="ident">with</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> {
-            <span class="ident">FutureResult</span>::<span class="ident">from</span>(
-                <span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>)
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">MessageStreamError</span>::<span class="ident">InvalidMessage</span> {
-                        <span class="ident">reason</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>),
-                    })
-            )
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">MessageStreamError</span>::<span class="ident">Transport</span> {
+            <span class="ident">error</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">err</span>),
+        }).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">text</span><span class="op">|</span> {
+            <span class="ident">FutureResult</span>::<span class="ident">from</span>(<span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                <span class="ident">MessageStreamError</span>::<span class="ident">InvalidMessage</span> {
+                    <span class="ident">reason</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>),
+                }
+            }))
+        }).<span class="ident">sink_map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">MessageStreamError</span>::<span class="ident">Transport</span> {
+            <span class="ident">error</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">err</span>),
+        }).<span class="ident">with</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> {
+            <span class="ident">FutureResult</span>::<span class="ident">from</span>(<span class="ident">serde_json</span>::<span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                <span class="ident">MessageStreamError</span>::<span class="ident">InvalidMessage</span> {
+                    <span class="ident">reason</span>: <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">err</span>),
+                }
+            }))
         })
 }
-
 
 <span class="comment">// #[cfg(test)]</span>
 <span class="comment">// mod tests {</span>
 <span class="comment">//     extern crate tokio;</span>
-    
+
 <span class="comment">//     use super::*;</span>
 <span class="comment">//     use futures::sync::mpsc::channel;</span>
 <span class="comment">//     use futures::future::Future;</span>
 <span class="comment">//     use document::{Operation, Insert};</span>
 <span class="comment">//     use self::tokio::runtime::current_thread::Runtime;</span>
-    
+
 <span class="comment">//     #[test]</span>
 <span class="comment">//     fn test_message_stream() {</span>
 <span class="comment">//         let mut rt = Runtime::new().expect(&quot;new test runtime&quot;);</span>
@@ -415,7 +395,7 @@
 <span class="comment">//                 })</span>
 <span class="comment">//         ).unwrap();</span>
 <span class="comment">//     }</span>
-    
+
 <span class="comment">//     #[test]</span>
 <span class="comment">//     fn test_message_sink() {</span>
 <span class="comment">//         let mut rt = Runtime::new().expect(&quot;new test runtime&quot;);</span>

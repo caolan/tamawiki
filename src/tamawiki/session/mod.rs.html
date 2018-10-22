@@ -202,23 +202,23 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
+<span id="205">205</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Co-ordinates store updates and notifications</span>
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::{<span class="self">self</span>, <span class="ident">Future</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">stream</span>::<span class="ident">Stream</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">task</span>::<span class="ident">Task</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Weak</span>, <span class="ident">Arc</span>, <span class="ident">Mutex</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::{<span class="ident">Path</span>, <span class="ident">PathBuf</span>};
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Arc</span>, <span class="ident">Mutex</span>, <span class="ident">Weak</span>};
 
-<span class="kw">use</span> <span class="ident">store</span>::{<span class="ident">Store</span>, <span class="ident">StoreError</span>, <span class="ident">SequenceId</span>};
-<span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">Event</span>, <span class="ident">Edit</span>, <span class="ident">Join</span>, <span class="ident">Leave</span>, <span class="ident">ParticipantId</span>};
+<span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">Edit</span>, <span class="ident">Event</span>, <span class="ident">Join</span>, <span class="ident">Leave</span>, <span class="ident">ParticipantId</span>};
+<span class="kw">use</span> <span class="ident">store</span>::{<span class="ident">SequenceId</span>, <span class="ident">Store</span>, <span class="ident">StoreError</span>};
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">participant</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">message</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">participant</span>;
 
 <span class="kw">use</span> <span class="self">self</span>::<span class="ident">participant</span>::<span class="ident">Participant</span>;
-
 
 <span class="doccomment">/// Provides access to DocumentSessions.</span>
 <span class="comment">// This struct is a cloneable interface to DocumentSessionData.</span>
@@ -230,12 +230,15 @@
 <span class="comment">// Holds all active DocumentSessions</span>
 <span class="kw">struct</span> <span class="ident">DocumentSessionManagerData</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> {
     <span class="ident">sessions</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">PathBuf</span>, <span class="ident">WeakDocumentSession</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span>,
-    <span class="ident">store</span>: <span class="ident">T</span>
+    <span class="ident">store</span>: <span class="ident">T</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="ident">DocumentSessionManagerData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">store</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">sessions</span>: <span class="ident">Default</span>::<span class="ident">default</span>(), <span class="ident">store</span> }
+        <span class="self">Self</span> {
+            <span class="ident">sessions</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
+            <span class="ident">store</span>,
+        }
     }
 }
 
@@ -243,39 +246,36 @@
     <span class="doccomment">/// Creates a new DocumentSessionManager using the provided Store</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">store</span>: <span class="ident">T</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">data</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(
-                <span class="ident">DocumentSessionManagerData</span>::<span class="ident">new</span>(<span class="ident">store</span>)
-            ))
+            <span class="ident">data</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">DocumentSessionManagerData</span>::<span class="ident">new</span>(<span class="ident">store</span>))),
         }
     }
-    
+
     <span class="doccomment">/// Join an existing or new DocumentSession for the given path. A new</span>
     <span class="doccomment">/// DocumentSession is created automatically when the path has no</span>
     <span class="doccomment">/// active participants.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>, <span class="ident">start_seq</span>: <span class="ident">SequenceId</span>) <span class="op">-&gt;</span>
-    <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Participant</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span>
-    {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
+        <span class="ident">start_seq</span>: <span class="ident">SequenceId</span>,
+    ) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Participant</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">StoreError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">session</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-            <span class="ident">data</span>.<span class="ident">sessions</span>.<span class="ident">get</span>(<span class="ident">path</span>)
+            <span class="ident">data</span>.<span class="ident">sessions</span>
+                .<span class="ident">get</span>(<span class="ident">path</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">upgrade</span>())
                 .<span class="ident">or_else</span>(<span class="op">||</span> {
                     <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">DocumentSession</span> {
                         <span class="ident">data</span>: <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">DocumentSessionData</span> {
                             <span class="ident">store</span>: <span class="ident">data</span>.<span class="ident">store</span>.<span class="ident">clone</span>(),
                             <span class="ident">path</span>: <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="ident">path</span>),
-                            <span class="ident">next_id</span>: <span class="number">0</span>,
+                            <span class="ident">next_id</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
                             <span class="ident">last_seq</span>: <span class="prelude-val">None</span>,
                             <span class="ident">waiting_tasks</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-                        }))
+                        })),
                     };
-                    <span class="ident">data</span>.<span class="ident">sessions</span>.<span class="ident">insert</span>(
-                        <span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="ident">path</span>),
-                        <span class="ident">s</span>.<span class="ident">downgrade</span>()
-                    );
+                    <span class="ident">data</span>.<span class="ident">sessions</span>.<span class="ident">insert</span>(<span class="ident">PathBuf</span>::<span class="ident">from</span>(<span class="ident">path</span>), <span class="ident">s</span>.<span class="ident">downgrade</span>());
                     <span class="prelude-val">Some</span>(<span class="ident">s</span>)
-                })
-                .<span class="ident">unwrap</span>()
+                }).<span class="ident">unwrap</span>()
         };
         <span class="ident">session</span>.<span class="ident">join</span>(<span class="ident">start_seq</span>)
     }
@@ -286,14 +286,14 @@
 <span class="comment">// This is a cloneable interface to DocumentSessionData.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DocumentSession</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> {
-    <span class="ident">data</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">DocumentSessionData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>
+    <span class="ident">data</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">DocumentSessionData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="comment">// A weak reference to a DocumentSession. These are used by</span>
 <span class="comment">// DocumentSessionManager to prevent keeping active old sessions with</span>
 <span class="comment">// no participants.</span>
 <span class="kw">struct</span> <span class="ident">WeakDocumentSession</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> {
-    <span class="ident">data</span>: <span class="ident">Weak</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">DocumentSessionData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>
+    <span class="ident">data</span>: <span class="ident">Weak</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">DocumentSessionData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Holds information about the active session.</span>
@@ -310,9 +310,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Store</span> <span class="op">+</span> <span class="ident">Sync</span><span class="op">&gt;</span> <span class="ident">DocumentSession</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="comment">// this must only be called via DocumentSessionManager</span>
-    <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start_seq</span>: <span class="ident">SequenceId</span>) <span class="op">-&gt;</span>
-    <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Participant</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span>
-    {
+    <span class="kw">fn</span> <span class="ident">join</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">start_seq</span>: <span class="ident">SequenceId</span>,
+    ) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Participant</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">StoreError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
             <span class="ident">data</span>.<span class="ident">next_id</span> <span class="op">+=</span> <span class="number">1</span>;
@@ -321,16 +322,13 @@
         };
         <span class="kw">let</span> <span class="ident">s2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="ident">Event</span>::<span class="ident">Join</span>(<span class="ident">Join</span> { <span class="ident">id</span> });
-        
-        <span class="self">self</span>.<span class="ident">write</span>(<span class="ident">event</span>).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">_seq</span><span class="op">|</span> {
-            <span class="ident">Participant</span>::<span class="ident">new</span>(<span class="ident">s2</span>, <span class="ident">id</span>, <span class="ident">start_seq</span>)
-        })
+
+        <span class="self">self</span>.<span class="ident">write</span>(<span class="ident">event</span>)
+            .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">_seq</span><span class="op">|</span> <span class="ident">Participant</span>::<span class="ident">new</span>(<span class="ident">s2</span>, <span class="ident">id</span>, <span class="ident">start_seq</span>))
     }
 
     <span class="comment">// Notifies the other clients that a participant has left</span>
-    <span class="kw">fn</span> <span class="ident">leave</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ParticipantId</span>) <span class="op">-&gt;</span>
-    <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">SequenceId</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span>
-    {
+    <span class="kw">fn</span> <span class="ident">leave</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">ParticipantId</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">SequenceId</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">StoreError</span><span class="op">&gt;</span> {
         {
             <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Participant {} left {:?}&quot;</span>, <span class="ident">id</span>, <span class="ident">data</span>.<span class="ident">path</span>);
@@ -350,7 +348,7 @@
     <span class="comment">// preventing them from being dropped.</span>
     <span class="kw">fn</span> <span class="ident">downgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-&gt;</span> <span class="ident">WeakDocumentSession</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">WeakDocumentSession</span> {
-            <span class="ident">data</span>: <span class="ident">Arc</span>::<span class="ident">downgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>)
+            <span class="ident">data</span>: <span class="ident">Arc</span>::<span class="ident">downgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>),
         }
     }
 
@@ -364,7 +362,7 @@
     }
 
     <span class="comment">// Writes an event to the store.</span>
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">SequenceId</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">SequenceId</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">StoreError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">path</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">s2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
@@ -376,8 +374,12 @@
     <span class="comment">// First, transforms an event to accomodate concurrent events</span>
     <span class="comment">// already in the store, then, writes the resulting transformed</span>
     <span class="comment">// event to the store.</span>
-    <span class="kw">fn</span> <span class="ident">write_transformed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sender</span>: <span class="ident">ParticipantId</span>, <span class="ident">parent_seq</span>: <span class="ident">SequenceId</span>, <span class="ident">event</span>: <span class="ident">Event</span>) <span class="op">-&gt;</span>
-    <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">SequenceId</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">StoreError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_transformed</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sender</span>: <span class="ident">ParticipantId</span>,
+        <span class="ident">parent_seq</span>: <span class="ident">SequenceId</span>,
+        <span class="ident">event</span>: <span class="ident">Event</span>,
+    ) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">SequenceId</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">StoreError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">concurrent_events</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
             <span class="ident">data</span>.<span class="ident">store</span>.<span class="ident">since</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">path</span>.<span class="ident">as_path</span>(), <span class="ident">parent_seq</span>)
@@ -385,9 +387,9 @@
         <span class="kw">let</span> <span class="ident">transformed</span> <span class="op">=</span> <span class="ident">concurrent_events</span>.<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">stream</span><span class="op">|</span> {
             <span class="ident">stream</span>.<span class="ident">fold</span>(<span class="ident">event</span>, <span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">event</span>, (<span class="ident">_seq</span>, <span class="ident">concurrent</span>)<span class="op">|</span> {
                 <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">concurrent</span> {
-                    <span class="ident">Event</span>::<span class="ident">Edit</span>(<span class="ident">Edit</span> {<span class="ident">author</span>, ..}) <span class="op">=&gt;</span> <span class="ident">author</span>,
-                    <span class="ident">Event</span>::<span class="ident">Join</span>(<span class="ident">Join</span> {<span class="ident">id</span>}) <span class="op">=&gt;</span> <span class="ident">id</span>,
-                    <span class="ident">Event</span>::<span class="ident">Leave</span>(<span class="ident">Leave</span> {<span class="ident">id</span>}) <span class="op">=&gt;</span> <span class="ident">id</span>,
+                    <span class="ident">Event</span>::<span class="ident">Edit</span>(<span class="ident">Edit</span> { <span class="ident">author</span>, .. }) <span class="op">=&gt;</span> <span class="ident">author</span>,
+                    <span class="ident">Event</span>::<span class="ident">Join</span>(<span class="ident">Join</span> { <span class="ident">id</span> }) <span class="op">=&gt;</span> <span class="ident">id</span>,
+                    <span class="ident">Event</span>::<span class="ident">Leave</span>(<span class="ident">Leave</span> { <span class="ident">id</span> }) <span class="op">=&gt;</span> <span class="ident">id</span>,
                 };
                 <span class="comment">// TODO: update store.since query to exclude events</span>
                 <span class="comment">// from sender at source instead of filtering here</span>

@@ -111,19 +111,6 @@
 <span id="111">111</span>
 <span id="112">112</span>
 <span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Tungstenite WebSocket wrapper for use with Hyper</span>
 <span class="doccomment">//!</span>
@@ -133,17 +120,17 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Copyright (c) 2018 Sean McArthur</span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! Permission is hereby granted, free of charge, to any person obtaining a copy</span>
 <span class="doccomment">//! of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
 <span class="doccomment">//! in the Software without restriction, including without limitation the rights</span>
 <span class="doccomment">//! to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
 <span class="doccomment">//! copies of the Software, and to permit persons to whom the Software is</span>
 <span class="doccomment">//! furnished to do so, subject to the following conditions:</span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! The above copyright notice and this permission notice shall be included in</span>
 <span class="doccomment">//! all copies or substantial portions of the Software.</span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
 <span class="doccomment">//! IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
 <span class="doccomment">//! FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
@@ -152,15 +139,14 @@
 <span class="doccomment">//! OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN</span>
 <span class="doccomment">//! THE SOFTWARE.</span>
 
-<span class="kw">use</span> <span class="ident">tungstenite</span>::<span class="ident">protocol</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">Async</span>, <span class="ident">AsyncSink</span>, <span class="ident">Poll</span>, <span class="ident">Sink</span>, <span class="ident">StartSend</span>, <span class="ident">Stream</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span>;
 <span class="kw">use</span> <span class="ident">hyper</span>::<span class="ident">upgrade</span>::<span class="ident">Upgraded</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">ErrorKind</span>::<span class="ident">WouldBlock</span>;
+<span class="kw">use</span> <span class="ident">tungstenite</span>::<span class="ident">protocol</span>;
 
 <span class="comment">// re-export tungstenite Message</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tungstenite</span>::<span class="ident">protocol</span>::<span class="ident">Message</span>;
-
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WebSocket</span> {
     <span class="ident">inner</span>: <span class="ident">protocol</span>::<span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">Upgraded</span><span class="op">&gt;</span>,
@@ -168,7 +154,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">protocol</span>::<span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">Upgraded</span><span class="op">&gt;&gt;</span> <span class="kw">for</span> <span class="ident">WebSocket</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ws</span>: <span class="ident">protocol</span>::<span class="ident">WebSocket</span><span class="op">&lt;</span><span class="ident">Upgraded</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span> {<span class="ident">inner</span>: <span class="ident">ws</span>}
+        <span class="self">Self</span> { <span class="ident">inner</span>: <span class="ident">ws</span> }
     }
 }
 
@@ -181,13 +167,9 @@
             <span class="prelude-val">Ok</span>(<span class="ident">item</span>) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">item</span>))),
             <span class="prelude-val">Err</span>(::<span class="ident">tungstenite</span>::<span class="ident">Error</span>::<span class="ident">Io</span>(<span class="kw-2">ref</span> <span class="ident">err</span>)) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">WouldBlock</span> <span class="op">=&gt;</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>)
-            },
-            <span class="prelude-val">Err</span>(::<span class="ident">tungstenite</span>::<span class="ident">Error</span>::<span class="ident">ConnectionClosed</span>(<span class="ident">_frame</span>)) <span class="op">=&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>))
-            },
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>)
             }
+            <span class="prelude-val">Err</span>(::<span class="ident">tungstenite</span>::<span class="ident">Error</span>::<span class="ident">ConnectionClosed</span>(<span class="ident">_frame</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(<span class="prelude-val">None</span>)),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
         }
     }
 }
@@ -199,17 +181,13 @@
     <span class="kw">fn</span> <span class="ident">start_send</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="self">Self</span>::<span class="ident">SinkItem</span>) <span class="op">-&gt;</span> <span class="ident">StartSend</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">SinkItem</span>, <span class="self">Self</span>::<span class="ident">SinkError</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">write_message</span>(<span class="ident">item</span>) {
             <span class="prelude-val">Ok</span>(()) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AsyncSink</span>::<span class="ident">Ready</span>),
-            <span class="prelude-val">Err</span>(::<span class="ident">tungstenite</span>::<span class="ident">Error</span>::<span class="ident">SendQueueFull</span>(<span class="ident">inner</span>)) <span class="op">=&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">AsyncSink</span>::<span class="ident">NotReady</span>(<span class="ident">inner</span>))
-            },
+            <span class="prelude-val">Err</span>(::<span class="ident">tungstenite</span>::<span class="ident">Error</span>::<span class="ident">SendQueueFull</span>(<span class="ident">inner</span>)) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">AsyncSink</span>::<span class="ident">NotReady</span>(<span class="ident">inner</span>)),
             <span class="prelude-val">Err</span>(::<span class="ident">tungstenite</span>::<span class="ident">Error</span>::<span class="ident">Io</span>(<span class="kw-2">ref</span> <span class="ident">err</span>)) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">WouldBlock</span> <span class="op">=&gt;</span> {
                 <span class="comment">// the message was accepted and partly written, so this</span>
                 <span class="comment">// isn&#39;t an error.</span>
                 <span class="prelude-val">Ok</span>(<span class="ident">AsyncSink</span>::<span class="ident">Ready</span>)
             }
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>)
-            }
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
         }
     }
 
@@ -218,10 +196,8 @@
             <span class="prelude-val">Ok</span>(()) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(())),
             <span class="prelude-val">Err</span>(::<span class="ident">tungstenite</span>::<span class="ident">Error</span>::<span class="ident">Io</span>(<span class="kw-2">ref</span> <span class="ident">err</span>)) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">WouldBlock</span> <span class="op">=&gt;</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>)
-            },
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>)
             }
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>),
         }
     }
 
@@ -230,26 +206,24 @@
             <span class="prelude-val">Ok</span>(()) <span class="op">=&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">Ready</span>(())),
             <span class="prelude-val">Err</span>(::<span class="ident">tungstenite</span>::<span class="ident">Error</span>::<span class="ident">Io</span>(<span class="kw-2">ref</span> <span class="ident">err</span>)) <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">WouldBlock</span> <span class="op">=&gt;</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">Async</span>::<span class="ident">NotReady</span>)
-            },
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>)
             }
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">WebSocket</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;WebSocket&quot;</span>)
-            .<span class="ident">finish</span>()
+        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;WebSocket&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">websocket_text</span>(<span class="ident">ws</span>: <span class="ident">WebSocket</span>) <span class="op">-&gt;</span>
-<span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">String</span>, <span class="ident">Error</span><span class="op">=</span>::<span class="ident">tungstenite</span>::<span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">SinkItem</span><span class="op">=</span><span class="ident">String</span>, <span class="ident">SinkError</span><span class="op">=</span>::<span class="ident">tungstenite</span>::<span class="ident">Error</span><span class="op">&gt;</span>
-{
-    <span class="ident">ws</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">msg</span>.<span class="ident">into_text</span>()).<span class="ident">with</span>(<span class="op">|</span><span class="ident">text</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Message</span>::<span class="ident">Text</span>(<span class="ident">text</span>)))
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">websocket_text</span>(
+    <span class="ident">ws</span>: <span class="ident">WebSocket</span>,
+) <span class="op">-&gt;</span> <span class="kw">impl</span> <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">String</span>, <span class="ident">Error</span> <span class="op">=</span> ::<span class="ident">tungstenite</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+         <span class="op">+</span> <span class="ident">Sink</span><span class="op">&lt;</span><span class="ident">SinkItem</span> <span class="op">=</span> <span class="ident">String</span>, <span class="ident">SinkError</span> <span class="op">=</span> ::<span class="ident">tungstenite</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="ident">ws</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">msg</span><span class="op">|</span> <span class="ident">msg</span>.<span class="ident">into_text</span>())
+        .<span class="ident">with</span>(<span class="op">|</span><span class="ident">text</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">Message</span>::<span class="ident">Text</span>(<span class="ident">text</span>)))
 }
 </pre>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../";window.currentCrate = "tamawiki";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script defer src="../../search-index.js"></script></body></html>

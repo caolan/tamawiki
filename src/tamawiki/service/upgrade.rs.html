@@ -70,24 +70,18 @@
 <span id="70">70</span>
 <span id="71">71</span>
 <span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
 </pre><pre class="rust ">
-<span class="kw">use</span> <span class="ident">hyper</span>::{<span class="ident">Body</span>, <span class="ident">Request</span>, <span class="ident">Response</span>};
-<span class="kw">use</span> <span class="ident">http</span>::<span class="ident">header</span>::{<span class="ident">UPGRADE</span>, <span class="ident">SEC_WEBSOCKET_KEY</span>, <span class="ident">SEC_WEBSOCKET_VERSION</span>};
-<span class="kw">use</span> <span class="ident">tungstenite</span>::<span class="ident">protocol</span>;
-<span class="kw">use</span> <span class="ident">sha1</span>::{<span class="ident">Digest</span>, <span class="ident">Sha1</span>};
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future</span>, <span class="ident">Future</span>};
-<span class="kw">use</span> <span class="ident">hyper</span>;
-<span class="kw">use</span> <span class="ident">http</span>;
 <span class="kw">use</span> <span class="ident">base64</span>;
+<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">future</span>, <span class="ident">Future</span>};
+<span class="kw">use</span> <span class="ident">http</span>;
+<span class="kw">use</span> <span class="ident">http</span>::<span class="ident">header</span>::{<span class="ident">SEC_WEBSOCKET_KEY</span>, <span class="ident">SEC_WEBSOCKET_VERSION</span>, <span class="ident">UPGRADE</span>};
+<span class="kw">use</span> <span class="ident">hyper</span>;
+<span class="kw">use</span> <span class="ident">hyper</span>::{<span class="ident">Body</span>, <span class="ident">Request</span>, <span class="ident">Response</span>};
+<span class="kw">use</span> <span class="ident">sha1</span>::{<span class="ident">Digest</span>, <span class="ident">Sha1</span>};
+<span class="kw">use</span> <span class="ident">tungstenite</span>::<span class="ident">protocol</span>;
 
-<span class="kw">use</span> <span class="ident">websocket</span>::<span class="ident">WebSocket</span>;
 <span class="kw">use</span> <span class="ident">service</span>::<span class="ident">error</span>::<span class="ident">HttpError</span>;
-
+<span class="kw">use</span> <span class="ident">websocket</span>::<span class="ident">WebSocket</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_websocket_upgrade_request</span>(<span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">Request</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
     <span class="kw">match</span> <span class="ident">req</span>.<span class="ident">headers</span>().<span class="ident">get</span>(<span class="ident">UPGRADE</span>) {
@@ -96,12 +90,14 @@
             <span class="comment">// invalid ascii chars in header value</span>
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         },
-        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>
+        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">websocket_upgrade</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">fun</span>: <span class="ident">F</span>) <span class="op">-&gt;</span>
-    <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">=</span><span class="ident">HttpError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">websocket_upgrade</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">U</span><span class="op">&gt;</span>(
+    <span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>,
+    <span class="ident">fun</span>: <span class="ident">F</span>,
+) <span class="op">-&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">Response</span><span class="op">&lt;</span><span class="ident">Body</span><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">HttpError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">WebSocket</span>) <span class="op">-&gt;</span> <span class="ident">U</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">U</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (), <span class="ident">Error</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -113,7 +109,7 @@
             <span class="comment">// invalid ascii chars in header value</span>
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=&gt;</span> <span class="bool-val">false</span>,
         },
-        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>
+        <span class="kw">_</span> <span class="op">=&gt;</span> <span class="bool-val">false</span>,
     };
     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">headers</span>().<span class="ident">get</span>(<span class="ident">SEC_WEBSOCKET_KEY</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">k</span><span class="op">|</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sha1</span> <span class="op">=</span> <span class="ident">Sha1</span>::<span class="ident">default</span>();
@@ -125,33 +121,27 @@
     <span class="kw">if</span> <span class="op">!</span><span class="ident">upgrade</span> <span class="op">||</span> <span class="op">!</span><span class="ident">version</span> <span class="op">||</span> <span class="ident">key</span>.<span class="ident">is_none</span>() {
         <span class="kw">return</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">future</span>::<span class="ident">err</span>(<span class="ident">HttpError</span>::<span class="ident">BadRequest</span>));
     }
-    
+
     <span class="kw">let</span> <span class="ident">on_upgrade</span> <span class="op">=</span> <span class="ident">req</span>
         .<span class="ident">into_body</span>()
         .<span class="ident">on_upgrade</span>()
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="macro">eprintln</span><span class="macro">!</span>(<span class="string">&quot;upgrade error: {}&quot;</span>, <span class="ident">err</span>))
         .<span class="ident">and_then</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">upgraded</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">protocol</span>::<span class="ident">WebSocket</span>::<span class="ident">from_raw_socket</span>(
-                <span class="ident">upgraded</span>,
-                <span class="ident">protocol</span>::<span class="ident">Role</span>::<span class="ident">Server</span>,
-                <span class="prelude-val">None</span>
-            );
+            <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">protocol</span>::<span class="ident">WebSocket</span>::<span class="ident">from_raw_socket</span>(<span class="ident">upgraded</span>, <span class="ident">protocol</span>::<span class="ident">Role</span>::<span class="ident">Server</span>, <span class="prelude-val">None</span>);
             <span class="ident">fun</span>(<span class="ident">WebSocket</span>::<span class="ident">from</span>(<span class="ident">io</span>))
         });
 
     <span class="ident">hyper</span>::<span class="ident">rt</span>::<span class="ident">spawn</span>(<span class="ident">on_upgrade</span>);
 
-    <span class="ident">Box</span>::<span class="ident">new</span>(
-        <span class="ident">future</span>::<span class="ident">ok</span>(
-            <span class="ident">http</span>::<span class="ident">Response</span>::<span class="ident">builder</span>()
-                .<span class="ident">status</span>(<span class="number">101</span>)
-                .<span class="ident">header</span>(<span class="string">&quot;connection&quot;</span>, <span class="string">&quot;upgrade&quot;</span>)
-                .<span class="ident">header</span>(<span class="string">&quot;upgrade&quot;</span>, <span class="string">&quot;websocket&quot;</span>)
-                .<span class="ident">header</span>(<span class="string">&quot;sec-websocket-accept&quot;</span>, <span class="ident">key</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>())
-                .<span class="ident">body</span>(<span class="ident">Default</span>::<span class="ident">default</span>())
-                .<span class="ident">unwrap</span>()
-        )
-    )
+    <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">future</span>::<span class="ident">ok</span>(
+        <span class="ident">http</span>::<span class="ident">Response</span>::<span class="ident">builder</span>()
+            .<span class="ident">status</span>(<span class="number">101</span>)
+            .<span class="ident">header</span>(<span class="string">&quot;connection&quot;</span>, <span class="string">&quot;upgrade&quot;</span>)
+            .<span class="ident">header</span>(<span class="string">&quot;upgrade&quot;</span>, <span class="string">&quot;websocket&quot;</span>)
+            .<span class="ident">header</span>(<span class="string">&quot;sec-websocket-accept&quot;</span>, <span class="ident">key</span>.<span class="ident">unwrap</span>().<span class="ident">as_str</span>())
+            .<span class="ident">body</span>(<span class="ident">Default</span>::<span class="ident">default</span>())
+            .<span class="ident">unwrap</span>(),
+    ))
 }
 </pre>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><aside id="help" class="hidden"><div><h1 class="hidden">Help</h1><div class="shortcuts"><h2>Keyboard Shortcuts</h2><dl><dt><kbd>?</kbd></dt><dd>Show this help dialog</dd><dt><kbd>S</kbd></dt><dd>Focus the search field</dd><dt><kbd>↑</kbd></dt><dd>Move up in search results</dd><dt><kbd>↓</kbd></dt><dd>Move down in search results</dd><dt><kbd>↹</kbd></dt><dd>Switch tab</dd><dt><kbd>&#9166;</kbd></dt><dd>Go to active search result</dd><dt><kbd>+</kbd></dt><dd>Expand all sections</dd><dt><kbd>-</kbd></dt><dd>Collapse all sections</dd></dl></div><div class="infos"><h2>Search Tricks</h2><p>Prefix searches with a type followed by a colon (e.g. <code>fn:</code>) to restrict the search to a given type.</p><p>Accepted types are: <code>fn</code>, <code>mod</code>, <code>struct</code>, <code>enum</code>, <code>trait</code>, <code>type</code>, <code>macro</code>, and <code>const</code>.</p><p>Search functions by type signature (e.g. <code>vec -> usize</code> or <code>* -> vec</code>)</p><p>Search multiple things at once by splitting your query with comma (e.g. <code>str,u8</code> or <code>String,struct:Vec,test</code>)</p></div></div></aside><script>window.rootPath = "../../../";window.currentCrate = "tamawiki";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script defer src="../../../search-index.js"></script></body></html>
