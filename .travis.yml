@@ -6,11 +6,10 @@ before_script:
   - echo "deb https://deb.nodesource.com/node_8.x trusty main" | sudo tee -a /etc/apt/sources.list
   - sudo apt-get update -qq
   - sudo apt-get install nodejs -y
+  - npm install && npx webpack
 script:
   - cargo build --verbose --all
   - cargo test --verbose --all
-  - cargo doc --verbose --all
-  - npm install && npx webpack
 rust:
   - stable
   - beta
@@ -24,6 +23,8 @@ cache:
   cargo: true
   directories:
     - node_modules
+before_deploy:
+  - cargo doc --verbose --all
 deploy:
   provider: pages
   skip-cleanup: true
