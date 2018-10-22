@@ -1,7 +1,7 @@
 {
     "type": "apply",
     "initial": {
-        "content": "Foo Bar Baz",
+        "content": "foobar",
         "participants": [
             {"id": 1, "cursor_pos": 0}
         ]
@@ -10,15 +10,17 @@
         {"Edit": {
             "author": 1,
             "operations": [
-                {"Delete": {"start": 7, "end": 11}}
+                {"Insert": {"pos": 8, "content": "test"}}
             ]
         }}
     ],
-    "error": null,
+    "error": {
+        "type": "OutsideDocument"
+    },
     "expected": {
-        "content": "Foo Bar",
+        "content": "foobar",
         "participants": [
-            {"id": 1, "cursor_pos": 7}
+            {"id": 1, "cursor_pos": 0}
         ]
     }
 }

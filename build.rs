@@ -55,7 +55,7 @@ fn main() {
     // functions are each collapsed onto one line only, making
     // tracking down test errors more painful.
     let summary = rustfmt::run(Input::File(out_path), &Default::default());
-    
+
     assert!(!summary.has_parsing_errors());
     assert!(!summary.has_operational_errors());
     // ignore formatting errors, since we don't mind if it's not formatted perfectly
@@ -73,6 +73,7 @@ enum TestConfig {
         initial: Document,
         expected: Document,
         events: Vec<Event>,
+        error: Option<EditError>,
     },
 }
 
@@ -196,6 +197,7 @@ impl ToTokens for Edit {
             let mut inner = TokenStream::new();
             for op in &self.operations {
                 op.to_tokens(&mut inner);
+                inner.append(Punct::new(',', Spacing::Joint));
             }
             tokens.append(Ident::new("vec", Span::call_site()));
             tokens.append(Punct::new('!', Spacing::Joint));
@@ -255,6 +257,21 @@ impl ToTokens for Delete {
     }
 }
 
+impl ToTokens for EditError {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.append(Ident::new("EditError", Span::call_site()));
+        tokens.append(Punct::new(':', Spacing::Joint));
+        tokens.append(Punct::new(':', Spacing::Alone));
+        tokens.append(Ident::new(
+            match *self {
+                EditError::OutsideDocument => "OutsideDocument",
+                EditError::InvalidOperation => "InvalidOperation",
+            },
+            Span::call_site(),
+        ));
+    }
+}
+
 fn write_test(mut output: &File, name: &str, mut file: File) {
     let mut content = String::new();
     file.read_to_string(&mut content).unwrap();
@@ -267,16 +284,29 @@ fn write_test(mut output: &File, name: &str, mut file: File) {
             initial,
             expected,
             events,
+            error,
         } => {
             write!(
                 output,
                 "{}\n",
-                quote! {
-                    #[test]
-                    fn #name() {
-                        let mut doc = #initial;
-                        #(doc.apply(&#events).unwrap();)*
-                        assert_eq!(doc, #expected);
+                if error.is_some() {
+                    quote! {
+                        #[test]
+                        fn #name() {
+                            let mut doc = #initial;
+                            #(let last_result = doc.apply(&#events);)*
+                            assert_eq!(last_result, Err(#error));
+                            assert_eq!(doc, #expected);
+                        }
+                    }
+                } else {
+                    quote! {
+                        #[test]
+                        fn #name() {
+                            let mut doc = #initial;
+                            #(doc.apply(&#events).unwrap();)*
+                            assert_eq!(doc, #expected);
+                        }
                     }
                 }
             ).unwrap();

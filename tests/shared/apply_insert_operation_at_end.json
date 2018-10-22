@@ -14,6 +14,7 @@
             ]
         }}
     ],
+    "error": null,
     "expected": {
         "content": "Foo Bar Baz",
         "participants": [

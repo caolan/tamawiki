@@ -174,3 +174,17 @@ pub struct Edit {
     /// The Operations which describe this Edit
     pub operations: Vec<Operation>,
 }
+
+/// Error conditions which may occur when applying an Operation to a
+/// Document.
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum EditError {
+    /// The Operation's position or range falls outside the current
+    /// Document.
+    OutsideDocument,
+    /// The operation is invalid and could not be applied meaningfully
+    /// to any document.
+    InvalidOperation,
+}
+

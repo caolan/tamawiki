@@ -1,0 +1,31 @@
+{
+    "type": "apply",
+    "initial": {
+        "content": "",
+        "participants": []
+    },
+    "events": [
+        {"Join": {"id": 1}},
+        {"Join": {"id": 2}},
+        {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "test"}}
+            ]
+        }},
+        {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Delete": {"start": 0, "end": 2}}
+            ]
+        }}
+    ],
+    "error": null,
+    "expected": {
+        "content": "st",
+        "participants": [
+            {"id": 1, "cursor_pos": 2},
+            {"id": 2, "cursor_pos": 0}
+        ]
+    }
+}

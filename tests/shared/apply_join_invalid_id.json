@@ -1,22 +1,19 @@
 {
     "type": "apply",
     "initial": {
-        "content": "Foo Bar Baz",
+        "content": "foobar",
         "participants": [
             {"id": 1, "cursor_pos": 0}
         ]
     },
     "events": [
-        {"Edit": {
-            "author": 1,
-            "operations": [
-                {"Delete": {"start": 0, "end": 4}}
-            ]
-        }}
+        {"Join": {"id": 1}}
     ],
-    "error": null,
+    "error": {
+        "type": "InvalidOperation"
+    },
     "expected": {
-        "content": "Bar Baz",
+        "content": "foobar",
         "participants": [
             {"id": 1, "cursor_pos": 0}
         ]

@@ -1,0 +1,22 @@
+{
+    "type": "apply",
+    "initial": {
+        "content": "",
+        "participants": []
+    },
+    "events": [
+        {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "test"}}
+            ]
+        }}
+    ],
+    "error": {
+        "type": "InvalidOperation"
+    },
+    "expected": {
+        "content": "",
+        "participants": []
+    }
+}

@@ -1,7 +1,7 @@
 {
     "type": "apply",
     "initial": {
-        "content": "Foo Bar Baz",
+        "content": "Hello",
         "participants": [
             {"id": 1, "cursor_pos": 0}
         ]
@@ -10,15 +10,17 @@
         {"Edit": {
             "author": 1,
             "operations": [
-                {"Delete": {"start": 7, "end": 11}}
+                {"Insert": {"pos": 5, "content": ", world!"}},
+                {"Delete": {"start": 7, "end": 12}},
+                {"Insert": {"pos": 7, "content": "galaxy"}}
             ]
         }}
     ],
     "error": null,
     "expected": {
-        "content": "Foo Bar",
+        "content": "Hello, galaxy!",
         "participants": [
-            {"id": 1, "cursor_pos": 7}
+            {"id": 1, "cursor_pos": 13}
         ]
     }
 }

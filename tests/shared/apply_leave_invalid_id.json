@@ -1,0 +1,17 @@
+{
+    "type": "apply",
+    "initial": {
+        "content": "foobar",
+        "participants": []
+    },
+    "events": [
+        {"Leave": {"id": 1}}
+    ],
+    "error": {
+        "type": "InvalidOperation"
+    },
+    "expected": {
+        "content": "foobar",
+        "participants": []
+    }
+}

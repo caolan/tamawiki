@@ -1,0 +1,19 @@
+{
+    "type": "apply",
+    "initial": {
+        "content": "foobar",
+        "participants": []
+    },
+    "events": [
+        {"Join": {"id": 1}},
+        {"Join": {"id": 2}}
+    ],
+    "error": null,
+    "expected": {
+        "content": "foobar",
+        "participants": [
+            {"id": 1, "cursor_pos": 0},
+            {"id": 2, "cursor_pos": 0}
+        ]
+    }
+}
