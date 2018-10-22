@@ -2,9 +2,9 @@
     "type": "apply",
     "initial": {
         "content": "Hello, !",
-        "participants": {
-            "1": {"cursor_pos": 0}
-        }
+        "participants": [
+            {"id": 1, "cursor_pos": 0}
+        ]
     },
     "events": [
         {"Edit": {
@@ -16,8 +16,8 @@
     ],
     "expected": {
         "content": "Hello, world!",
-        "participants": {
-            "1": {"cursor_pos": 12}
-        }
+        "participants": [
+            {"id": 1, "cursor_pos": 12}
+        ]
     }
 }
