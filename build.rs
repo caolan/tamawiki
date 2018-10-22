@@ -54,7 +54,11 @@ fn main() {
     // Format the generated tests using rustfmt, otherwise the test
     // functions are each collapsed onto one line only, making
     // tracking down test errors more painful.
-    assert!(rustfmt::run(Input::File(out_path), &Default::default()).has_no_errors());
+    let summary = rustfmt::run(Input::File(out_path), &Default::default());
+    
+    assert!(!summary.has_parsing_errors());
+    assert!(!summary.has_operational_errors());
+    // ignore formatting errors, since we don't mind if it's not formatted perfectly
 }
 
 // include the type definitions here so we can deserialize the JSON
