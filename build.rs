@@ -75,6 +75,11 @@ enum TestConfig {
         events: Vec<Event>,
         error: Option<EditError>,
     },
+    Transform {
+        initial: Event,
+        expected: Event,
+        concurrent: Vec<Event>,
+    },
 }
 
 fn field<F>(tokens: &mut TokenStream, name: &'static str, mut f: F)
@@ -307,6 +312,24 @@ fn write_test(mut output: &File, name: &str, mut file: File) {
                             #(doc.apply(&#events).unwrap();)*
                             assert_eq!(doc, #expected);
                         }
+                    }
+                }
+            ).unwrap();
+        }
+        TestConfig::Transform {
+            initial,
+            expected,
+            concurrent,
+        } => {
+            write!(
+                output,
+                "{}\n",
+                quote! {
+                    #[test]
+                    fn #name() {
+                        let mut event = #initial;
+                        #(event.transform(&#concurrent);)*
+                        assert_eq!(event, #expected);
                     }
                 }
             ).unwrap();

@@ -1,0 +1,23 @@
+{
+    "type": "transform",
+    "initial": {"Edit": {
+        "author": 1,
+        "operations": [
+            {"Insert": {"pos": 2, "content": "ab"}}
+        ]
+    }},
+    "concurrent": [
+        {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Delete": {"start": 0, "end": 2}}
+            ]
+        }}
+    ],
+    "expected": {"Edit": {
+        "author": 1,
+        "operations": [
+            {"Insert": {"pos": 0, "content": "ab"}}
+        ]
+    }}
+}
