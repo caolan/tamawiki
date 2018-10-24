@@ -10,7 +10,7 @@ module.exports = {
     entry: "./public/src/_static/js/editor.ts",
     output: {
         path: path.resolve(__dirname, "public/dist"),
-        filename: "./_static/js/editor.js"
+        filename: "./_static/js/[name].js"
     },
     resolve: {
         extensions: [".ts", ".tsx", ".js", ".css"]

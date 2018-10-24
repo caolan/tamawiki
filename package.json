@@ -2,18 +2,27 @@
     "name": "tamawiki",
     "private": true,
     "devDependencies": {
+        "@types/chai": "^4.1.6",
+        "@types/mocha": "^5.2.5",
+        "chai": "^4.2.0",
         "css-loader": "^1.0.0",
         "mini-css-extract-plugin": "^0.4.3",
+        "mocha": "^5.2.0",
         "optimize-css-assets-webpack-plugin": "^5.0.1",
         "ts-loader": "^5.2.1",
+        "ts-mocha": "^2.0.0",
+        "ts-node": "^7.0.1",
         "typescript": "^3.1.1",
-        "uglifyjs-webpack-plugin": "^2.0.1",
         "typings-for-css-modules-loader": "^1.7.0",
+        "uglifyjs-webpack-plugin": "^2.0.1",
         "webpack": "^4.20.2",
         "webpack-cli": "^3.1.2"
     },
     "dependencies": {
         "@types/codemirror": "0.0.62",
         "codemirror": "^5.40.2"
+    },
+    "scripts": {
+        "test": "npx ts-mocha public/src/_static/js/tests/test.editor.ts"
     }
 }

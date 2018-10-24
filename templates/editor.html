@@ -13,4 +13,7 @@
 
 {% block scripts %}
 <script src="/_static/js/editor.js"></script>
+<script>
+ window.editor = new Editor(document.getElementById('editor'));
+</script>
 {% endblock scripts %}

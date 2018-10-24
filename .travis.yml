@@ -12,6 +12,7 @@ script:
   - cargo fmt --all -- --check
   - cargo build --verbose --all
   - cargo test --verbose --all
+  - npm test
 rust:
   - stable
   - beta
