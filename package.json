@@ -3,15 +3,17 @@
     "private": true,
     "devDependencies": {
         "@types/chai": "^4.1.6",
+        "@types/jsdom": "^12.2.0",
         "@types/mocha": "^5.2.5",
         "chai": "^4.2.0",
         "css-loader": "^1.0.0",
+        "jsdom": "^12.2.0",
         "mini-css-extract-plugin": "^0.4.3",
         "mocha": "^5.2.0",
         "optimize-css-assets-webpack-plugin": "^5.0.1",
         "ts-loader": "^5.2.1",
-        "ts-mocha": "^2.0.0",
         "ts-node": "^7.0.1",
+        "tslint": "^5.11.0",
         "typescript": "^3.1.1",
         "typings-for-css-modules-loader": "^1.7.0",
         "uglifyjs-webpack-plugin": "^2.0.1",
@@ -23,6 +25,8 @@
         "codemirror": "^5.40.2"
     },
     "scripts": {
-        "test": "npx ts-mocha public/src/_static/js/tests/test.editor.ts"
+        "bundle": "npx webpack",
+        "lint": "npx tslint --project tsconfig.json public/src/_static/js/**/*.ts",
+        "test": "npm run lint && npx ts-node --project tsconfig.json node_modules/.bin/mocha --require ts-node/register public/src/_static/js/tests/test.editor.ts --timeout 10000 --require public/src/_static/js/tests/env.js"
     }
 }

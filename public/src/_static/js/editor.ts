@@ -1,17 +1,30 @@
-import '../css/style.css';
-import 'codemirror/lib/codemirror.css'
-import * as CodeMirror from 'codemirror';
+import * as CodeMirror from "codemirror";
+import "codemirror/lib/codemirror.css";
+import "../css/style.css";
 
 export class Editor {
-    editor: CodeMirror.Editor;
+    public cm: CodeMirror.Editor;
+    public participants: {[id: number]: IParticipant};
+
     constructor(public element: HTMLElement) {
-        let value = element.textContent;
-        this.editor = CodeMirror(element, {
+        this.participants = {};
+        JSON.parse(element.dataset.participants || "[]").forEach(
+            (p: {id: number, cursor_pos: number}) => {
+                this.participants[p.id] = {
+                    cursor_pos: p.cursor_pos,
+                };
+            },
+        );
+        this.cm = CodeMirror(element, {
+            lineWrapping: true,
             mode: "text",
-            value: value,
-            lineWrapping: true
+            value: element.textContent,
         });
     }
+}
+
+export interface IParticipant {
+    cursor_pos: number;
 }
 
 // var editor_el = document.getElementById('editor');
@@ -33,7 +46,6 @@ export class Editor {
 //     value: value,
 //     lineWrapping: true
 // });
-
 
 // var participants = JSON.parse(editor_el.dataset.participants || '{}');
 // var connection_id = null;
@@ -66,7 +78,7 @@ export class Editor {
 //  Insert.prototype.toJSON = function () {
 //      return {'Insert': {pos: this.pos, content: this.content}};
 //  };
- 
+
 //  function Delete(start, end) {
 //      this.start = start;
 //      this.end = end;
@@ -150,7 +162,7 @@ export class Editor {
 //     var start = editor.getDoc().indexFromPos(change.from);
 //     var data = change.text.join('\n');
 //     var removed = change.removed.join('\n');
-    
+
 //     if (removed) {
 //         pushOperation(new Delete(start, start + removed.length));
 //     }
@@ -203,7 +215,7 @@ export class Editor {
 
 // function applyOperation(author, op) {
 //     var doc = editor.getDoc();
-    
+
 //     if (op.Insert) {
 //         var start = doc.posFromIndex(op.Insert.pos);
 //         doc.replaceRange(op.Insert.content, start);
