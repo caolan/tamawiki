@@ -64,17 +64,40 @@ export class Editor {
     }
 
     canApplyDelete(length: number, del: IDelete): number {
+        if (del.start > del.end) {
+            throw new Error('InvalidOperation');
+        }
         if (del.end > length) {
             throw new Error('OutsideDocument');
         }
         return length - (del.end - del.start);
     }
 
+    findCursors(start: CodeMirror.Position, end: CodeMirror.Position): {participant: number, bookmark: CodeMirror.TextMarker}[] {
+        var results = [];
+        let doc = this.cm.getDoc();
+        var marks = doc.findMarks(start, end);
+        for (const mark of marks) {
+            for (const id in this.participants) {
+                const p = this.participants[id];
+                if (p.cursor && p.cursor === mark) {
+                    results.push({participant: Number(id), bookmark: mark});
+                }
+            }
+        }
+        return results;
+    }
+
     applyDelete(author: number, del: IDelete): void {
         let doc = this.cm.getDoc();
         var start = doc.posFromIndex(del.start);
         var end = doc.posFromIndex(del.end);
+        var cursors = this.findCursors(start, end);
         doc.replaceRange("", start, end);
+        // if we deleted any bookmarks for other participant's cursors, update them now
+        for (const cursor of cursors) {
+            this.setParticipantCursor(cursor.participant, del.start);
+        }
         this.setParticipantCursor(author, del.start);
     }
     

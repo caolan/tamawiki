@@ -20,23 +20,23 @@ suite("Editor", () => {
         const div = document.createElement("div");
         div.dataset.initialSeq = "0";
         div.dataset.participants = JSON.stringify([
-            {"id": 123, "cursor_pos": null},
-            {"id": 1, "cursor_pos": 8}
+            {id: 123, cursor_pos: null},
+            {id: 1, cursor_pos: 8},
         ]);
         div.textContent = "Hello, world!";
         const editor = new Editor(div);
         assert.equal(Object.keys(editor.participants).length, 2);
         assert.deepEqual(editor.participants[123], {cursor: null});
-        let cursor = editor.participants[1].cursor;
+        const cursor = editor.participants[1].cursor;
         if (cursor !== null) {
             // NOTE: the type definitions for TextMarker.find() say it
             // returns a {from: CodeMirror.Position, to:
             // CodeMirror.Position} object - however, in this case it
             // will return a CodeMirror.Position object directly.
             // TODO: raise an issue with @types/codemirror for this.
-            const tm = <unknown>cursor.find();
-            assert.equal((<CodeMirror.Position>tm).line, 0);
-            assert.equal((<CodeMirror.Position>tm).ch, 8);
+            const tm  = (cursor.find() as unknown) as CodeMirror.Position;
+            assert.equal(tm.line, 0);
+            assert.equal(tm.ch, 8);
         } else {
             assert.ok(false);
         }
@@ -85,7 +85,7 @@ suite("Editor (tests/shared)", () => {
                     } catch (e) {
                         // capture the error if we were expecting one
                         if (config.error) {
-                            assert.equal(e.toString(), 'Error: ' + config.error.type);
+                            assert.equal(e.toString(), "Error: " + config.error.type);
                         } else {
                             throw e;
                         }
@@ -95,12 +95,12 @@ suite("Editor (tests/shared)", () => {
                     const doc = editor.cm.getDoc();
                     assert.equal(
                         doc.getValue(),
-                        config.expected.content
+                        config.expected.content,
                     );
 
                     // check state of participants after apply events
                     for (const p of config.expected.participants) {
-                        let participant = editor.participants[p.id];
+                        const participant = editor.participants[p.id];
                         if (participant.cursor !== null) {
                             // NOTE: the type definitions for
                             // TextMarker.find() say it returns a
@@ -109,16 +109,16 @@ suite("Editor (tests/shared)", () => {
                             // in this case it will return a
                             // CodeMirror.Position object directly.
                             // TODO: raise an issue with @types/codemirror for this.
-                            let tm = <unknown>participant.cursor.find();
-                            let index = doc.indexFromPos(<CodeMirror.Position>tm);
-                            assert.equal(index, p.cursor_pos);
+                            const tm = participant.cursor.find() as unknown;
+                            const i = doc.indexFromPos(tm as CodeMirror.Position);
+                            assert.equal(i, p.cursor_pos);
                         } else {
                             assert.ok(false);
                         }
                     }
                     assert.equal(
                         config.expected.participants.length,
-                        Object.keys(editor.participants).length
+                        Object.keys(editor.participants).length,
                     );
                 });
             } else {
