@@ -5,35 +5,195 @@ import "../css/style.css";
 export class Editor {
     public cm: CodeMirror.Editor;
     public participants: {[id: number]: IParticipant};
+    public client_seq: number;
+    public seq: number;
 
     constructor(public element: HTMLElement) {
-        this.participants = {};
-        JSON.parse(element.dataset.participants || "[]").forEach(
-            (p: {id: number, cursor_pos: number}) => {
-                this.participants[p.id] = {
-                    cursor_pos: p.cursor_pos,
-                };
-            },
-        );
+        this.client_seq = 0;
+        this.seq = Number(element.dataset.initialSeq);
+        
         this.cm = CodeMirror(element, {
             lineWrapping: true,
             mode: "text",
             value: element.textContent,
         });
+        
+        this.participants = {};
+        JSON.parse(element.dataset.participants || "[]").forEach(
+            (p: {id: number, cursor_pos: number}) => {
+                this.participants[p.id] = {cursor: null};
+                this.setParticipantCursor(p.id, p.cursor_pos);
+            },
+        );
+    }
+
+    setParticipantCursor(id: number, index: number): void {
+        let doc = this.cm.getDoc();
+        var pos = doc.posFromIndex(index);
+        var participant = this.participants[id];
+        if (participant.cursor !== null) {
+            participant.cursor.clear();
+            participant.cursor = null;
+        }
+        if (index === null) {
+            return;
+        }
+        var cursorCoords = this.cm.cursorCoords(pos);
+        var el = document.createElement('span');
+        el.className = 'participant-cursor';
+        el.style.top = `${cursorCoords.bottom}px`;
+        participant.cursor = doc.setBookmark(pos, {
+            widget: el
+        });
+    }
+
+    canApplyInsert(length: number, ins: IInsert): number {
+        if (ins.pos > length) {
+            throw new Error('OutsideDocument');
+        }
+        return length + ins.content.length;
+    }
+
+    applyInsert(author: number, ins: IInsert): void {
+        let doc = this.cm.getDoc();
+        var start = doc.posFromIndex(ins.pos);
+        var end = doc.posFromIndex(ins.pos + ins.content.length);
+        doc.replaceRange(ins.content, start);
+        doc.markText(start, end, {className: 'edit'});
+        this.setParticipantCursor(author, ins.pos + ins.content.length);
+    }
+
+    canApplyDelete(length: number, del: IDelete): number {
+        if (del.end > length) {
+            throw new Error('OutsideDocument');
+        }
+        return length - (del.end - del.start);
+    }
+
+    applyDelete(author: number, del: IDelete): void {
+        let doc = this.cm.getDoc();
+        var start = doc.posFromIndex(del.start);
+        var end = doc.posFromIndex(del.end);
+        doc.replaceRange("", start, end);
+        this.setParticipantCursor(author, del.start);
+    }
+    
+    canApplyOperation(length: number, operation: IOperation): number {
+        if (operation.Insert) {
+            return this.canApplyInsert(length, operation.Insert);
+        } else if (operation.Delete) {
+            return this.canApplyDelete(length, operation.Delete);
+        } else {
+            throw new Error(`Unknown operation type: ${operation}`);
+        }
+    }
+    
+    applyOperation(author: number, operation: IOperation): void {
+        if (operation.Insert) {
+            this.applyInsert(author, operation.Insert);
+        } else if (operation.Delete) {
+            this.applyDelete(author, operation.Delete);
+        } else {
+            throw new Error(`Unknown operation type: ${operation}`);
+        }
+    }
+
+    applyEdit(edit: IEdit): void {
+        for (const op of edit.operations) {
+            this.applyOperation(edit.author, op);
+        }
+    }
+
+    applyJoin(join: IJoin): void {
+        this.participants[join.id] = {cursor: null};
+        this.setParticipantCursor(join.id, 0);
+    }
+
+    applyLeave(leave: ILeave): void {
+        delete this.participants[leave.id];
+    }
+
+    // checks if the event can be applied to the current document and
+    // throw an exception if not
+    canApplyEvent(event: IEvent): void {
+        // TODO: stop this manual dispatch and use classes for event types etc. instead?
+        if (event.Edit) {
+            let edit = event.Edit;
+            if (!this.participants.hasOwnProperty(edit.author)) {
+                throw new Error("InvalidOperation");
+            }
+            let length = this.cm.getDoc().getValue().length;
+            for (const op of edit.operations) {
+                length = this.canApplyOperation(length, op);
+            }
+        } else if (event.Join) {
+            if (this.participants.hasOwnProperty(event.Join.id)) {
+                throw new Error("InvalidOperation");
+            }
+        } else if (event.Leave) {
+            if (!this.participants.hasOwnProperty(event.Leave.id)) {
+                throw new Error("InvalidOperation");
+            }
+        } else {
+            throw new Error(`Unknown event type: ${Object.keys(event)}`);
+        }
+    }
+
+    applyEvent(event: IEvent): void {
+        this.canApplyEvent(event);
+        
+        if (event.Edit) {
+            this.applyEdit(event.Edit);
+        } else if (event.Join) {
+            this.applyJoin(event.Join);
+        } else if (event.Leave) {
+            this.applyLeave(event.Leave);
+        } else {
+            throw new Error(`Unknown event type: ${Object.keys(event)}`);
+        }
     }
 }
 
 export interface IParticipant {
-    cursor_pos: number;
+    cursor: null | CodeMirror.TextMarker;
 }
 
-// var editor_el = document.getElementById('editor');
-// var value = editor_el.textContent;
-// editor_el.innerHTML = '';
+export interface IInsert {
+    pos: number,
+    content: string,
+}
+
+export interface IDelete {
+    start: number,
+    end: number,
+}
+
+export interface IOperation {
+    Insert: IInsert,
+    Delete: IDelete,
+}
+
+export interface IEdit {
+    author: number,
+    operations: [IOperation],
+}
+
+export interface IJoin {
+    id: number,
+}
+
+export interface ILeave {
+    id: number,
+}
+
+export interface IEvent {
+    Edit: IEdit,
+    Join: IJoin,
+    Leave: ILeave,
+}
+
 
 // var applying_server_edits = false;
-// var client_seq = 0;
-// var seq = Number(editor_el.dataset.initialSeq);
 // var host = window.location.host;
 // var pathname = window.location.pathname;
 // var ws_url = 'ws://' + host + pathname + '?seq=' + seq;
@@ -47,7 +207,6 @@ export interface IParticipant {
 //     lineWrapping: true
 // });
 
-// var participants = JSON.parse(editor_el.dataset.participants || '{}');
 // var connection_id = null;
 
 // var participants_el = document.getElementById('participants');
