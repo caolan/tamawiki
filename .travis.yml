@@ -2,7 +2,7 @@ language: rust
 dist: trusty
 sudo: required
 addons:
-  firefox: stable
+  firefox: latest-esr
   chrome: stable
 before_script:
   - curl -sSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
