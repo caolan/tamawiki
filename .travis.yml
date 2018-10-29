@@ -1,6 +1,9 @@
 language: rust
 dist: trusty
 sudo: required
+addons:
+  firefox: stable
+  chrome: stable
 before_script:
   - curl -sSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
   - echo "deb https://deb.nodesource.com/node_8.x trusty main" | sudo tee -a /etc/apt/sources.list
@@ -9,10 +12,12 @@ before_script:
   - npm install && npm run bundle
   - rustup component add rustfmt-preview
 script:
-  - cargo fmt --all -- --check
   - cargo build --verbose --all
   - cargo test --verbose --all
-  - npm test
+  - cargo fmt --all -- --check
+  - SELENIUM_BROWSER=chrome npm test
+  - SELENIUM_BROWSER=firefox npm test
+  - npm run lint
 rust:
   - stable
   - beta

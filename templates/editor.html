@@ -5,15 +5,12 @@
 {% endblock actions %}
 
 {% block content %}
-<div id="participants">
-</div>
 
-<div id="editor" data-initial-seq="{{ seq }}" data-participants="{{ participants | json_encode() | escape }}">{{ content }}</div>
+<tw-editor initial-seq="{{ seq }}"
+           participants="{{ participants | json_encode() | escape }}">{{ content }}</tw-editor>
+
 {% endblock content %}
 
 {% block scripts %}
 <script src="/_static/js/main.js"></script>
-<script>
- window.editor = new Editor(document.getElementById('editor'));
-</script>
 {% endblock scripts %}

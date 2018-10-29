@@ -1,0 +1,7 @@
+tamawiki-participants {
+    float: right;
+}
+
+tamawiki-participants .you {
+    background-color: #cfc;
+}
