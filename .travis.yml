@@ -27,7 +27,7 @@ cache:
   directories:
     - node_modules
 before_deploy:
-  - cargo doc --verbose --all
+  - cargo doc --verbose --no-deps
 deploy:
   provider: pages
   skip-cleanup: true
