@@ -59,3 +59,4 @@ transform_delete_insert_overlapping_start.json
 transform_delete_insert_overlapping_end.json
 transform_delete_insert_subset.json
 transform_delete_insert_superset.json
+transform_split_delete_before_insert.json

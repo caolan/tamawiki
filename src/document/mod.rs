@@ -215,75 +215,88 @@ impl Edit {
         use self::Operation as Op;
         let mut new_operations = vec![];
 
-        for op in &concurrent.operations {
-            for operation in &mut self.operations {
-                match (operation, op) {
-                    (Op::Insert(ref mut this), &Op::Insert(ref other)) => {
-                        if other.pos < this.pos
-                            || (other.pos == this.pos
-                                && Edit::has_priority(concurrent.author, self.author))
-                        {
-                            this.pos += other.content.chars().count();
-                        }
-                    }
-                    (Op::Insert(ref mut this), &Op::Delete(ref other)) => {
-                        if other.start < this.pos {
-                            let end = cmp::min(this.pos, other.end);
-                            this.pos -= end - other.start;
-                        }
-                    }
-                    (Op::Delete(ref mut this), &Op::Insert(ref other)) => {
-                        if other.pos < this.start {
-                            let len = other.content.chars().count();
-                            this.start += len;
-                            this.end += len;
-                        } else if other.pos < this.end && this.end - this.start > 0 {
-                            // need to split the delete into two parts
-                            // to avoid clobbering the new insert
-                            // (only split when the delete has a range
-                            // greater than 0, otherwise it can only
-                            // produce a duplicate event)
-
-                            // create a new operation for the first
-                            // part of the range
-                            let op = Op::Delete(Delete {
-                                start: this.start,
-                                end: other.pos,
-                            });
-
-                            // adjust the current operation to cover
-                            // the end second part of the range
-                            let len = other.content.chars().count();
-                            this.start = other.pos + len;
-                            this.end = this.end + len;
-
-                            // push the operation covering the first
-                            // part of the range to new_operations.
-                            // This means it's applied after the
-                            // second part of the range and the cursor
-                            // ends in the correct position.
-                            new_operations.push(op);
-                        }
-                    }
-                    (Op::Delete(ref mut this), &Op::Delete(ref other)) => {
-                        let mut chars_deleted_before = if other.start < this.start {
-                            let end = cmp::min(this.start, other.end);
-                            end - other.start
-                        } else {
-                            0
-                        };
-                        let mut chars_deleted_inside = 0;
-                        if other.start < this.start {
-                            if other.end > this.start {
-                                let end = cmp::min(this.end, other.end);
-                                chars_deleted_inside = end - this.start;
+        for con in &concurrent.operations {
+            for operation in self.operations.drain(..) {
+                match operation {
+                    Op::Insert(mut this) => match *con {
+                        Op::Insert(ref other) => {
+                            if other.pos < this.pos
+                                || (other.pos == this.pos
+                                    && Edit::has_priority(concurrent.author, self.author))
+                            {
+                                this.pos += other.content.chars().count();
                             }
-                        } else if other.start < this.end {
-                            let end = cmp::min(this.end, other.end);
-                            chars_deleted_inside = end - other.start;
+                            new_operations.push(Op::Insert(this));
                         }
-                        this.start -= chars_deleted_before;
-                        this.end -= chars_deleted_before + chars_deleted_inside;
+                        Op::Delete(ref other) => {
+                            if other.start < this.pos {
+                                let end = cmp::min(this.pos, other.end);
+                                this.pos -= end - other.start;
+                            }
+                            new_operations.push(Op::Insert(this));
+                        }
+                    },
+                    Op::Delete(mut this) => {
+                        match *con {
+                            Op::Insert(ref other) => {
+                                if other.pos < this.start {
+                                    let len = other.content.chars().count();
+                                    this.start += len;
+                                    this.end += len;
+                                    new_operations.push(Op::Delete(this));
+                                } else if other.pos < this.end && this.end - this.start > 0 {
+                                    // need to split the delete into two parts
+                                    // to avoid clobbering the new insert
+                                    // (only split when the delete has a range
+                                    // greater than 0, otherwise it can only
+                                    // produce a duplicate event)
+
+                                    // create a new operation for the first
+                                    // part of the range
+                                    let before = Op::Delete(Delete {
+                                        start: this.start,
+                                        end: other.pos,
+                                    });
+
+                                    // adjust the current operation to cover
+                                    // the end second part of the range
+                                    let len = other.content.chars().count();
+                                    this.start = other.pos + len;
+                                    this.end = this.end + len;
+                                    new_operations.push(Op::Delete(this));
+
+                                    // push the operation covering the first
+                                    // part of the range to new_operations.
+                                    // This means it's applied after the
+                                    // second part of the range and the cursor
+                                    // ends in the correct position.
+                                    new_operations.push(before);
+                                } else {
+                                    new_operations.push(Op::Delete(this));
+                                }
+                            }
+                            Op::Delete(ref other) => {
+                                let mut chars_deleted_before = if other.start < this.start {
+                                    let end = cmp::min(this.start, other.end);
+                                    end - other.start
+                                } else {
+                                    0
+                                };
+                                let mut chars_deleted_inside = 0;
+                                if other.start < this.start {
+                                    if other.end > this.start {
+                                        let end = cmp::min(this.end, other.end);
+                                        chars_deleted_inside = end - this.start;
+                                    }
+                                } else if other.start < this.end {
+                                    let end = cmp::min(this.end, other.end);
+                                    chars_deleted_inside = end - other.start;
+                                }
+                                this.start -= chars_deleted_before;
+                                this.end -= chars_deleted_before + chars_deleted_inside;
+                                new_operations.push(Op::Delete(this));
+                            }
+                        }
                     }
                 }
             }
