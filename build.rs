@@ -1,7 +1,5 @@
 #[macro_use]
 extern crate quote;
-#[macro_use]
-extern crate serde_derive;
 extern crate proc_macro2;
 extern crate rustfmt;
 extern crate serde;
