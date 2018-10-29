@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate quote;
+#[allow(unused_imports)]
 #[macro_use]
 extern crate serde_derive;
 extern crate proc_macro2;
