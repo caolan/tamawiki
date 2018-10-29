@@ -752,6 +752,19 @@
 <span id="752">752</span>
 <span id="753">753</span>
 <span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Documents and Operations on their content.</span>
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>;
@@ -970,75 +983,88 @@
         <span class="kw">use</span> <span class="self">self</span>::<span class="ident">Operation</span> <span class="kw">as</span> <span class="ident">Op</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_operations</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
 
-        <span class="kw">for</span> <span class="ident">op</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">concurrent</span>.<span class="ident">operations</span> {
-            <span class="kw">for</span> <span class="ident">operation</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">operations</span> {
-                <span class="kw">match</span> (<span class="ident">operation</span>, <span class="ident">op</span>) {
-                    (<span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">this</span>), <span class="kw-2">&amp;</span><span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="kw-2">ref</span> <span class="ident">other</span>)) <span class="op">=&gt;</span> {
-                        <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">pos</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">pos</span>
-                            <span class="op">||</span> (<span class="ident">other</span>.<span class="ident">pos</span> <span class="op">==</span> <span class="ident">this</span>.<span class="ident">pos</span>
-                                <span class="op">&amp;&amp;</span> <span class="ident">Edit</span>::<span class="ident">has_priority</span>(<span class="ident">concurrent</span>.<span class="ident">author</span>, <span class="self">self</span>.<span class="ident">author</span>))
-                        {
-                            <span class="ident">this</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="ident">other</span>.<span class="ident">content</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
-                        }
-                    }
-                    (<span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">this</span>), <span class="kw-2">&amp;</span><span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="kw-2">ref</span> <span class="ident">other</span>)) <span class="op">=&gt;</span> {
-                        <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">pos</span> {
-                            <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">this</span>.<span class="ident">pos</span>, <span class="ident">other</span>.<span class="ident">end</span>);
-                            <span class="ident">this</span>.<span class="ident">pos</span> <span class="op">-=</span> <span class="ident">end</span> <span class="op">-</span> <span class="ident">other</span>.<span class="ident">start</span>;
-                        }
-                    }
-                    (<span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">this</span>), <span class="kw-2">&amp;</span><span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="kw-2">ref</span> <span class="ident">other</span>)) <span class="op">=&gt;</span> {
-                        <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">pos</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">start</span> {
-                            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">content</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
-                            <span class="ident">this</span>.<span class="ident">start</span> <span class="op">+=</span> <span class="ident">len</span>;
-                            <span class="ident">this</span>.<span class="ident">end</span> <span class="op">+=</span> <span class="ident">len</span>;
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">pos</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">end</span> <span class="op">&amp;&amp;</span> <span class="ident">this</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">this</span>.<span class="ident">start</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                            <span class="comment">// need to split the delete into two parts</span>
-                            <span class="comment">// to avoid clobbering the new insert</span>
-                            <span class="comment">// (only split when the delete has a range</span>
-                            <span class="comment">// greater than 0, otherwise it can only</span>
-                            <span class="comment">// produce a duplicate event)</span>
-
-                            <span class="comment">// create a new operation for the first</span>
-                            <span class="comment">// part of the range</span>
-                            <span class="kw">let</span> <span class="ident">op</span> <span class="op">=</span> <span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
-                                <span class="ident">start</span>: <span class="ident">this</span>.<span class="ident">start</span>,
-                                <span class="ident">end</span>: <span class="ident">other</span>.<span class="ident">pos</span>,
-                            });
-
-                            <span class="comment">// adjust the current operation to cover</span>
-                            <span class="comment">// the end second part of the range</span>
-                            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">content</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
-                            <span class="ident">this</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">pos</span> <span class="op">+</span> <span class="ident">len</span>;
-                            <span class="ident">this</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">end</span> <span class="op">+</span> <span class="ident">len</span>;
-
-                            <span class="comment">// push the operation covering the first</span>
-                            <span class="comment">// part of the range to new_operations.</span>
-                            <span class="comment">// This means it&#39;s applied after the</span>
-                            <span class="comment">// second part of the range and the cursor</span>
-                            <span class="comment">// ends in the correct position.</span>
-                            <span class="ident">new_operations</span>.<span class="ident">push</span>(<span class="ident">op</span>);
-                        }
-                    }
-                    (<span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">this</span>), <span class="kw-2">&amp;</span><span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="kw-2">ref</span> <span class="ident">other</span>)) <span class="op">=&gt;</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars_deleted_before</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">start</span> {
-                            <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">this</span>.<span class="ident">start</span>, <span class="ident">other</span>.<span class="ident">end</span>);
-                            <span class="ident">end</span> <span class="op">-</span> <span class="ident">other</span>.<span class="ident">start</span>
-                        } <span class="kw">else</span> {
-                            <span class="number">0</span>
-                        };
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars_deleted_inside</span> <span class="op">=</span> <span class="number">0</span>;
-                        <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">start</span> {
-                            <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">end</span> <span class="op">&gt;</span> <span class="ident">this</span>.<span class="ident">start</span> {
-                                <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">this</span>.<span class="ident">end</span>, <span class="ident">other</span>.<span class="ident">end</span>);
-                                <span class="ident">chars_deleted_inside</span> <span class="op">=</span> <span class="ident">end</span> <span class="op">-</span> <span class="ident">this</span>.<span class="ident">start</span>;
+        <span class="kw">for</span> <span class="ident">con</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">concurrent</span>.<span class="ident">operations</span> {
+            <span class="kw">for</span> <span class="ident">operation</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">operations</span>.<span class="ident">drain</span>(..) {
+                <span class="kw">match</span> <span class="ident">operation</span> {
+                    <span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="kw-2">mut</span> <span class="ident">this</span>) <span class="op">=&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">con</span> {
+                        <span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="kw-2">ref</span> <span class="ident">other</span>) <span class="op">=&gt;</span> {
+                            <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">pos</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">pos</span>
+                                <span class="op">||</span> (<span class="ident">other</span>.<span class="ident">pos</span> <span class="op">==</span> <span class="ident">this</span>.<span class="ident">pos</span>
+                                    <span class="op">&amp;&amp;</span> <span class="ident">Edit</span>::<span class="ident">has_priority</span>(<span class="ident">concurrent</span>.<span class="ident">author</span>, <span class="self">self</span>.<span class="ident">author</span>))
+                            {
+                                <span class="ident">this</span>.<span class="ident">pos</span> <span class="op">+=</span> <span class="ident">other</span>.<span class="ident">content</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
                             }
-                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">end</span> {
-                            <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">this</span>.<span class="ident">end</span>, <span class="ident">other</span>.<span class="ident">end</span>);
-                            <span class="ident">chars_deleted_inside</span> <span class="op">=</span> <span class="ident">end</span> <span class="op">-</span> <span class="ident">other</span>.<span class="ident">start</span>;
+                            <span class="ident">new_operations</span>.<span class="ident">push</span>(<span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="ident">this</span>));
                         }
-                        <span class="ident">this</span>.<span class="ident">start</span> <span class="op">-=</span> <span class="ident">chars_deleted_before</span>;
-                        <span class="ident">this</span>.<span class="ident">end</span> <span class="op">-=</span> <span class="ident">chars_deleted_before</span> <span class="op">+</span> <span class="ident">chars_deleted_inside</span>;
+                        <span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="kw-2">ref</span> <span class="ident">other</span>) <span class="op">=&gt;</span> {
+                            <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">pos</span> {
+                                <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">this</span>.<span class="ident">pos</span>, <span class="ident">other</span>.<span class="ident">end</span>);
+                                <span class="ident">this</span>.<span class="ident">pos</span> <span class="op">-=</span> <span class="ident">end</span> <span class="op">-</span> <span class="ident">other</span>.<span class="ident">start</span>;
+                            }
+                            <span class="ident">new_operations</span>.<span class="ident">push</span>(<span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="ident">this</span>));
+                        }
+                    },
+                    <span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="kw-2">mut</span> <span class="ident">this</span>) <span class="op">=&gt;</span> {
+                        <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">con</span> {
+                            <span class="ident">Op</span>::<span class="ident">Insert</span>(<span class="kw-2">ref</span> <span class="ident">other</span>) <span class="op">=&gt;</span> {
+                                <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">pos</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">start</span> {
+                                    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">content</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
+                                    <span class="ident">this</span>.<span class="ident">start</span> <span class="op">+=</span> <span class="ident">len</span>;
+                                    <span class="ident">this</span>.<span class="ident">end</span> <span class="op">+=</span> <span class="ident">len</span>;
+                                    <span class="ident">new_operations</span>.<span class="ident">push</span>(<span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="ident">this</span>));
+                                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">pos</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">end</span> <span class="op">&amp;&amp;</span> <span class="ident">this</span>.<span class="ident">end</span> <span class="op">-</span> <span class="ident">this</span>.<span class="ident">start</span> <span class="op">&gt;</span> <span class="number">0</span> {
+                                    <span class="comment">// need to split the delete into two parts</span>
+                                    <span class="comment">// to avoid clobbering the new insert</span>
+                                    <span class="comment">// (only split when the delete has a range</span>
+                                    <span class="comment">// greater than 0, otherwise it can only</span>
+                                    <span class="comment">// produce a duplicate event)</span>
+
+                                    <span class="comment">// create a new operation for the first</span>
+                                    <span class="comment">// part of the range</span>
+                                    <span class="kw">let</span> <span class="ident">before</span> <span class="op">=</span> <span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="ident">Delete</span> {
+                                        <span class="ident">start</span>: <span class="ident">this</span>.<span class="ident">start</span>,
+                                        <span class="ident">end</span>: <span class="ident">other</span>.<span class="ident">pos</span>,
+                                    });
+
+                                    <span class="comment">// adjust the current operation to cover</span>
+                                    <span class="comment">// the end second part of the range</span>
+                                    <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">content</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
+                                    <span class="ident">this</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">pos</span> <span class="op">+</span> <span class="ident">len</span>;
+                                    <span class="ident">this</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">end</span> <span class="op">+</span> <span class="ident">len</span>;
+                                    <span class="ident">new_operations</span>.<span class="ident">push</span>(<span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="ident">this</span>));
+
+                                    <span class="comment">// push the operation covering the first</span>
+                                    <span class="comment">// part of the range to new_operations.</span>
+                                    <span class="comment">// This means it&#39;s applied after the</span>
+                                    <span class="comment">// second part of the range and the cursor</span>
+                                    <span class="comment">// ends in the correct position.</span>
+                                    <span class="ident">new_operations</span>.<span class="ident">push</span>(<span class="ident">before</span>);
+                                } <span class="kw">else</span> {
+                                    <span class="ident">new_operations</span>.<span class="ident">push</span>(<span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="ident">this</span>));
+                                }
+                            }
+                            <span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="kw-2">ref</span> <span class="ident">other</span>) <span class="op">=&gt;</span> {
+                                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars_deleted_before</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">start</span> {
+                                    <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">this</span>.<span class="ident">start</span>, <span class="ident">other</span>.<span class="ident">end</span>);
+                                    <span class="ident">end</span> <span class="op">-</span> <span class="ident">other</span>.<span class="ident">start</span>
+                                } <span class="kw">else</span> {
+                                    <span class="number">0</span>
+                                };
+                                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars_deleted_inside</span> <span class="op">=</span> <span class="number">0</span>;
+                                <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">start</span> {
+                                    <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">end</span> <span class="op">&gt;</span> <span class="ident">this</span>.<span class="ident">start</span> {
+                                        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">this</span>.<span class="ident">end</span>, <span class="ident">other</span>.<span class="ident">end</span>);
+                                        <span class="ident">chars_deleted_inside</span> <span class="op">=</span> <span class="ident">end</span> <span class="op">-</span> <span class="ident">this</span>.<span class="ident">start</span>;
+                                    }
+                                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">this</span>.<span class="ident">end</span> {
+                                    <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">this</span>.<span class="ident">end</span>, <span class="ident">other</span>.<span class="ident">end</span>);
+                                    <span class="ident">chars_deleted_inside</span> <span class="op">=</span> <span class="ident">end</span> <span class="op">-</span> <span class="ident">other</span>.<span class="ident">start</span>;
+                                }
+                                <span class="ident">this</span>.<span class="ident">start</span> <span class="op">-=</span> <span class="ident">chars_deleted_before</span>;
+                                <span class="ident">this</span>.<span class="ident">end</span> <span class="op">-=</span> <span class="ident">chars_deleted_before</span> <span class="op">+</span> <span class="ident">chars_deleted_inside</span>;
+                                <span class="ident">new_operations</span>.<span class="ident">push</span>(<span class="ident">Op</span>::<span class="ident">Delete</span>(<span class="ident">this</span>));
+                            }
+                        }
                     }
                 }
             }
