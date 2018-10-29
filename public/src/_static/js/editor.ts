@@ -47,32 +47,6 @@ export class Editor {
         });
     }
 
-    canApplyInsert(length: number, ins: IInsert): number {
-        if (ins.pos > length) {
-            throw new Error('OutsideDocument');
-        }
-        return length + ins.content.length;
-    }
-
-    applyInsert(author: number, ins: IInsert): void {
-        let doc = this.cm.getDoc();
-        var start = doc.posFromIndex(ins.pos);
-        var end = doc.posFromIndex(ins.pos + ins.content.length);
-        doc.replaceRange(ins.content, start);
-        doc.markText(start, end, {className: 'edit'});
-        this.setParticipantCursor(author, ins.pos + ins.content.length);
-    }
-
-    canApplyDelete(length: number, del: IDelete): number {
-        if (del.start > del.end) {
-            throw new Error('InvalidOperation');
-        }
-        if (del.end > length) {
-            throw new Error('OutsideDocument');
-        }
-        return length - (del.end - del.start);
-    }
-
     findCursors(start: CodeMirror.Position, end: CodeMirror.Position): {participant: number, bookmark: CodeMirror.TextMarker}[] {
         var results = [];
         let doc = this.cm.getDoc();
@@ -88,92 +62,8 @@ export class Editor {
         return results;
     }
 
-    applyDelete(author: number, del: IDelete): void {
-        let doc = this.cm.getDoc();
-        var start = doc.posFromIndex(del.start);
-        var end = doc.posFromIndex(del.end);
-        var cursors = this.findCursors(start, end);
-        doc.replaceRange("", start, end);
-        // if we deleted any bookmarks for other participant's cursors, update them now
-        for (const cursor of cursors) {
-            this.setParticipantCursor(cursor.participant, del.start);
-        }
-        this.setParticipantCursor(author, del.start);
-    }
-    
-    canApplyOperation(length: number, operation: IOperation): number {
-        if (operation.Insert) {
-            return this.canApplyInsert(length, operation.Insert);
-        } else if (operation.Delete) {
-            return this.canApplyDelete(length, operation.Delete);
-        } else {
-            throw new Error(`Unknown operation type: ${operation}`);
-        }
-    }
-    
-    applyOperation(author: number, operation: IOperation): void {
-        if (operation.Insert) {
-            this.applyInsert(author, operation.Insert);
-        } else if (operation.Delete) {
-            this.applyDelete(author, operation.Delete);
-        } else {
-            throw new Error(`Unknown operation type: ${operation}`);
-        }
-    }
-
-    applyEdit(edit: IEdit): void {
-        for (const op of edit.operations) {
-            this.applyOperation(edit.author, op);
-        }
-    }
-
-    applyJoin(join: IJoin): void {
-        this.participants[join.id] = {cursor: null};
-        this.setParticipantCursor(join.id, 0);
-    }
-
-    applyLeave(leave: ILeave): void {
-        delete this.participants[leave.id];
-    }
-
-    // checks if the event can be applied to the current document and
-    // throw an exception if not
-    canApplyEvent(event: IEvent): void {
-        // TODO: stop this manual dispatch and use classes for event types etc. instead?
-        if (event.Edit) {
-            let edit = event.Edit;
-            if (!this.participants.hasOwnProperty(edit.author)) {
-                throw new Error("InvalidOperation");
-            }
-            let length = this.cm.getDoc().getValue().length;
-            for (const op of edit.operations) {
-                length = this.canApplyOperation(length, op);
-            }
-        } else if (event.Join) {
-            if (this.participants.hasOwnProperty(event.Join.id)) {
-                throw new Error("InvalidOperation");
-            }
-        } else if (event.Leave) {
-            if (!this.participants.hasOwnProperty(event.Leave.id)) {
-                throw new Error("InvalidOperation");
-            }
-        } else {
-            throw new Error(`Unknown event type: ${Object.keys(event)}`);
-        }
-    }
-
-    applyEvent(event: IEvent): void {
-        this.canApplyEvent(event);
-        
-        if (event.Edit) {
-            this.applyEdit(event.Edit);
-        } else if (event.Join) {
-            this.applyJoin(event.Join);
-        } else if (event.Leave) {
-            this.applyLeave(event.Leave);
-        } else {
-            throw new Error(`Unknown event type: ${Object.keys(event)}`);
-        }
+    applyEvent(event: ServerEvent): void {
+        event.apply(this);
     }
 }
 
@@ -181,38 +71,179 @@ export interface IParticipant {
     cursor: null | CodeMirror.TextMarker;
 }
 
-export interface IInsert {
-    pos: number,
-    content: string,
+export type ServerEvent = Edit | Join | Leave;
+
+export class Edit {
+    constructor(public author: number, public operations: Operation[]) {}
+    
+    transform(concurrent: ServerEvent): void {
+        if (concurrent instanceof Edit) {
+            for (const concurrentOperation of concurrent.operations) {
+                let operations: Operation[] = [];
+                for (const op of this.operations) {
+                    operations = operations.concat(
+                        op.transform(
+                            concurrentOperation,
+                            this.author < concurrent.author
+                        )
+                    );
+                }
+                this.operations = operations;
+            }
+        }
+    }
+
+    canApply(editor: Editor): void {
+        if (!editor.participants.hasOwnProperty(this.author)) {
+            throw new Error("InvalidOperation");
+        }
+        let length = editor.cm.getDoc().getValue().length;
+        for (const op of this.operations) {
+            length = op.canApply(length);
+        }
+    }
+    
+    apply(editor: Editor): void {
+        this.canApply(editor);
+        for (const op of this.operations) {
+            op.apply(editor, this.author);
+        }
+    }
 }
 
-export interface IDelete {
-    start: number,
-    end: number,
+export class Join {
+    constructor(public id: number) {}
+    
+    transform(_concurrent: ServerEvent): void {}
+
+    canApply(editor: Editor): void {
+        if (editor.participants.hasOwnProperty(this.id)) {
+            throw new Error("InvalidOperation");
+        }
+    }
+
+    apply(editor: Editor): void {
+        this.canApply(editor);
+        editor.participants[this.id] = {cursor: null};
+        editor.setParticipantCursor(this.id, 0);
+    }
 }
 
-export interface IOperation {
-    Insert: IInsert,
-    Delete: IDelete,
+export class Leave {
+    constructor(public id: number) {}
+    
+    transform(_concurrent: ServerEvent): void {}
+
+    canApply(editor: Editor): void {
+        if (!editor.participants.hasOwnProperty(this.id)) {
+            throw new Error("InvalidOperation");
+        }
+    }
+
+    apply(editor: Editor): void {
+        this.canApply(editor);
+        delete editor.participants[this.id];
+    }
 }
 
-export interface IEdit {
-    author: number,
-    operations: [IOperation],
+export type Operation = Insert | Delete;
+
+export class Insert {
+    constructor(public pos: number, public content: string) {}
+
+    transform(other: Operation, hasPriority: boolean): Operation[] {
+        if (other instanceof Insert) {
+            if (other.pos < this.pos || (other.pos === this.pos && hasPriority)) {
+                this.pos += other.content.length;
+            }
+        } else if (other instanceof Delete) {
+            if (other.start < this.pos) {
+                let end = Math.min(this.pos, other.end);
+                this.pos -= end - other.start;
+            }
+        } else {
+            throw new Error(`Unknown operation type: ${other}`);
+        }
+        return [this];
+    }
+    
+    canApply(length: number): number {
+        if (this.pos > length) {
+            throw new Error('OutsideDocument');
+        }
+        return length + this.content.length;
+    }
+
+    apply(editor: Editor, author: number): void {
+        let doc = editor.cm.getDoc();
+        var start = doc.posFromIndex(this.pos);
+        var end = doc.posFromIndex(this.pos + this.content.length);
+        doc.replaceRange(this.content, start);
+        doc.markText(start, end, {className: 'edit'});
+        editor.setParticipantCursor(author, this.pos + this.content.length);
+    }
 }
 
-export interface IJoin {
-    id: number,
-}
+export class Delete {
+    constructor(public start: number, public end: number) {}
+    
+    transform(other: Operation, _hasPriority: boolean): Operation[] {
+        if (other instanceof Insert) {
+            if (other.pos < this.start) {
+                this.start += other.content.length;
+                this.end += other.content.length;
+            } else if (other.pos < this.end && this.end - this.start > 0) {
+                // create a new Delete to cover the range before the insert
+                let before = new Delete(this.start, other.pos);
+                // update the current delete to cover the range after the insert
+                this.start = other.pos + other.content.length;
+                this.end = this.end + other.content.length;
+                return [this, before];
+            }
+        } else if (other instanceof Delete) {
+            let chars_deleted_before = 0;
+            if (other.start < this.start) {
+                let end = Math.min(this.start, other.end);
+                chars_deleted_before = end - other.start;
+            }
+            let chars_deleted_inside = 0;
+            if (other.start < this.start) {
+                if (other.end > this.start) {
+                    let end = Math.min(this.end, other.end);
+                    chars_deleted_inside = end - this.start;
+                }
+            } else if (other.start < this.end) {
+                let end = Math.min(this.end, other.end);
+                chars_deleted_inside = end - other.start;
+            }
+            this.start -= chars_deleted_before;
+            this.end -= chars_deleted_before + chars_deleted_inside;
+        }
+        return [this];
+    }
 
-export interface ILeave {
-    id: number,
-}
+    canApply(length: number): number {
+        if (this.start > this.end) {
+            throw new Error('InvalidOperation');
+        }
+        if (this.end > length) {
+            throw new Error('OutsideDocument');
+        }
+        return length - (this.end - this.start);
+    }
 
-export interface IEvent {
-    Edit: IEdit,
-    Join: IJoin,
-    Leave: ILeave,
+    apply(editor: Editor, author: number): void {
+        let doc = editor.cm.getDoc();
+        var start = doc.posFromIndex(this.start);
+        var end = doc.posFromIndex(this.end);
+        var cursors = editor.findCursors(start, end);
+        doc.replaceRange("", start, end);
+        // if we thiseted any bookmarks for other participant's cursors, update them now
+        for (const cursor of cursors) {
+            editor.setParticipantCursor(cursor.participant, this.start);
+        }
+        editor.setParticipantCursor(author, this.start);
+    }
 }
 
 
