@@ -1,4 +1,4 @@
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const path = require('path');
@@ -7,7 +7,7 @@ const path = require('path');
 module.exports = {
     mode: "production",
     devtool: "source-map",
-    entry: "./public/src/_static/js/editor.ts",
+    entry: "./public/src/_static/js/index.ts",
     output: {
         path: path.resolve(__dirname, "public/dist"),
         filename: "./_static/js/[name].js"
@@ -26,7 +26,7 @@ module.exports = {
     },
     optimization: {
         minimizer: [
-            new UglifyJsPlugin({
+            new TerserPlugin({
                 cache: true,
                 parallel: true,
                 sourceMap: true
