@@ -4,6 +4,9 @@ sudo: required
 addons:
   firefox: latest-esr
   chrome: stable
+  apt:
+    packages:
+      - chromium-chromedriver
 before_script:
   - curl -sSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | sudo apt-key add -
   - echo "deb https://deb.nodesource.com/node_8.x trusty main" | sudo tee -a /etc/apt/sources.list
@@ -11,6 +14,10 @@ before_script:
   - sudo apt-get install nodejs -y
   - npm install && npm run bundle
   - rustup component add rustfmt-preview
+  - wget https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-linux64.tar.gz
+  - mkdir geckodriver
+  - tar xzvf geckodriver-v0.23.0-linux64.tar.gz -C geckodriver
+  - export PATH=$PATH:$PWD/geckodriver
 script:
   - cargo build --verbose --all
   - cargo test --verbose --all
