@@ -29,6 +29,6 @@
     "scripts": {
         "bundle": "npx webpack",
         "lint": "npx tslint --project tsconfig.json public/src/_static/js/**/*.ts",
-        "test": "npx webpack --config webpack.test.config && npx mocha-webdriver-runner file:///$PWD/public/test/selenium.html -C moz:firefoxOptions.args='[\"-headless\"]' -C browserName=chrome -C chromeOptions.args='[\"--headless\"]'"
+        "test": "npx webpack --config webpack.test.config && npx mocha-webdriver-runner file://$PWD/public/test/selenium.html -C moz:firefoxOptions.args='[\"-headless\"]' -C browserName=chrome -C chromeOptions.args='[\"--headless\"]'"
     }
 }
