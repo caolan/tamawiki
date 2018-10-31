@@ -22,8 +22,9 @@ script:
   - cargo build --verbose --all
   - cargo test --verbose --all
   - cargo fmt --all -- --check
-  - SELENIUM_BROWSER=chrome npm test
-  - SELENIUM_BROWSER=firefox npm test
+  - npm run testbundle
+  - SELENIUM_BROWSER=chrome npm run mocha
+  - SELENIUM_BROWSER=firefox npm run mocha
   - npm run lint
 rust:
   - stable
