@@ -1,18 +1,42 @@
-import { Content } from "./content";
-import "../css/editor.css"
+import "@webcomponents/custom-elements";
+import { Connection, IConnectionConstructor } from "./connection";
+import { ContentElement } from "./content";
+import { ParticipantsElement } from "./participants";
+import { Session } from "./session";
+
+import "../css/editor.css";
 
 export class Editor extends HTMLElement {
-    public content: Content;
+    public Conn: IConnectionConstructor;
+    public content: ContentElement;
+    public connection?: Connection;
+    public participants: ParticipantsElement;
+    public session?: Session;
     
-    constructor() {
+    constructor(Conn?: IConnectionConstructor) {
         super();
-        this.content = new Content();
+        this.content = new ContentElement();
+        this.participants = new ParticipantsElement();
+        this.Conn = Conn || Connection;
     }
 
     connectedCallback(): void {
-        this.content.textContent = this.textContent;
+        const seq = Number(this.getAttribute("initial-seq") || "0");
+        const participantsData = JSON.parse(this.getAttribute("participants") || "[]");
+        const text = this.textContent;
         this.textContent = "";
+        
+        // initialize participants window
+        this.participants.setParticipants(participantsData);
+        this.appendChild(this.participants);
+        
+        // initialize content editor
+        this.content.textContent = text;
         this.appendChild(this.content);
+        
+        // start connection
+        this.connection = new this.Conn(window.location.pathname, seq);
+        this.session = new Session(seq);
     }
 }
 

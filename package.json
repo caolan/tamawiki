@@ -7,9 +7,13 @@
         "chai": "^4.2.0",
         "css-loader": "^1.0.0",
         "fork-ts-checker-webpack-plugin": "^0.4.14",
+        "karma": "^3.1.1",
+        "karma-chrome-launcher": "^2.2.0",
+        "karma-firefox-launcher": "^1.1.0",
+        "karma-mocha": "^1.3.0",
+        "karma-typescript": "^3.0.13",
         "mini-css-extract-plugin": "^0.4.3",
         "mocha": "^5.2.0",
-        "mocha-webdriver-runner": "^0.3.4",
         "optimize-css-assets-webpack-plugin": "^5.0.1",
         "raw-loader": "^0.5.1",
         "terser-webpack-plugin": "^1.1.0",
@@ -29,8 +33,6 @@
     "scripts": {
         "bundle": "npx webpack",
         "lint": "npx tslint --project tsconfig.json public/src/_static/js/**/*.ts",
-        "mocha": "npx mocha-webdriver-runner file://$PWD/public/test/selenium.html -C moz:firefoxOptions.args='[\"-headless\"]' -C browserName=chrome -C chromeOptions.args='[\"--headless\"]'",
-        "testbundle": "npx webpack --config webpack.test.config",
-        "test": "npm run testbundle && npm run mocha"
+        "test": "karma start --single-run --browsers FirefoxHeadless karma.conf.js"
     }
 }

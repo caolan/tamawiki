@@ -1,7 +1,8 @@
+import "@webcomponents/custom-elements";
 import * as CodeMirror from "codemirror";
 import "codemirror/lib/codemirror.css";
 
-export class Content extends HTMLElement {
+export class ContentElement extends HTMLElement {
     public codemirror?: CodeMirror.Editor;
     
     constructor() {
@@ -10,10 +11,12 @@ export class Content extends HTMLElement {
     
     connectedCallback(): void {
         if (!this.codemirror) {
+            const value = this.textContent;
+            this.textContent = "";
             this.codemirror = CodeMirror(this, {
                 lineWrapping: true,
                 mode: "text",
-                value: this.textContent,
+                value: value,
             });
         }
     }
@@ -26,4 +29,4 @@ export class Content extends HTMLElement {
     }
 }
 
-customElements.define("tw-content", Content);
+customElements.define("tw-content", ContentElement);
