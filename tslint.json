@@ -6,7 +6,8 @@
     "jsRules": {},
     "rules": {
         "no-console": false,
-        "space-before-function-paren": true
+        "space-before-function-paren": true,
+        "max-classes-per-file": false
     },
     "rulesDirectory": []
 }
