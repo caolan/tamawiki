@@ -102,7 +102,7 @@ fn request_missing_page_with_edit_action() {
     assert!(
         String::from_utf8(body.to_vec())
             .unwrap()
-            .contains("id=\"editor\"")
+            .contains("tw-editor")
     );
 }
 
@@ -135,6 +135,6 @@ fn request_existing_page_with_edit_action() {
     assert!(
         String::from_utf8(body.to_vec())
             .unwrap()
-            .contains("id=\"editor\"")
+            .contains("tw-editor")
     );
 }
