@@ -2,5 +2,3 @@
 **/*.rs.bk
 /node_modules
 /public/dist
-/public/test/js
-/public/test/css
