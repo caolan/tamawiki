@@ -1,0 +1,744 @@
+[
+    {
+        "name": "transform_insert_before_insert",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "Test"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 10, "content": "foo"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "Test"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_after_insert",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 10, "content": "Test"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 2, "content": "foo"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 13, "content": "Test"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_inserts_at_same_point_checks_priority1",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "Test"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 5, "content": "foo"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 8, "content": "Test"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_inserts_at_same_point_checks_priority2",
+        "initial": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "Test"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 1,
+                "operations": [
+                    {"Insert": {"pos": 5, "content": "foo"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "Test"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_uses_char_index_not_byte_index",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "Test"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 0, "content": "д"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 6, "content": "Test"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_delete_non_overlapping_after",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 5}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 10, "end": 15}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 5}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_delete_non_overlapping_before",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 5, "end": 10}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 0, "end": 1}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 4, "end": 9}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_delete_adjacent_before",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 2, "end": 4}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 0, "end": 2}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 2}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_delete_adjacent_after",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 3}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 3, "end": 5}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 3}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_delete_overlapping_start",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 5, "end": 15}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 0, "end": 10}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 5}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_delete_overlapping_end",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 4}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 2, "end": 6}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 2}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_delete_subset",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 5, "end": 10}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 1, "end": 20}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 1, "end": 1}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_delete_superset",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 17}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 5, "end": 10}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 12}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_delete_same_range",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 1}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 0, "end": 1}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 0}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_delete_non_overlapping_after",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "12345"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 10, "end": 15}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "12345"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_delete_non_overlapping_before",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "foo"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 0, "end": 1}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 4, "content": "foo"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_delete_adjacent_before",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 2, "content": "ab"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 0, "end": 2}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "ab"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_delete_adjacent_after",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "foo"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 3, "end": 5}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "foo"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_delete_overlapping_start",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "1234567890"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 0, "end": 10}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "1234567890"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_delete_overlapping_end",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "abcd"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 2, "end": 6}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "abcd"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_delete_subset",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "12345"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 1, "end": 20}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 1, "content": "12345"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_delete_superset",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "12345678901234567"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 5, "end": 10}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "12345678901234567"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_insert_non_overlapping_after",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 5}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 10, "content": "12345"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 5}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_insert_non_overlapping_before",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 5, "end": 8}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 0, "content": "a"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 6, "end": 9}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_insert_adjacent_before",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 2, "end": 4}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 0, "content": "ab"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 4, "end": 6}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_insert_adjacent_after",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 3}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 3, "content": "ab"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 3}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_insert_same_start_position",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 2, "end": 4}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 2, "content": "cd"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 4, "end": 6}},
+                {"Delete": {"start": 2, "end": 2}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_insert_overlapping_start",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 5, "end": 15}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 0, "content": "1234567890"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 15, "end": 25}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_insert_overlapping_end",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 4}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 2, "content": "abcd"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 6, "end": 8}},
+                {"Delete": {"start": 0, "end": 2}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_insert_subset",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 5, "end": 10}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 1, "content": "12345678901234567890"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 25, "end": 30}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_insert_superset",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 0, "end": 17}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 5, "content": "12345"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 10, "end": 22}},
+                {"Delete": {"start": 0, "end": 5}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_split_delete_before_insert",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 5, "end": 10}},
+                {"Insert": {"pos": 5, "content": "test"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 7, "content": "foo"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 10, "end": 13}},
+                {"Delete": {"start": 5, "end": 7}},
+                {"Insert": {"pos": 5, "content": "test"}}
+            ]
+        }}
+    }
+]

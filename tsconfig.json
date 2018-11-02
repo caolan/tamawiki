@@ -5,10 +5,12 @@
         "noImplicitAny": true,
         "noImplicitThis": true,
         "alwaysStrict": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
         "target": "es2015"
     }
 }

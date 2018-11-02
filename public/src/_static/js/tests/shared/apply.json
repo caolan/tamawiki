@@ -1,0 +1,1150 @@
+[
+    {
+        "name": "apply_insert_operation_at_end",
+        "initial": {
+            "content": "Foo Bar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 7,
+                                "content": " Baz"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Foo Bar Baz",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 11
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_insert_middle_with_multibyte_chars_in_doc",
+        "initial": {
+            "content": "Здравствуйте",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 6,
+                                "content": "-"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Здравс-твуйте",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 7
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_insert_at_end_with_multibyte_chars_in_doc",
+        "initial": {
+            "content": "Здравс",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 6,
+                                "content": "..."
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Здравс...",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 9
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_insert_multibyte_char_into_doc",
+        "initial": {
+            "content": "Hello / !",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 8,
+                                "content": "Здравствуйте"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Hello / Здравствуйте!",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 20
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_delete_operation_in_middle",
+        "initial": {
+            "content": "Hello, world!",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 7,
+                                "end": 12
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Hello, !",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 7
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_delete_operation_at_start",
+        "initial": {
+            "content": "Foo Bar Baz",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 0,
+                                "end": 4
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Bar Baz",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_delete_operation_at_end",
+        "initial": {
+            "content": "Foo Bar Baz",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 7,
+                                "end": 11
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Foo Bar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 7
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_empty_delete_operation_at_very_end",
+        "initial": {
+            "content": "Foo",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 3,
+                                "end": 3
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Foo",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 3
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_delete_with_multibyte_chars",
+        "initial": {
+            "content": "Здравствуйте test",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 6,
+                                "end": 12
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Здравс test",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 6
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_delete_to_end_with_multibyte_chars",
+        "initial": {
+            "content": "Здравствуйте",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 6,
+                                "end": 12
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Здравс",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 6
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_edit_from_missing_participant",
+        "initial": {
+            "content": "",
+            "participants": []
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 0,
+                                "content": "test"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": {
+            "type": "InvalidOperation"
+        },
+        "expected": {
+            "content": "",
+            "participants": []
+        }
+    },
+    {
+        "name": "apply_delete_outside_of_bounds",
+        "initial": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 3,
+                                "end": 7
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": {
+            "type": "OutsideDocument"
+        },
+        "expected": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_delete_outside_of_bounds2",
+        "initial": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 7,
+                                "end": 10
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": {
+            "type": "OutsideDocument"
+        },
+        "expected": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_insert_outside_of_bounds",
+        "initial": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 8,
+                                "content": "test"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": {
+            "type": "OutsideDocument"
+        },
+        "expected": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_multiple_operations_in_single_edit",
+        "initial": {
+            "content": "Hello",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 5,
+                                "content": ", "
+                            }
+                        },
+                        {
+                            "Insert": {
+                                "pos": 7,
+                                "content": "world!!"
+                            }
+                        },
+                        {
+                            "Delete": {
+                                "start": 13,
+                                "end": 14
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Hello, world!",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 13
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_join_events",
+        "initial": {
+            "content": "foobar",
+            "participants": []
+        },
+        "events": [
+            {
+                "Join": {
+                    "id": 1
+                }
+            },
+            {
+                "Join": {
+                    "id": 2
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                },
+                {
+                    "id": 2,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_join_invalid_id",
+        "initial": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Join": {
+                    "id": 1
+                }
+            }
+        ],
+        "error": {
+            "type": "InvalidOperation"
+        },
+        "expected": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_leave_events",
+        "initial": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                },
+                {
+                    "id": 2,
+                    "cursor_pos": 0
+                },
+                {
+                    "id": 3,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Leave": {
+                    "id": 1
+                }
+            },
+            {
+                "Leave": {
+                    "id": 2
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 3,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_leave_invalid_id",
+        "initial": {
+            "content": "foobar",
+            "participants": []
+        },
+        "events": [
+            {
+                "Leave": {
+                    "id": 1
+                }
+            }
+        ],
+        "error": {
+            "type": "InvalidOperation"
+        },
+        "expected": {
+            "content": "foobar",
+            "participants": []
+        }
+    },
+    {
+        "name": "apply_edit_with_single_failing_operation",
+        "initial": {
+            "content": "a",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 0,
+                                "content": "b"
+                            }
+                        },
+                        {
+                            "Insert": {
+                                "pos": 0,
+                                "content": "c"
+                            }
+                        },
+                        {
+                            "Delete": {
+                                "start": 20,
+                                "end": 25
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": {
+            "type": "OutsideDocument"
+        },
+        "expected": {
+            "content": "a",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_previous_operation_makes_later_operation_valid",
+        "initial": {
+            "content": "Hello",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 5,
+                                "content": ", world!"
+                            }
+                        },
+                        {
+                            "Delete": {
+                                "start": 7,
+                                "end": 12
+                            }
+                        },
+                        {
+                            "Insert": {
+                                "pos": 7,
+                                "content": "galaxy"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Hello, galaxy!",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 13
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_previous_operation_makes_later_operation_invalid",
+        "initial": {
+            "content": "Hello",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 0,
+                                "end": 5
+                            }
+                        },
+                        {
+                            "Insert": {
+                                "pos": 5,
+                                "content": ", world!"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": {
+            "type": "OutsideDocument"
+        },
+        "expected": {
+            "content": "Hello",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_insert_which_moves_another_participants_cursor",
+        "initial": {
+            "content": "",
+            "participants": []
+        },
+        "events": [
+            {
+                "Join": {
+                    "id": 1
+                }
+            },
+            {
+                "Join": {
+                    "id": 2
+                }
+            },
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 0,
+                                "content": ", world!"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "Edit": {
+                    "author": 2,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 0,
+                                "content": "Hello"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Hello, world!",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 13
+                },
+                {
+                    "id": 2,
+                    "cursor_pos": 5
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_insert_at_other_participants_cursor_position",
+        "initial": {
+            "content": "",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                },
+                {
+                    "id": 2,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 0,
+                                "content": "test"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "test",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 4
+                },
+                {
+                    "id": 2,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_delete_which_moves_another_participants_cursor",
+        "initial": {
+            "content": "",
+            "participants": []
+        },
+        "events": [
+            {
+                "Join": {
+                    "id": 1
+                }
+            },
+            {
+                "Join": {
+                    "id": 2
+                }
+            },
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 0,
+                                "content": "test"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "Edit": {
+                    "author": 2,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 0,
+                                "end": 2
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "st",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 2
+                },
+                {
+                    "id": 2,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_delete_which_partially_moves_another_participants_cursor",
+        "initial": {
+            "content": "foobar",
+            "participants": []
+        },
+        "events": [
+            {
+                "Join": {
+                    "id": 1
+                }
+            },
+            {
+                "Join": {
+                    "id": 2
+                }
+            },
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 3,
+                                "content": "baz"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "Edit": {
+                    "author": 2,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 4,
+                                "end": 8
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "foobr",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 4
+                },
+                {
+                    "id": 2,
+                    "cursor_pos": 4
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_operations_that_have_no_effect_on_content",
+        "initial": {
+            "content": "Hello",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 2,
+                                "end": 2
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Insert": {
+                                "pos": 4,
+                                "content": ""
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "Hello",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 4
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_invalid_delete",
+        "initial": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "Delete": {
+                                "start": 6,
+                                "end": 3
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": {
+            "type": "InvalidOperation"
+        },
+        "expected": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        }
+    }
+]
