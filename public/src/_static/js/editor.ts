@@ -13,6 +13,9 @@ export class Editor extends HTMLElement {
     public participants: ParticipantsElement;
     public session?: Session;
     
+    /**
+     * @param Conn  The class to use when creating a new connection
+     */    
     constructor(Conn?: IConnectionConstructor) {
         super();
         this.content = new ContentElement();

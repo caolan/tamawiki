@@ -1,6 +1,7 @@
 const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
+const TypedocWebpackPlugin = require('typedoc-webpack-plugin');
 const path = require('path');
 
 
@@ -38,6 +39,11 @@ module.exports = {
         new MiniCssExtractPlugin({
             filename: "./_static/css/[name].css",
             chunkFilename: "[id].css"
+        }),
+        new TypedocWebpackPlugin({
+            name: 'TamaWiki',
+            out: '../docs',
+            theme: 'minimal'
         })
     ]
 };
