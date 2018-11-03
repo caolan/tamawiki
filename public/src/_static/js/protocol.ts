@@ -1,6 +1,33 @@
-export interface Participant {
-    id: number;
-    cursor_pos: number;
+export class Document {
+    constructor (public content: string,
+                 public participants: Participant[]) {}
+
+    static fromJSON(data: any): Document {
+        return new Document(
+            data.content,
+            data.participants.map(Participant.fromJSON)
+        );
+    }
+
+    toJSON(): any {
+        return {
+            content: this.content,
+            participants: this.participants.map((x) => x.toJSON())
+        }
+    }
+}
+
+export class Participant {
+    constructor (public id: number,
+                 public cursor_pos: number) {}
+
+    static fromJSON(data: any): Participant {
+        return new Participant(data.id, data.cursor_pos);
+    }
+
+    toJSON(): any {
+        return {id: this.id, cursor_pos: this.cursor_pos};
+    }
 }
 
 export abstract class Operation {
