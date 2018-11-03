@@ -11,9 +11,9 @@ export abstract class Operation {
     // cleanly and without losing data
     static fromJSON(data: any): Operation {
         if (data.Insert) {
-            return Insert.fromJSON(data.Insert);
+            return Insert.fromJSON(data);
         } else if (data.Delete) {
-            return Delete.fromJSON(data.Delete);
+            return Delete.fromJSON(data);
         } else {
             throw new Error(`Unknown Operation type: ${data}`);
         }
@@ -28,7 +28,7 @@ export class Insert extends Operation {
         public content: string) { super(); }
 
     static fromJSON(data: any): Insert {
-        return new Insert(data.pos, data.content);
+        return new Insert(data.Insert.pos, data.Insert.content);
     }
 
     toJSON(): any {
@@ -58,7 +58,7 @@ export class Delete extends Operation {
         public end: number) { super(); }
 
     static fromJSON(data: any): Delete {
-        return new Delete(data.start, data.end);
+        return new Delete(data.Delete.start, data.Delete.end);
     }
 
     toJSON(): any {
@@ -114,11 +114,11 @@ export abstract class Event {
      */
     static fromJSON(data: any): Event {
         if (data.Edit) {
-            return Edit.fromJSON(data.Edit);
+            return Edit.fromJSON(data);
         } else if (data.Join) {
-            return Join.fromJSON(data.Join);
+            return Join.fromJSON(data);
         } else if (data.Leave) {
-            return Leave.fromJSON(data.Leave);
+            return Leave.fromJSON(data);
         } else {
             throw new Error(`Unknown Event type: ${data}`);
         }
@@ -152,8 +152,8 @@ export class Edit extends Event {
 
     static fromJSON(data: any): Edit {
         return new Edit(
-            data.author,
-            data.operations.map(Operation.fromJSON)
+            data.Edit.author,
+            data.Edit.operations.map(Operation.fromJSON)
         );
     }
 
@@ -175,7 +175,7 @@ export class Join extends Event {
     transform(_other: Event): void { }
 
     static fromJSON(data: any): Join {
-        return new Join(data.id);
+        return new Join(data.Join.id);
     }
 
     toJSON(): any {
@@ -191,7 +191,7 @@ export class Leave extends Event {
     transform(_other: Event): void { }
 
     static fromJSON(data: any): Leave {
-        return new Leave(data.id);
+        return new Leave(data.Leave.id);
     }
 
     toJSON(): any {
