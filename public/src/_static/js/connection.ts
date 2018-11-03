@@ -1,12 +1,8 @@
-export interface IConnectionConstructor {
-    new (path: string, seq: number): IConnection;
-}
+import { Duplex } from "stream";
 
-export interface IConnection {
-    path: string;
-    seq: number;
-}
+export type ConnectFunction =
+    (path: string, seq: number) => Duplex;
 
-export class Connection {
-    constructor(public path: string, public seq: number) {}
+export function websocketConnect(_path: string, _seq: number): Duplex {
+    return new Duplex();
 }

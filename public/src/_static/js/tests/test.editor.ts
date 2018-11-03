@@ -1,10 +1,16 @@
 import { assert } from "chai";
+import { Duplex } from "stream";
 import { Editor } from "../editor";
 
 suite("Editor", () => {
 
-    class TestConnection {
-        constructor (public path: string, public seq: number) {}
+    class TestStream extends Duplex {
+        constructor (public path: string,
+                     public seq: number) { super(); }
+    }
+
+    function testConnect(path: string, seq: number): TestStream {
+        return new TestStream(path, seq);
     }
 
     setup(function () {
@@ -17,7 +23,7 @@ suite("Editor", () => {
     });
 
     test("codemirror editor contains textContent of tw-editor element", function () {
-        const editor = new Editor(TestConnection);
+        const editor = new Editor(testConnect);
         editor.setAttribute("initial-seq", "0");
         editor.setAttribute("participants", "[]");
         editor.textContent = "Example content";
@@ -26,7 +32,7 @@ suite("Editor", () => {
     });
 
     test("display participants loaded from attribute", function () {
-        const editor = new Editor(TestConnection);
+        const editor = new Editor(testConnect);
         editor.setAttribute("initial-seq", "3");
         editor.setAttribute("participants", JSON.stringify([
             {id: 1, cursor_pos: 0},
@@ -39,20 +45,21 @@ suite("Editor", () => {
     });
 
     test("create connection using initial sequence id from attribute", function () {
-        const editor = new Editor(TestConnection);
+        const editor = new Editor(testConnect);
         editor.setAttribute("initial-seq", "3");
         editor.setAttribute("participants", "[]");
         this.tmp.appendChild(editor);
         if (editor.connection) {
-            assert.deepEqual(editor.connection.seq, 3);
-            assert.deepEqual(editor.connection.path, window.location.pathname);
+            const connection = editor.connection as TestStream;
+            assert.deepEqual(connection.seq, 3);
+            assert.deepEqual(connection.path, window.location.pathname);
         } else {
             assert.ok(false);
         }
     });
 
     test("create session using initial sequence id from attribute", function () {
-        const editor = new Editor(TestConnection);
+        const editor = new Editor(testConnect);
         editor.setAttribute("initial-seq", "3");
         editor.setAttribute("participants", "[]");
         this.tmp.appendChild(editor);

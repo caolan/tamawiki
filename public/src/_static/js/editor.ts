@@ -1,5 +1,6 @@
 import "@webcomponents/custom-elements";
-import { Connection, IConnectionConstructor } from "./connection";
+import { Duplex } from "stream";
+import { websocketConnect, ConnectFunction } from "./connection";
 import { ContentElement } from "./content";
 import { ParticipantsElement } from "./participants";
 import * as protocol from "./protocol";
@@ -8,20 +9,20 @@ import { Session } from "./session";
 import "../css/editor.css";
 
 export class Editor extends HTMLElement {
-    public Conn: IConnectionConstructor;
+    public connect: ConnectFunction;
     public content: ContentElement;
-    public connection?: Connection;
+    public connection?: Duplex;
     public participants: ParticipantsElement;
     public session?: Session;
 
     /**
      * @param Conn  The class to use when creating a new connection
      */
-    constructor(Conn?: IConnectionConstructor) {
+    constructor(connect?: ConnectFunction) {
         super();
         this.content = new ContentElement();
         this.participants = new ParticipantsElement();
-        this.Conn = Conn || Connection;
+        this.connect = connect || websocketConnect;
     }
 
     connectedCallback(): void {
@@ -39,7 +40,7 @@ export class Editor extends HTMLElement {
         this.content.loadDocument(new protocol.Document(text, []));
 
         // start connection
-        this.connection = new this.Conn(window.location.pathname, seq);
+        this.connection = this.connect(window.location.pathname, seq);
         this.session = new Session(seq);
     }
 }
