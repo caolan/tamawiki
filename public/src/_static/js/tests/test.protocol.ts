@@ -23,14 +23,14 @@ suite("protocol", () => {
 
     test("Operation.fromJSON / toJSON", function () {
         const ins = new protocol.Insert(10, "hello");
-        const deserialized_ins = protocol.Operation.fromJSON(ins.toJSON());
-        assert.deepEqual(deserialized_ins, ins);
-        assert.ok(deserialized_ins instanceof protocol.Insert);
-        
+        const deserializedIns = protocol.Operation.fromJSON(ins.toJSON());
+        assert.deepEqual(deserializedIns, ins);
+        assert.ok(deserializedIns instanceof protocol.Insert);
+
         const del = new protocol.Delete(10, 20);
-        const deserialized_del = protocol.Operation.fromJSON(del.toJSON());
-        assert.deepEqual(deserialized_del, del);
-        assert.ok(deserialized_del instanceof protocol.Delete);
+        const deserializedDel = protocol.Operation.fromJSON(del.toJSON());
+        assert.deepEqual(deserializedDel, del);
+        assert.ok(deserializedDel instanceof protocol.Delete);
 
         assert.throws(() => {
             protocol.Operation.fromJSON({Foo: {operation: "unknown"}});
@@ -72,27 +72,26 @@ suite("protocol", () => {
 
     test("Event.fromJSON / toJSON", function () {
         const join = new protocol.Join(123);
-        const deserialized_join = protocol.Event.fromJSON(join.toJSON());
-        assert.deepEqual(deserialized_join, join);
-        assert.ok(deserialized_join instanceof protocol.Join);
-        
+        const deserializedJoin = protocol.Event.fromJSON(join.toJSON());
+        assert.deepEqual(deserializedJoin, join);
+        assert.ok(deserializedJoin instanceof protocol.Join);
+
         const leave = new protocol.Leave(123);
-        const deserialized_leave = protocol.Event.fromJSON(leave.toJSON());
-        assert.deepEqual(deserialized_leave, leave);
-        assert.ok(deserialized_leave instanceof protocol.Leave);
-        
+        const deserializedLeave = protocol.Event.fromJSON(leave.toJSON());
+        assert.deepEqual(deserializedLeave, leave);
+        assert.ok(deserializedLeave instanceof protocol.Leave);
+
         const edit = new protocol.Edit(1, [
             new protocol.Insert(10, "hello"),
             new protocol.Delete(2, 3),
         ]);
-        const deserialized_edit = protocol.Edit.fromJSON(edit.toJSON());
-        assert.deepEqual(deserialized_edit, edit);
-        assert.ok(deserialized_edit instanceof protocol.Edit);
+        const deserializedEdit = protocol.Edit.fromJSON(edit.toJSON());
+        assert.deepEqual(deserializedEdit, edit);
+        assert.ok(deserializedEdit instanceof protocol.Edit);
 
         assert.throws(() => {
             protocol.Event.fromJSON({Foo: {event: "unknown"}});
         }, /Unknown Event type/);
     });
-
 
 });
