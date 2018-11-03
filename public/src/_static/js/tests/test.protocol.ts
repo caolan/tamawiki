@@ -3,6 +3,33 @@ import * as protocol from "../protocol";
 
 suite("protocol", () => {
 
+    test("Participant.fromJSON / toJSON", function () {
+        const participant = new protocol.Participant(123, 40);
+        const serialized = participant.toJSON();
+        const deserialized = protocol.Participant.fromJSON(serialized);
+        assert.deepEqual(serialized, {id: 123, cursor_pos: 40});
+        assert.deepEqual(deserialized, participant);
+        assert.ok(deserialized instanceof protocol.Participant);
+    });
+
+    test("Document.fromJSON / toJSON", function () {
+        const doc = new protocol.Document("Hello, world!", [
+            new protocol.Participant(1, 0),
+            new protocol.Participant(123, 40),
+        ]);
+        const serialized = doc.toJSON();
+        const deserialized = protocol.Document.fromJSON(serialized);
+        assert.deepEqual(serialized, {
+            content: "Hello, world!",
+            participants: [
+                {id: 1, cursor_pos: 0},
+                {id: 123, cursor_pos: 40},
+            ],
+        });
+        assert.deepEqual(deserialized, doc);
+        assert.ok(deserialized instanceof protocol.Document);
+    });
+
     test("Insert.fromJSON / toJSON", function () {
         const ins = new protocol.Insert(10, "hello");
         const serialized = ins.toJSON();

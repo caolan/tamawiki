@@ -33,9 +33,6 @@ export class Participant {
 export abstract class Operation {
     abstract transform(other: Operation, hasPriority: boolean): Operation[];
 
-    // TODO: write test to confirm for all classes in this file that
-    // the fromJSON/toJSON functoins can convert back and forth
-    // cleanly and without losing data
     static fromJSON(data: any): Operation {
         if (data.Insert) {
             return Insert.fromJSON(data);
