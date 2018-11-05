@@ -38,6 +38,13 @@ export class ParticipantsElement extends HTMLElement {
         this.renderList();
     }
 
+    removeParticipant(id: number): void {
+        this.participants = this.participants.filter((p) => {
+            return p.id !== id;
+        });
+        this.renderList();
+    }
+
     setParticipants(data: protocol.Participant[]): void {
         this.participants = data;
         this.renderList();

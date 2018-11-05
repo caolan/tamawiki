@@ -44,6 +44,9 @@ export class Editor extends HTMLElement {
         this.session.on("join", (participant) => {
             this.participants.addParticipant(participant);
         });
+        this.session.on("leave", (id) => {
+            this.participants.removeParticipant(id);
+        });
 
         // initialize content editor
         this.appendChild(this.content);

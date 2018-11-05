@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { Connection } from "../connection";
 import { Editor } from "../editor";
-import { ClientMessage, Connected } from "../protocol";
+import { ClientMessage, Connected, Join, Leave, ServerEvent } from "../protocol";
 
 suite("Editor", () => {
 
@@ -42,6 +42,7 @@ suite("Editor", () => {
         ]));
         this.tmp.appendChild(editor);
         const items = editor.participants.querySelectorAll("li");
+        assert.equal(items.length, 2);
         assert.equal(items[0].textContent, "Participant 1");
         assert.equal(items[1].textContent, "Participant 123");
     });
@@ -63,7 +64,10 @@ suite("Editor", () => {
                 }
                 done();
             });
-            editor.session.connection.emit("message", new Connected(123));
+            editor.session.connection.emit(
+                "message",
+                new Connected(123),
+            );
         }
     });
 
@@ -75,11 +79,66 @@ suite("Editor", () => {
         ]));
         this.tmp.appendChild(editor);
         if (editor.session) {
-            editor.session.connection.emit("message", new Connected(2));
+            editor.session.connection.emit(
+                "message",
+                new Connected(2),
+            );
             const items = editor.participants.querySelectorAll("li");
+            assert.equal(items.length, 2);
             assert.equal(items[0].textContent, "Participant 1");
             assert.equal(items[1].textContent, "Participant 2");
             assert.equal(items[1].className, "you");
+        } else {
+            assert.ok(false);
+        }
+    });
+
+    test("Join event adds participant to list element", function() {
+        const editor = new Editor(TestConnection);
+        editor.setAttribute("initial-seq", "3");
+        editor.setAttribute("participants", JSON.stringify([
+            { id: 1, cursor_pos: 0 },
+        ]));
+        this.tmp.appendChild(editor);
+        if (editor.session) {
+            const before = editor.participants.querySelectorAll("li");
+            assert.equal(before[0].textContent, "Participant 1");
+            assert.equal(before.length, 1);
+
+            editor.session.connection.emit(
+                "message",
+                new ServerEvent(4, 0, new Join(2)),
+            );
+            const after = editor.participants.querySelectorAll("li");
+            assert.equal(after[0].textContent, "Participant 1");
+            assert.equal(after[1].textContent, "Participant 2");
+            assert.equal(after.length, 2);
+        } else {
+            assert.ok(false);
+        }
+    });
+
+    test("Leave event removes participant from list element", function() {
+        const editor = new Editor(TestConnection);
+        editor.setAttribute("initial-seq", "3");
+        editor.setAttribute("participants", JSON.stringify([
+            { id: 1, cursor_pos: 0 },
+            { id: 2, cursor_pos: 0 },
+        ]));
+        this.tmp.appendChild(editor);
+        if (editor.session) {
+            const before = editor.participants.querySelectorAll("li");
+            assert.equal(before[0].textContent, "Participant 1");
+            assert.equal(before[1].textContent, "Participant 2");
+            assert.equal(before.length, 2);
+
+            editor.session.connection.emit(
+                "message",
+                new ServerEvent(4, 0, new Leave(1)),
+            );
+            const after = editor.participants.querySelectorAll("li");
+            assert.equal(after[0].textContent, "Participant 2");
+            assert.equal(after.length, 1);
         } else {
             assert.ok(false);
         }
