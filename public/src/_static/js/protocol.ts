@@ -1,6 +1,34 @@
+export class ClientMessage { };
+
+export abstract class ServerMessage {
+    static fromJSON(data: any): ServerMessage {
+        if (data.Connected) {
+            return ConnectedMessage.fromJSON(data);
+        } else {
+            throw new Error(`Unknown Operation type: ${data}`);
+        }
+    }
+
+    abstract toJSON(): any;
+};
+
+export class ConnectedMessage extends ServerMessage {
+    constructor(public id: number) {
+        super();
+    }
+
+    static fromJSON(data: any): ConnectedMessage {
+        return new ConnectedMessage(data.Connected.id);
+    }
+
+    toJSON(): any {
+        return { Connected: { id: this.id } };
+    }
+}
+
 export class Document {
-    constructor (public content: string,
-                 public participants: Participant[]) {}
+    constructor(public content: string,
+        public participants: Participant[]) { }
 
     static fromJSON(data: any): Document {
         return new Document(
@@ -18,15 +46,15 @@ export class Document {
 }
 
 export class Participant {
-    constructor (public id: number,
-                 public cursor_pos: number) {}
+    constructor(public id: number,
+        public cursor_pos: number) { }
 
     static fromJSON(data: any): Participant {
         return new Participant(data.id, data.cursor_pos);
     }
 
     toJSON(): any {
-        return {id: this.id, cursor_pos: this.cursor_pos};
+        return { id: this.id, cursor_pos: this.cursor_pos };
     }
 }
 

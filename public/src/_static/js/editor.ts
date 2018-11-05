@@ -1,6 +1,5 @@
 import "@webcomponents/custom-elements";
-import { Duplex } from "stream";
-import { websocketConnect, ConnectFunction } from "./connection";
+import { IConnectionConstructor, WebSocketConnection } from "./connection";
 import { ContentElement } from "./content";
 import { ParticipantsElement } from "./participants";
 import * as protocol from "./protocol";
@@ -9,20 +8,20 @@ import { Session } from "./session";
 import "../css/editor.css";
 
 export class Editor extends HTMLElement {
-    public connect: ConnectFunction;
+    public ConnectionType: IConnectionConstructor;
     public content: ContentElement;
-    public connection?: Duplex;
+    public participantId?: number;
     public participants: ParticipantsElement;
     public session?: Session;
 
     /**
-     * @param Conn  The class to use when creating a new connection
+     * @param ConnnectionType  The class to use when creating a new connection
      */
-    constructor(connect?: ConnectFunction) {
+    constructor(ConnectionType?: IConnectionConstructor) {
         super();
         this.content = new ContentElement();
         this.participants = new ParticipantsElement();
-        this.connect = connect || websocketConnect;
+        this.ConnectionType = ConnectionType || WebSocketConnection;
     }
 
     connectedCallback(): void {
@@ -31,6 +30,11 @@ export class Editor extends HTMLElement {
         const text = this.textContent || "";
         this.textContent = "";
 
+        this.session = new Session(
+            new this.ConnectionType(window.location.pathname, seq),
+            seq,
+        );
+
         // initialize participants window
         this.participants.setParticipants(participantsData);
         this.appendChild(this.participants);
@@ -38,10 +42,6 @@ export class Editor extends HTMLElement {
         // initialize content editor
         this.appendChild(this.content);
         this.content.loadDocument(new protocol.Document(text, []));
-
-        // start connection
-        this.connection = this.connect(window.location.pathname, seq);
-        this.session = new Session(seq);
     }
 }
 

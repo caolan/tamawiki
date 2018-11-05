@@ -1,29 +1,31 @@
 import { assert } from "chai";
-import { Duplex } from "stream";
+import { Connection } from "../connection";
 import { Editor } from "../editor";
+import { ClientMessage } from "../protocol";
 
 suite("Editor", () => {
 
-    class TestStream extends Duplex {
-        constructor (public path: string,
-                     public seq: number) { super(); }
+    class TestConnection extends Connection {
+        constructor(
+            public path: string,
+            public seq: number) { super(); }
+
+        public send(msg: ClientMessage): void {
+            console.log(msg);
+        }
     }
 
-    function testConnect(path: string, seq: number): TestStream {
-        return new TestStream(path, seq);
-    }
-
-    setup(function () {
+    setup(function() {
         this.tmp = document.createElement("div");
         document.body.appendChild(this.tmp);
     });
 
-    teardown(function () {
+    teardown(function() {
         document.body.removeChild(this.tmp);
     });
 
-    test("codemirror editor contains textContent of tw-editor element", function () {
-        const editor = new Editor(testConnect);
+    test("codemirror editor contains textContent of tw-editor element", function() {
+        const editor = new Editor(TestConnection);
         editor.setAttribute("initial-seq", "0");
         editor.setAttribute("participants", "[]");
         editor.textContent = "Example content";
@@ -31,12 +33,12 @@ suite("Editor", () => {
         assert.equal(editor.content.getValue(), "Example content");
     });
 
-    test("display participants loaded from attribute", function () {
-        const editor = new Editor(testConnect);
+    test("display participants loaded from attribute", function() {
+        const editor = new Editor(TestConnection);
         editor.setAttribute("initial-seq", "3");
         editor.setAttribute("participants", JSON.stringify([
-            {id: 1, cursor_pos: 0},
-            {id: 123, cursor_pos: 60},
+            { id: 1, cursor_pos: 0 },
+            { id: 123, cursor_pos: 60 },
         ]));
         this.tmp.appendChild(editor);
         const items = editor.participants.querySelectorAll("li");
@@ -44,30 +46,24 @@ suite("Editor", () => {
         assert.equal(items[1].textContent, "Participant 123");
     });
 
-    test("create connection using initial sequence id from attribute", function () {
-        const editor = new Editor(testConnect);
-        editor.setAttribute("initial-seq", "3");
-        editor.setAttribute("participants", "[]");
-        this.tmp.appendChild(editor);
-        if (editor.connection) {
-            const connection = editor.connection as TestStream;
-            assert.deepEqual(connection.seq, 3);
-            assert.deepEqual(connection.path, window.location.pathname);
-        } else {
-            assert.ok(false);
-        }
-    });
-
-    test("create session using initial sequence id from attribute", function () {
-        const editor = new Editor(testConnect);
+    test("create connection for session using initial-seq attribute", function(done) {
+        const editor = new Editor(TestConnection);
         editor.setAttribute("initial-seq", "3");
         editor.setAttribute("participants", "[]");
         this.tmp.appendChild(editor);
         if (editor.session) {
-            assert.deepEqual(editor.session.seq, 3);
-            assert.deepEqual(editor.session.client_seq, 0);
-        } else {
-            assert.ok(false);
+            editor.session.connection.on("connected", (id) => {
+                assert.equal(id, 123);
+                if (editor.session) {
+                    assert.equal(editor.session.participantId, id);
+                    assert.deepEqual(editor.session.seq, 3);
+                    assert.deepEqual(editor.session.clientSeq, 0);
+                } else {
+                    assert.ok(false);
+                }
+                done();
+            });
+            editor.session.connection.emit("connected", 123);
         }
     });
 

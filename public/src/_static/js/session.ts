@@ -1,9 +1,17 @@
-export class Session {
-    public seq: number;
-    public client_seq: number;
+import { Connection } from "./connection";
 
-    constructor(seq: number) {
-        this.seq = seq;
-        this.client_seq = 0;
+export class Session {
+    public clientSeq: number;
+    public participantId?: number;
+
+    constructor(
+        public connection: Connection,
+        public seq: number) {
+        this.clientSeq = 0;
+
+        this.connection.on("connected", (id) => {
+            this.participantId = id;
+            console.log(["Connected", id]);
+        });
     }
 }

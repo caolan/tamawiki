@@ -1,8 +1,33 @@
-import { Duplex } from "stream";
+import { EventEmitter } from "events";
+import { ClientMessage, ServerMessage } from "./protocol";
 
-export type ConnectFunction =
-    (path: string, seq: number) => Duplex;
+export abstract class Connection extends EventEmitter {
+    abstract send(msg: ClientMessage): void;
+}
 
-export function websocketConnect(_path: string, _seq: number): Duplex {
-    return new Duplex();
+export interface IConnectionConstructor {
+    new(path: string, seq: number): Connection
+}
+
+export class WebSocketConnection extends Connection {
+    websocket: WebSocket;
+
+    constructor(path: string, seq: number) {
+        super();
+        const host = window.location.host;
+        this.websocket = new WebSocket(`ws://${host}${path}?seq=${seq}`);
+        this.websocket.onopen = (_event) => {
+            console.log("websocket open");
+        };
+        this.websocket.onmessage = (event) => {
+            const msg = ServerMessage.fromJSON(
+                JSON.parse(event.data)
+            );
+            console.log(["websocket message", msg.toJSON()]);
+        };
+    }
+
+    send(msg: ClientMessage): void {
+        console.log(msg);
+    }
 }
