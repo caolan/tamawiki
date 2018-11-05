@@ -1,17 +1,22 @@
 import { assert } from "chai";
 import { Connection } from "../connection";
 import { Editor } from "../editor";
-import { ClientMessage, Connected, Join, Leave, ServerEvent } from "../protocol";
+import * as protocol from "../protocol";
 
 suite("Editor", () => {
 
     class TestConnection extends Connection {
+        public sent: protocol.ClientMessage[];
+
         constructor(
             public path: string,
-            public seq: number) { super(); }
+            public seq: number) {
+            super();
+            this.sent = [];
+        }
 
-        public send(msg: ClientMessage): void {
-            console.log(msg);
+        public send(msg: protocol.ClientMessage): void {
+            this.sent.push(msg);
         }
     }
 
@@ -66,7 +71,7 @@ suite("Editor", () => {
             });
             editor.session.connection.emit(
                 "message",
-                new Connected(123),
+                new protocol.Connected(123),
             );
         }
     });
@@ -81,7 +86,7 @@ suite("Editor", () => {
         if (editor.session) {
             editor.session.connection.emit(
                 "message",
-                new Connected(2),
+                new protocol.Connected(2),
             );
             const items = editor.participants.querySelectorAll("li");
             assert.equal(items.length, 2);
@@ -107,7 +112,7 @@ suite("Editor", () => {
 
             editor.session.connection.emit(
                 "message",
-                new ServerEvent(4, 0, new Join(2)),
+                new protocol.ServerEvent(4, 0, new protocol.Join(2)),
             );
             const after = editor.participants.querySelectorAll("li");
             assert.equal(after[0].textContent, "Participant 1");
@@ -134,11 +139,35 @@ suite("Editor", () => {
 
             editor.session.connection.emit(
                 "message",
-                new ServerEvent(4, 0, new Leave(1)),
+                new protocol.ServerEvent(4, 0, new protocol.Leave(1)),
             );
             const after = editor.participants.querySelectorAll("li");
             assert.equal(after[0].textContent, "Participant 2");
             assert.equal(after.length, 1);
+        } else {
+            assert.ok(false);
+        }
+    });
+
+    test("Send local edits over connection", function() {
+        const editor = new Editor(TestConnection);
+        editor.setAttribute("initial-seq", "3");
+        editor.setAttribute("participants", JSON.stringify([
+            { id: 1, cursor_pos: 0 },
+            { id: 2, cursor_pos: 0 },
+        ]));
+        editor.textContent = "Hello";
+        this.tmp.appendChild(editor);
+        if (editor.session) {
+            const doc = editor.content.codemirror.getDoc();
+            const pos = doc.posFromIndex(5);
+            doc.replaceRange(", world!", pos);
+            const conn = editor.session.connection as TestConnection;
+            assert.deepEqual(conn.sent, [
+                new protocol.ClientEdit(3, 1, [
+                    new protocol.Insert(5, ", world!"),
+                ]),
+            ]);
         } else {
             assert.ok(false);
         }

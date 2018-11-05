@@ -51,6 +51,11 @@ export class Editor extends HTMLElement {
         // initialize content editor
         this.appendChild(this.content);
         this.content.loadDocument(new protocol.Document(text, []));
+        // TODO: how to handle change events that occur before
+        // Connected message arrives?
+        this.content.events.on("change", (operations: protocol.Operation[]) => {
+            (this.session as Session).send(operations);
+        });
     }
 }
 

@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import { Connection } from "./connection";
-import { Join, Leave, Connected, Participant } from "./protocol";
+import * as protocol from "./protocol";
 
 export class Session extends EventEmitter {
     public clientSeq: number;
@@ -14,16 +14,23 @@ export class Session extends EventEmitter {
         this.clientSeq = 0;
 
         this.connection.on("message", (msg) => {
-            if (msg instanceof Connected) {
+            if (msg instanceof protocol.Connected) {
                 this.participantId = msg.id;
                 this.emit("connected", msg.id);
             } else {
-                if (msg.event instanceof Join) {
-                    this.emit("join", new Participant(msg.event.id, 0));
-                } else if (msg.event instanceof Leave) {
+                if (msg.event instanceof protocol.Join) {
+                    this.emit("join", new protocol.Participant(msg.event.id, 0));
+                } else if (msg.event instanceof protocol.Leave) {
                     this.emit("leave", msg.event.id);
                 }
             }
         });
+    }
+
+    send(operations: protocol.Operation[]) {
+        this.clientSeq++;
+        this.connection.send(
+            new protocol.ClientEdit(this.seq, this.clientSeq, operations)
+        );
     }
 }

@@ -272,8 +272,7 @@ fn websocket_edits() {
                         }
                     }
                 }
-            }),
-            )).and_then(client2_receives(json!({"Connected": {"id": 2}})))
+            }))).and_then(client2_receives(json!({"Connected": {"id": 2}})))
             .and_then(client1_sends(json!({
                 "ClientEdit": {
                     "client_seq": 1,

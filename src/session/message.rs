@@ -1,6 +1,6 @@
 //! Defines messages for client/server communication during an EditSession
 
-use document::{Operation, ParticipantId, Event};
+use document::{Event, Operation, ParticipantId};
 use futures::future::FutureResult;
 use futures::sink::Sink;
 use futures::stream::Stream;

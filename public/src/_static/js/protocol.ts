@@ -1,4 +1,36 @@
-export class ClientMessage { };
+export abstract class ClientMessage {
+    static fromJSON(data: any): ServerMessage {
+        return ClientEdit.fromJSON(data);
+    };
+    abstract toJSON(): any;
+}
+
+export class ClientEdit extends ClientMessage {
+    constructor(
+        public parentSeq: number,
+        public clientSeq: number,
+        public operations: Operation[]) {
+        super();
+    }
+
+    static fromJSON(data: any): ClientEdit {
+        return new ClientEdit(
+            data.ClientEdit.parent_seq,
+            data.ClientEdit.client_seq,
+            data.ClientEdit.operations.map(Operation.fromJSON),
+        );
+    }
+
+    toJSON(): any {
+        return {
+            ClientEdit: {
+                parent_seq: this.parentSeq,
+                client_seq: this.clientSeq,
+                operations: this.operations.map((op) => op.toJSON())
+            }
+        };
+    }
+}
 
 export abstract class ServerMessage {
     static fromJSON(data: any): ServerMessage {

@@ -79,7 +79,7 @@ impl<T: Store + Sync> Participant<T> {
         ServerMessage::Event(ServerEventMessage {
             client_seq: self.client_seq,
             seq,
-            event
+            event,
         })
     }
 }
