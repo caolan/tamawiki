@@ -1,19 +1,48 @@
 import "@webcomponents/custom-elements";
 import * as CodeMirror from "codemirror";
-import "codemirror/lib/codemirror.css";
 import * as protocol from "./protocol";
+import { EventEmitter } from "events";
+
+import "codemirror/lib/codemirror.css";
 
 export class ContentElement extends HTMLElement {
     public codemirror: CodeMirror.Editor;
-    public participants: {[id: number]: {marker?: CodeMirror.TextMarker}};
+    public events: EventEmitter;
+    public participants: { [id: number]: { marker?: CodeMirror.TextMarker } };
 
     constructor() {
         super();
+        this.events = new EventEmitter();
         this.participants = [];
         this.codemirror = CodeMirror(this, {
             lineWrapping: true,
             mode: "text",
             value: "",
+        });
+
+        this.codemirror.on("changes", (_instance, changes) => {
+            const operations = [];
+            const doc = this.codemirror.getDoc();
+            for (const change of changes) {
+                const start = doc.indexFromPos(change.from);
+                const inserted = change.text.join('\n');
+                const removed = (change.removed || []).join('\n');
+                if (removed) {
+                    operations.push(new protocol.Delete(
+                        start,
+                        start + removed.length,
+                    ));
+                }
+                if (inserted) {
+                    operations.push(new protocol.Insert(
+                        start,
+                        inserted,
+                    ));
+                }
+            }
+            if (operations.length) {
+                this.events.emit("change", operations);
+            }
         });
     }
 
@@ -151,7 +180,7 @@ export class ContentElement extends HTMLElement {
             var start = doc.posFromIndex(op.pos);
             var end = doc.posFromIndex(op.pos + op.content.length);
             doc.replaceRange(op.content, start);
-            doc.markText(start, end, {className: 'edit'});
+            doc.markText(start, end, { className: 'edit' });
             this.setParticipantPosition(
                 author,
                 op.pos + op.content.length
