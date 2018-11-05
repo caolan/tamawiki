@@ -1,5 +1,6 @@
 import "@webcomponents/custom-elements";
 import * as protocol from "./protocol";
+import "../css/participants.css";
 
 export class ParticipantsElement extends HTMLElement {
     private participants: protocol.Participant[];
