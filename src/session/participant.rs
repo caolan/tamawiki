@@ -76,24 +76,11 @@ impl<T: Store + Sync> Participant<T> {
     // sequence id for the event and the most recently applied client
     // sequence id from the participant.
     fn prepare_server_message(&self, seq: SequenceId, event: Event) -> ServerMessage {
-        match event {
-            Event::Edit(Edit { author, operations }) => ServerMessage::Edit(EditMessage {
-                client_seq: self.client_seq,
-                seq,
-                author,
-                operations,
-            }),
-            Event::Join(Join { id }) => ServerMessage::Join(JoinMessage {
-                client_seq: self.client_seq,
-                seq,
-                id,
-            }),
-            Event::Leave(Leave { id }) => ServerMessage::Leave(LeaveMessage {
-                client_seq: self.client_seq,
-                seq,
-                id,
-            }),
-        }
+        ServerMessage::Event(ServerEventMessage {
+            client_seq: self.client_seq,
+            seq,
+            event
+        })
     }
 }
 

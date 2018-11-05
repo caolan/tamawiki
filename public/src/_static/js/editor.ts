@@ -38,6 +38,12 @@ export class Editor extends HTMLElement {
         // initialize participants window
         this.participants.setParticipants(participantsData);
         this.appendChild(this.participants);
+        this.session.on("connected", (id) => {
+            this.participants.setLocalParticipantId(id);
+        });
+        this.session.on("join", (participant) => {
+            this.participants.addParticipant(participant);
+        });
 
         // initialize content editor
         this.appendChild(this.content);

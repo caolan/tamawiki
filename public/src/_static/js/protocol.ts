@@ -3,28 +3,59 @@ export class ClientMessage { };
 export abstract class ServerMessage {
     static fromJSON(data: any): ServerMessage {
         if (data.Connected) {
-            return ConnectedMessage.fromJSON(data);
+            return Connected.fromJSON(data);
+        } else if (data.Event) {
+            return ServerEvent.fromJSON(data);
         } else {
-            throw new Error(`Unknown Operation type: ${data}`);
+            throw new Error("Unknown ServerMessage type");
         }
-    }
+    };
 
     abstract toJSON(): any;
-};
+}
 
-export class ConnectedMessage extends ServerMessage {
+export class Connected extends ServerMessage {
     constructor(public id: number) {
         super();
     }
 
-    static fromJSON(data: any): ConnectedMessage {
-        return new ConnectedMessage(data.Connected.id);
+    transform(_other: Event): void { }
+
+    static fromJSON(data: any): Connected {
+        return new Connected(data.Connected.id);
     }
 
     toJSON(): any {
-        return { Connected: { id: this.id } };
+        return { Connected: { id: this.id } }
     }
 }
+
+export class ServerEvent extends ServerMessage {
+    constructor(
+        public seq: number,
+        public clientSeq: number,
+        public event: Event) {
+        super();
+    }
+
+    static fromJSON(data: any): ServerEvent {
+        return new ServerEvent(
+            data.Event.seq,
+            data.Event.client_seq,
+            Event.fromJSON(data.Event.event),
+        );
+    }
+
+    toJSON(): any {
+        return {
+            Event: {
+                seq: this.seq,
+                client_seq: this.clientSeq,
+                event: this.event.toJSON()
+            }
+        }
+    }
+};
 
 export class Document {
     constructor(public content: string,
@@ -46,7 +77,8 @@ export class Document {
 }
 
 export class Participant {
-    constructor(public id: number,
+    constructor(
+        public id: number,
         public cursor_pos: number) { }
 
     static fromJSON(data: any): Participant {
@@ -67,7 +99,7 @@ export abstract class Operation {
         } else if (data.Delete) {
             return Delete.fromJSON(data);
         } else {
-            throw new Error(`Unknown Operation type: ${data}`);
+            throw new Error("Unknown Operation type");
         }
     }
 
@@ -98,7 +130,7 @@ export class Insert extends Operation {
                 this.pos -= end - other.start;
             }
         } else {
-            throw new Error(`Unknown operation type: ${other}`);
+            throw new Error("Unknown operation type");
         }
         return [this];
     }
@@ -172,7 +204,7 @@ export abstract class Event {
         } else if (data.Leave) {
             return Leave.fromJSON(data);
         } else {
-            throw new Error(`Unknown Event type: ${data}`);
+            throw new Error("Unknown Event type");
         }
     }
 

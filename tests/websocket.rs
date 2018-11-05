@@ -179,24 +179,24 @@ fn websocket_join_and_leave_notifications() {
                     msgs1,
                     vec![
                         "{\"Connected\":{\"id\":1}}",
-                        "{\"Join\":{\"client_seq\":0,\"seq\":2,\"id\":2}}",
-                        "{\"Join\":{\"client_seq\":0,\"seq\":3,\"id\":3}}",
-                        "{\"Leave\":{\"client_seq\":0,\"seq\":4,\"id\":2}}",
-                        "{\"Leave\":{\"client_seq\":0,\"seq\":5,\"id\":3}}",
+                        "{\"Event\":{\"client_seq\":0,\"seq\":2,\"event\":{\"Join\":{\"id\":2}}}}",
+                        "{\"Event\":{\"client_seq\":0,\"seq\":3,\"event\":{\"Join\":{\"id\":3}}}}",
+                        "{\"Event\":{\"client_seq\":0,\"seq\":4,\"event\":{\"Leave\":{\"id\":2}}}}",
+                        "{\"Event\":{\"client_seq\":0,\"seq\":5,\"event\":{\"Leave\":{\"id\":3}}}}",
                     ]
                 );
                 assert_eq!(
                     msgs2,
                     vec![
                         "{\"Connected\":{\"id\":2}}",
-                        "{\"Join\":{\"client_seq\":0,\"seq\":3,\"id\":3}}",
+                        "{\"Event\":{\"client_seq\":0,\"seq\":3,\"event\":{\"Join\":{\"id\":3}}}}",
                     ]
                 );
                 assert_eq!(
                     msgs3,
                     vec![
                         "{\"Connected\":{\"id\":3}}",
-                        "{\"Leave\":{\"client_seq\":0,\"seq\":4,\"id\":2}}",
+                        "{\"Event\":{\"client_seq\":0,\"seq\":4,\"event\":{\"Leave\":{\"id\":2}}}}",
                     ]
                 );
             }).map(|_| ()),
@@ -262,8 +262,17 @@ fn websocket_edits() {
                 // then connect client 2
                 client2.map(|ws2| (ws1, ws2))
             }).and_then(client1_receives(json!({"Connected": {"id": 1}})))
-            .and_then(client1_receives(
-                json!({"Join": {"client_seq": 0, "seq": 2, "id": 2}}),
+            .and_then(client1_receives(json!({
+                "Event": {
+                    "client_seq": 0,
+                    "seq": 2,
+                    "event": {
+                        "Join": {
+                            "id": 2
+                        }
+                    }
+                }
+            }),
             )).and_then(client2_receives(json!({"Connected": {"id": 2}})))
             .and_then(client1_sends(json!({
                 "ClientEdit": {
@@ -272,13 +281,17 @@ fn websocket_edits() {
                     "operations": [{"Insert":{"pos":0,"content":"Hello"}}]
                 }
             }))).and_then(client2_receives(json!({
-                "Edit": {
+                "Event": {
                     "seq": 3,
                     "client_seq": 0,
-                    "author": 1,
-                    "operations": [
-                        {"Insert": {"pos":0, "content": "Hello"}}
-                    ]
+                    "event": {
+                        "Edit": {
+                            "author": 1,
+                            "operations": [
+                                {"Insert": {"pos":0, "content": "Hello"}}
+                            ]
+                        }
+                    }
                 }
             }))).and_then(client1_sends(json!({
                 "ClientEdit": {
@@ -287,13 +300,17 @@ fn websocket_edits() {
                     "operations": [{"Insert":{"pos":0,"content":"="}}]
                 }
             }))).and_then(client2_receives(json!({
-                "Edit": {
+                "Event": {
                     "seq": 4,
                     "client_seq": 0,
-                    "author": 1,
-                    "operations": [
-                        {"Insert": {"pos":0, "content": "="}}
-                    ]
+                    "event": {
+                        "Edit": {
+                            "author": 1,
+                            "operations": [
+                                {"Insert": {"pos":0, "content": "="}}
+                            ]
+                        }
+                    }
                 }
             }))).and_then(client2_sends(json!({
                 "ClientEdit": {
@@ -302,13 +319,17 @@ fn websocket_edits() {
                     "operations": [{"Insert":{"pos":5,"content":", world"}}]
                 }
             }))).and_then(client1_receives(json!({
-                "Edit": {
+                "Event": {
                     "seq": 5,
                     "client_seq": 2,
-                    "author": 2,
-                    "operations": [
-                        {"Insert": {"pos":6, "content": ", world"}}
-                    ]
+                    "event": {
+                        "Edit": {
+                            "author": 2,
+                            "operations": [
+                                {"Insert": {"pos":6, "content": ", world"}}
+                            ]
+                        }
+                    }
                 }
             }))).map(|_| ()),
     ).unwrap();

@@ -1,6 +1,6 @@
 //! Defines messages for client/server communication during an EditSession
 
-use document::{Operation, ParticipantId};
+use document::{Operation, ParticipantId, Event};
 use futures::future::FutureResult;
 use futures::sink::Sink;
 use futures::stream::Stream;
@@ -15,53 +15,24 @@ pub enum ServerMessage {
     /// Client successfully connected - always the first message sent
     /// to a client
     Connected(ConnectedMessage),
-    /// An update was made to the Document
-    Edit(EditMessage),
-    /// A new participant joined the DocumentSession
-    Join(JoinMessage),
-    /// A participant has left the DocumentSession
-    Leave(LeaveMessage),
+    /// A new event from the server
+    Event(ServerEventMessage),
+}
+
+#[derive(Serialize, Debug, PartialEq)]
+pub struct ServerEventMessage {
+    /// The most recently applied client SequenceId
+    pub client_seq: SequenceId,
+    /// The SequenceId of the Event in the Store
+    pub seq: SequenceId,
+    /// The event
+    pub event: Event,
 }
 
 /// Client successfully connected
 #[derive(Serialize, Debug, PartialEq)]
 pub struct ConnectedMessage {
     /// The new client's participant ID
-    pub id: ParticipantId,
-}
-
-/// An update was made to the Document
-#[derive(Serialize, Debug, PartialEq)]
-pub struct EditMessage {
-    /// The most recently applied client SequenceId
-    pub client_seq: SequenceId,
-    /// The SequenceId of the edit Event in the Store
-    pub seq: SequenceId,
-    /// The id of the participant responsible for making this change
-    pub author: ParticipantId,
-    /// The individual Operations which describe the edit
-    pub operations: Vec<Operation>,
-}
-
-/// A new participant has joined the DocumentSession
-#[derive(Serialize, Debug, PartialEq)]
-pub struct JoinMessage {
-    /// The most recently applied client SequenceId
-    pub client_seq: SequenceId,
-    /// The SequenceId of the join Event in the Store
-    pub seq: SequenceId,
-    /// The id of the newly joined participant
-    pub id: ParticipantId,
-}
-
-/// A participant has left the DocumentSession
-#[derive(Serialize, Debug, PartialEq)]
-pub struct LeaveMessage {
-    /// The most recently applied client SequenceId
-    pub client_seq: SequenceId,
-    /// The SequenceId of the leave Event in the Store
-    pub seq: SequenceId,
-    /// The id of the now departed participant
     pub id: ParticipantId,
 }
 

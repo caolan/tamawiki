@@ -202,8 +202,8 @@ impl Event {
 }
 
 impl Edit {
-    // Does the Edit from ParticipantId 'a' take precedence over the
-    // Edit from ParticipantId 'b' if operations conflict?
+    /// Does the Edit from ParticipantId 'a' take precedence over the
+    /// Edit from ParticipantId 'b' if operations conflict?
     fn has_priority(a: ParticipantId, b: ParticipantId) -> bool {
         a > b
     }

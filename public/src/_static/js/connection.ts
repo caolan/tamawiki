@@ -20,10 +20,9 @@ export class WebSocketConnection extends Connection {
             console.log("websocket open");
         };
         this.websocket.onmessage = (event) => {
-            const msg = ServerMessage.fromJSON(
+            this.emit("message", ServerMessage.fromJSON(
                 JSON.parse(event.data)
-            );
-            console.log(["websocket message", msg.toJSON()]);
+            ));
         };
     }
 

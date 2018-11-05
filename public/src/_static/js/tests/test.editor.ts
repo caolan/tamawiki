@@ -1,7 +1,7 @@
 import { assert } from "chai";
 import { Connection } from "../connection";
 import { Editor } from "../editor";
-import { ClientMessage } from "../protocol";
+import { ClientMessage, Connected } from "../protocol";
 
 suite("Editor", () => {
 
@@ -52,7 +52,7 @@ suite("Editor", () => {
         editor.setAttribute("participants", "[]");
         this.tmp.appendChild(editor);
         if (editor.session) {
-            editor.session.connection.on("connected", (id) => {
+            editor.session.on("connected", (id) => {
                 assert.equal(id, 123);
                 if (editor.session) {
                     assert.equal(editor.session.participantId, id);
@@ -63,7 +63,25 @@ suite("Editor", () => {
                 }
                 done();
             });
-            editor.session.connection.emit("connected", 123);
+            editor.session.connection.emit("message", new Connected(123));
+        }
+    });
+
+    test("set local participant id on pariticpants element", function() {
+        const editor = new Editor(TestConnection);
+        editor.setAttribute("initial-seq", "3");
+        editor.setAttribute("participants", JSON.stringify([
+            { id: 1, cursor_pos: 0 },
+        ]));
+        this.tmp.appendChild(editor);
+        if (editor.session) {
+            editor.session.connection.emit("message", new Connected(2));
+            const items = editor.participants.querySelectorAll("li");
+            assert.equal(items[0].textContent, "Participant 1");
+            assert.equal(items[1].textContent, "Participant 2");
+            assert.equal(items[1].className, "you");
+        } else {
+            assert.ok(false);
         }
     });
 
