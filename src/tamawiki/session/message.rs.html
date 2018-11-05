@@ -178,39 +178,10 @@
 <span id="178">178</span>
 <span id="179">179</span>
 <span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Defines messages for client/server communication during an EditSession</span>
 
-<span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">Operation</span>, <span class="ident">ParticipantId</span>};
+<span class="kw">use</span> <span class="ident">document</span>::{<span class="ident">Event</span>, <span class="ident">Operation</span>, <span class="ident">ParticipantId</span>};
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::<span class="ident">FutureResult</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">sink</span>::<span class="ident">Sink</span>;
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">stream</span>::<span class="ident">Stream</span>;
@@ -225,53 +196,24 @@
     <span class="doccomment">/// Client successfully connected - always the first message sent</span>
     <span class="doccomment">/// to a client</span>
     <span class="ident">Connected</span>(<span class="ident">ConnectedMessage</span>),
-    <span class="doccomment">/// An update was made to the Document</span>
-    <span class="ident">Edit</span>(<span class="ident">EditMessage</span>),
-    <span class="doccomment">/// A new participant joined the DocumentSession</span>
-    <span class="ident">Join</span>(<span class="ident">JoinMessage</span>),
-    <span class="doccomment">/// A participant has left the DocumentSession</span>
-    <span class="ident">Leave</span>(<span class="ident">LeaveMessage</span>),
+    <span class="doccomment">/// A new event from the server</span>
+    <span class="ident">Event</span>(<span class="ident">ServerEventMessage</span>),
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ServerEventMessage</span> {
+    <span class="doccomment">/// The most recently applied client SequenceId</span>
+    <span class="kw">pub</span> <span class="ident">client_seq</span>: <span class="ident">SequenceId</span>,
+    <span class="doccomment">/// The SequenceId of the Event in the Store</span>
+    <span class="kw">pub</span> <span class="ident">seq</span>: <span class="ident">SequenceId</span>,
+    <span class="doccomment">/// The event</span>
+    <span class="kw">pub</span> <span class="ident">event</span>: <span class="ident">Event</span>,
 }
 
 <span class="doccomment">/// Client successfully connected</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConnectedMessage</span> {
     <span class="doccomment">/// The new client&#39;s participant ID</span>
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ParticipantId</span>,
-}
-
-<span class="doccomment">/// An update was made to the Document</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EditMessage</span> {
-    <span class="doccomment">/// The most recently applied client SequenceId</span>
-    <span class="kw">pub</span> <span class="ident">client_seq</span>: <span class="ident">SequenceId</span>,
-    <span class="doccomment">/// The SequenceId of the edit Event in the Store</span>
-    <span class="kw">pub</span> <span class="ident">seq</span>: <span class="ident">SequenceId</span>,
-    <span class="doccomment">/// The id of the participant responsible for making this change</span>
-    <span class="kw">pub</span> <span class="ident">author</span>: <span class="ident">ParticipantId</span>,
-    <span class="doccomment">/// The individual Operations which describe the edit</span>
-    <span class="kw">pub</span> <span class="ident">operations</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Operation</span><span class="op">&gt;</span>,
-}
-
-<span class="doccomment">/// A new participant has joined the DocumentSession</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JoinMessage</span> {
-    <span class="doccomment">/// The most recently applied client SequenceId</span>
-    <span class="kw">pub</span> <span class="ident">client_seq</span>: <span class="ident">SequenceId</span>,
-    <span class="doccomment">/// The SequenceId of the join Event in the Store</span>
-    <span class="kw">pub</span> <span class="ident">seq</span>: <span class="ident">SequenceId</span>,
-    <span class="doccomment">/// The id of the newly joined participant</span>
-    <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ParticipantId</span>,
-}
-
-<span class="doccomment">/// A participant has left the DocumentSession</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LeaveMessage</span> {
-    <span class="doccomment">/// The most recently applied client SequenceId</span>
-    <span class="kw">pub</span> <span class="ident">client_seq</span>: <span class="ident">SequenceId</span>,
-    <span class="doccomment">/// The SequenceId of the leave Event in the Store</span>
-    <span class="kw">pub</span> <span class="ident">seq</span>: <span class="ident">SequenceId</span>,
-    <span class="doccomment">/// The id of the now departed participant</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">ParticipantId</span>,
 }
 

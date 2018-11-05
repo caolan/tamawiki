@@ -208,19 +208,6 @@
 <span id="208">208</span>
 <span id="209">209</span>
 <span id="210">210</span>
-<span id="211">211</span>
-<span id="212">212</span>
-<span id="213">213</span>
-<span id="214">214</span>
-<span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Handles client communication with a DocumentSession</span>
 <span class="kw">use</span> <span class="ident">futures</span>::<span class="ident">future</span>::<span class="ident">Future</span>;
@@ -300,24 +287,11 @@
     <span class="comment">// sequence id for the event and the most recently applied client</span>
     <span class="comment">// sequence id from the participant.</span>
     <span class="kw">fn</span> <span class="ident">prepare_server_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">seq</span>: <span class="ident">SequenceId</span>, <span class="ident">event</span>: <span class="ident">Event</span>) <span class="op">-&gt;</span> <span class="ident">ServerMessage</span> {
-        <span class="kw">match</span> <span class="ident">event</span> {
-            <span class="ident">Event</span>::<span class="ident">Edit</span>(<span class="ident">Edit</span> { <span class="ident">author</span>, <span class="ident">operations</span> }) <span class="op">=&gt;</span> <span class="ident">ServerMessage</span>::<span class="ident">Edit</span>(<span class="ident">EditMessage</span> {
-                <span class="ident">client_seq</span>: <span class="self">self</span>.<span class="ident">client_seq</span>,
-                <span class="ident">seq</span>,
-                <span class="ident">author</span>,
-                <span class="ident">operations</span>,
-            }),
-            <span class="ident">Event</span>::<span class="ident">Join</span>(<span class="ident">Join</span> { <span class="ident">id</span> }) <span class="op">=&gt;</span> <span class="ident">ServerMessage</span>::<span class="ident">Join</span>(<span class="ident">JoinMessage</span> {
-                <span class="ident">client_seq</span>: <span class="self">self</span>.<span class="ident">client_seq</span>,
-                <span class="ident">seq</span>,
-                <span class="ident">id</span>,
-            }),
-            <span class="ident">Event</span>::<span class="ident">Leave</span>(<span class="ident">Leave</span> { <span class="ident">id</span> }) <span class="op">=&gt;</span> <span class="ident">ServerMessage</span>::<span class="ident">Leave</span>(<span class="ident">LeaveMessage</span> {
-                <span class="ident">client_seq</span>: <span class="self">self</span>.<span class="ident">client_seq</span>,
-                <span class="ident">seq</span>,
-                <span class="ident">id</span>,
-            }),
-        }
+        <span class="ident">ServerMessage</span>::<span class="ident">Event</span>(<span class="ident">ServerEventMessage</span> {
+            <span class="ident">client_seq</span>: <span class="self">self</span>.<span class="ident">client_seq</span>,
+            <span class="ident">seq</span>,
+            <span class="ident">event</span>,
+        })
     }
 }
 

@@ -970,8 +970,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Edit</span> {
-    <span class="comment">// Does the Edit from ParticipantId &#39;a&#39; take precedence over the</span>
-    <span class="comment">// Edit from ParticipantId &#39;b&#39; if operations conflict?</span>
+    <span class="doccomment">/// Does the Edit from ParticipantId &#39;a&#39; take precedence over the</span>
+    <span class="doccomment">/// Edit from ParticipantId &#39;b&#39; if operations conflict?</span>
     <span class="kw">fn</span> <span class="ident">has_priority</span>(<span class="ident">a</span>: <span class="ident">ParticipantId</span>, <span class="ident">b</span>: <span class="ident">ParticipantId</span>) <span class="op">-&gt;</span> <span class="ident">bool</span> {
         <span class="ident">a</span> <span class="op">&gt;</span> <span class="ident">b</span>
     }
