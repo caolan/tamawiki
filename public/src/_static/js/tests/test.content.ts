@@ -30,7 +30,7 @@ suite("ContentElement", () => {
     test("emit change: Delete operation", function(done) {
         const content = new ContentElement();
         this.tmp.appendChild(content);
-        content.loadDocument(Document.fromJSON({
+        content.loadDocument(3, Document.fromJSON({
             content: "Hello, world!",
             participants: [],
         }));
@@ -49,7 +49,7 @@ suite("ContentElement", () => {
     test("emit change: replace range, Delete + Insert operations", function(done) {
         const content = new ContentElement();
         this.tmp.appendChild(content);
-        content.loadDocument(Document.fromJSON({
+        content.loadDocument(3, Document.fromJSON({
             content: "Hello, world!",
             participants: [],
         }));

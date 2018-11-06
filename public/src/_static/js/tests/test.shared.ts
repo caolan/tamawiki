@@ -5,12 +5,12 @@ import applyTests from "./shared/apply.json";
 import transformTests from "./shared/transform.json";
 
 suite("shared/apply.json", function() {
-    setup(function () {
+    setup(function() {
         this.tmp = document.createElement("div");
         document.body.appendChild(this.tmp);
     });
 
-    teardown(function () {
+    teardown(function() {
         document.body.removeChild(this.tmp);
     });
 
@@ -22,7 +22,7 @@ suite("shared/apply.json", function() {
             // setup ContentElement
             const content = new ContentElement();
             this.tmp.appendChild(content);
-            content.loadDocument(doc);
+            content.loadDocument(3, doc);
 
             // apply the events
             for (const ev of events) {

@@ -19,10 +19,14 @@ export class Session extends EventEmitter {
                 this.emit("connected", msg.id);
             } else {
                 if (msg.event instanceof protocol.Join) {
-                    this.emit("join", new protocol.Participant(msg.event.id, 0));
+                    const p = new protocol.Participant(msg.event.id, 0);
+                    this.emit("join", msg.seq, p);
                 } else if (msg.event instanceof protocol.Leave) {
-                    this.emit("leave", msg.event.id);
+                    this.emit("leave", msg.seq, msg.event.id);
+                } else if (msg.event instanceof protocol.Edit) {
+                    this.emit("edit", msg.seq, msg.event);
                 }
+                this.seq = msg.seq;
             }
         });
     }

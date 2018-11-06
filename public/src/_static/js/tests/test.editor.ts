@@ -149,6 +149,70 @@ suite("Editor", () => {
         }
     });
 
+    test("Content gets participants from editor attribute", function() {
+        const editor = new Editor(TestConnection);
+        editor.setAttribute("initial-seq", "3");
+        editor.setAttribute("participants", JSON.stringify([
+            { id: 1, cursor_pos: 0 },
+            { id: 2, cursor_pos: 0 },
+        ]));
+        editor.textContent = "Hello";
+        this.tmp.appendChild(editor);
+        assert.deepEqual(
+            Object.keys(editor.content.participants),
+            ["1", "2"],
+        );
+        assert.equal(editor.content.seq, 3);
+    });
+
+    test("Leave event removes participant from Content element", function() {
+        const editor = new Editor(TestConnection);
+        editor.setAttribute("initial-seq", "3");
+        editor.setAttribute("participants", JSON.stringify([
+            { id: 1, cursor_pos: 0 },
+            { id: 2, cursor_pos: 0 },
+        ]));
+        editor.textContent = "Hello";
+        this.tmp.appendChild(editor);
+        if (editor.session) {
+            editor.session.connection.emit(
+                "message",
+                new protocol.ServerEvent(4, 0, new protocol.Leave(1)),
+            );
+            assert.deepEqual(
+                Object.keys(editor.content.participants),
+                ["2"],
+            );
+            assert.equal(editor.content.seq, 4);
+        } else {
+            assert.ok(false);
+        }
+    });
+
+    test("Join event adds participant to Content element", function() {
+        const editor = new Editor(TestConnection);
+        editor.setAttribute("initial-seq", "3");
+        editor.setAttribute("participants", JSON.stringify([
+            { id: 1, cursor_pos: 0 },
+            { id: 2, cursor_pos: 0 },
+        ]));
+        editor.textContent = "Hello";
+        this.tmp.appendChild(editor);
+        if (editor.session) {
+            editor.session.connection.emit(
+                "message",
+                new protocol.ServerEvent(4, 0, new protocol.Join(3)),
+            );
+            assert.deepEqual(
+                Object.keys(editor.content.participants),
+                ["1", "2", "3"],
+            );
+            assert.equal(editor.content.seq, 4);
+        } else {
+            assert.ok(false);
+        }
+    });
+
     test("Send local edits over connection", function() {
         const editor = new Editor(TestConnection);
         editor.setAttribute("initial-seq", "3");
@@ -168,6 +232,130 @@ suite("Editor", () => {
                     new protocol.Insert(5, ", world!"),
                 ]),
             ]);
+        } else {
+            assert.ok(false);
+        }
+    });
+
+    test("Apply edits received over connection", function() {
+        const editor = new Editor(TestConnection);
+        editor.setAttribute("initial-seq", "1");
+        editor.setAttribute("participants", JSON.stringify([
+            { id: 1, cursor_pos: 0 },
+        ]));
+        editor.textContent = "";
+        this.tmp.appendChild(editor);
+        if (editor.session) {
+            editor.session.connection.emit(
+                "message",
+                new protocol.ServerEvent(
+                    2,
+                    0,
+                    new protocol.Edit(1, [
+                        new protocol.Insert(0, "Hello"),
+                    ]),
+                ),
+            );
+            assert.equal(
+                editor.content.getValue(),
+                "Hello",
+            );
+        } else {
+            assert.ok(false);
+        }
+    });
+
+    test("Don't send edits when applying a server event", function() {
+        const editor = new Editor(TestConnection);
+        editor.setAttribute("initial-seq", "1");
+        editor.setAttribute("participants", JSON.stringify([
+            { id: 1, cursor_pos: 0 },
+        ]));
+        editor.textContent = "";
+        this.tmp.appendChild(editor);
+        if (editor.session) {
+            editor.session.connection.emit(
+                "message",
+                new protocol.ServerEvent(
+                    2,
+                    0,
+                    new protocol.Edit(1, [
+                        new protocol.Insert(0, "Hello"),
+                    ]),
+                ),
+            );
+            assert.equal(
+                editor.content.getValue(),
+                "Hello",
+            );
+            const conn = editor.session.connection as TestConnection;
+            assert.deepEqual(conn.sent, []);
+        } else {
+            assert.ok(false);
+        }
+    });
+
+    test("Use last applied event as parent seq when sending edits", function() {
+        const editor = new Editor(TestConnection);
+        editor.setAttribute("initial-seq", "1");
+        editor.setAttribute("participants", JSON.stringify([
+            { id: 1, cursor_pos: 0 },
+        ]));
+        editor.textContent = "";
+        this.tmp.appendChild(editor);
+        if (editor.session) {
+            editor.session.connection.emit(
+                "message",
+                new protocol.ServerEvent(
+                    2,
+                    0,
+                    new protocol.Edit(1, [
+                        new protocol.Insert(0, "Hello"),
+                    ]),
+                ),
+            );
+            assert.equal(
+                editor.content.getValue(),
+                "Hello",
+            );
+            const doc = editor.content.codemirror.getDoc();
+            const pos = doc.posFromIndex(5);
+            doc.replaceRange(", world", pos);
+            assert.equal(
+                editor.content.getValue(),
+                "Hello, world",
+            );
+            editor.session.connection.emit(
+                "message",
+                new protocol.ServerEvent(
+                    4,
+                    1,
+                    new protocol.Edit(1, [
+                        new protocol.Insert(12, "!"),
+                    ]),
+                ),
+            );
+            assert.equal(
+                editor.content.getValue(),
+                "Hello, world!",
+            );
+            const start = doc.posFromIndex(7);
+            const end = doc.posFromIndex(12);
+            doc.replaceRange("galaxy", start, end);
+            assert.equal(
+                editor.content.getValue(),
+                "Hello, galaxy!",
+            );
+            const conn = editor.session.connection as TestConnection;
+            assert.deepEqual(JSON.stringify(conn.sent), JSON.stringify([
+                new protocol.ClientEdit(2, 1, [
+                    new protocol.Insert(5, ", world"),
+                ]),
+                new protocol.ClientEdit(4, 2, [
+                    new protocol.Delete(7, 12),
+                    new protocol.Insert(7, "galaxy"),
+                ]),
+            ]));
         } else {
             assert.ok(false);
         }

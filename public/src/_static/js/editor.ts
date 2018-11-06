@@ -41,19 +41,32 @@ export class Editor extends HTMLElement {
         this.session.on("connected", (id) => {
             this.participants.setLocalParticipantId(id);
         });
-        this.session.on("join", (participant) => {
+        this.session.on("join", (seq, participant) => {
             this.participants.addParticipant(participant);
+            this.content.addParticipant(seq, participant);
         });
-        this.session.on("leave", (id) => {
+        this.session.on("leave", (seq, id) => {
             this.participants.removeParticipant(id);
+            this.content.removeParticipant(seq, id);
+        });
+        this.session.on("edit", (seq, event) => {
+            this.content.applyEvent(event);
         });
 
         // initialize content editor
         this.appendChild(this.content);
-        this.content.loadDocument(new protocol.Document(text, []));
+        this.content.loadDocument(
+            seq,
+            new protocol.Document(text, participantsData),
+        );
         // TODO: how to handle change events that occur before
         // Connected message arrives?
         this.content.events.on("change", (operations: protocol.Operation[]) => {
+            // TODO: send seq id for content element with the
+            // operations to ensure they're properly tagged - this seq
+            // id should update when calling content.applyEvent (which
+            // will need to take an additional 'seq' argument provided
+            // in the "join"/"leave"/"edit" events on this.session
             (this.session as Session).send(operations);
         });
     }

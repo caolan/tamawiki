@@ -9,11 +9,15 @@ export class ContentElement extends HTMLElement {
     public codemirror: CodeMirror.Editor;
     public events: EventEmitter;
     public participants: { [id: number]: { marker?: CodeMirror.TextMarker } };
+    public seq: number;
+    private applyingEvent: boolean;
 
     constructor() {
         super();
+        this.seq = 0;
         this.events = new EventEmitter();
         this.participants = [];
+        this.applyingEvent = false;
         this.codemirror = CodeMirror(this, {
             lineWrapping: true,
             mode: "text",
@@ -21,6 +25,10 @@ export class ContentElement extends HTMLElement {
         });
 
         this.codemirror.on("changes", (_instance, changes) => {
+            // don't emit changes when applying event from server
+            if (this.applyingEvent) {
+                return;
+            }
             const operations = [];
             const doc = this.codemirror.getDoc();
             for (const change of changes) {
@@ -46,12 +54,26 @@ export class ContentElement extends HTMLElement {
         });
     }
 
-    loadDocument(doc: protocol.Document) {
+    loadDocument(seq: number, doc: protocol.Document) {
         this.codemirror.setValue(doc.content);
         for (const p of doc.participants) {
-            this.participants[p.id] = {};
-            this.setParticipantPosition(p.id, p.cursor_pos);
+            this.addParticipant(seq, p);
         }
+    }
+
+    addParticipant(seq: number, p: protocol.Participant): void {
+        this.seq = seq;
+        this.participants[p.id] = {};
+        this.setParticipantPosition(p.id, p.cursor_pos);
+    }
+
+    removeParticipant(seq: number, id: number): void {
+        this.seq = seq;
+        const participant = this.participants[id];
+        if (participant && participant.marker) {
+            participant.marker.clear();
+        }
+        delete this.participants[id];
     }
 
     getValue(): string {
@@ -86,6 +108,7 @@ export class ContentElement extends HTMLElement {
         // changes to the document
         this.canApplyEvent(event);
 
+        this.applyingEvent = true;
         if (event instanceof protocol.Join) {
             this.participants[event.id] = {};
             this.setParticipantPosition(event.id, 0);
@@ -96,6 +119,7 @@ export class ContentElement extends HTMLElement {
                 this.applyOperation(event.author, op);
             }
         }
+        this.applyingEvent = false;
     }
 
     getParticipantPosition(id: number): number | null {
