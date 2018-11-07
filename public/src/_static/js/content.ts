@@ -49,12 +49,13 @@ export class ContentElement extends HTMLElement {
                 }
             }
             if (operations.length) {
-                this.events.emit("change", operations);
+                this.events.emit("change", this.seq, operations);
             }
         });
     }
 
     loadDocument(seq: number, doc: protocol.Document) {
+        this.seq = seq;
         this.codemirror.setValue(doc.content);
         for (const p of doc.participants) {
             this.addParticipant(seq, p);
@@ -103,10 +104,11 @@ export class ContentElement extends HTMLElement {
         }
     }
 
-    applyEvent(event: protocol.Event): void {
+    applyEvent(seq: number, event: protocol.Event): void {
         // check the event can be applied cleanly before making any
         // changes to the document
         this.canApplyEvent(event);
+        this.seq = seq;
 
         this.applyingEvent = true;
         if (event instanceof protocol.Join) {

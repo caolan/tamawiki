@@ -50,7 +50,7 @@ export class Editor extends HTMLElement {
             this.content.removeParticipant(seq, id);
         });
         this.session.on("edit", (seq, event) => {
-            this.content.applyEvent(event);
+            this.content.applyEvent(seq, event);
         });
 
         // initialize content editor
@@ -61,14 +61,12 @@ export class Editor extends HTMLElement {
         );
         // TODO: how to handle change events that occur before
         // Connected message arrives?
-        this.content.events.on("change", (operations: protocol.Operation[]) => {
-            // TODO: send seq id for content element with the
-            // operations to ensure they're properly tagged - this seq
-            // id should update when calling content.applyEvent (which
-            // will need to take an additional 'seq' argument provided
-            // in the "join"/"leave"/"edit" events on this.session
-            (this.session as Session).send(operations);
-        });
+        this.content.events.on(
+            "change",
+            (parentSeq: number, operations: protocol.Operation[]) => {
+                (this.session as Session).send(parentSeq, operations);
+            }
+        );
     }
 }
 

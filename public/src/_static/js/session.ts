@@ -6,9 +6,7 @@ export class Session extends EventEmitter {
     public clientSeq: number;
     public participantId?: number;
 
-    constructor(
-        public connection: Connection,
-        public seq: number) {
+    constructor(public connection: Connection) {
         super();
 
         this.clientSeq = 0;
@@ -26,15 +24,14 @@ export class Session extends EventEmitter {
                 } else if (msg.event instanceof protocol.Edit) {
                     this.emit("edit", msg.seq, msg.event);
                 }
-                this.seq = msg.seq;
             }
         });
     }
 
-    send(operations: protocol.Operation[]) {
+    send(parentSeq: number, operations: protocol.Operation[]) {
         this.clientSeq++;
         this.connection.send(
-            new protocol.ClientEdit(this.seq, this.clientSeq, operations)
+            new protocol.ClientEdit(parentSeq, this.clientSeq, operations)
         );
     }
 }

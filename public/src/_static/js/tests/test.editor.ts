@@ -61,8 +61,9 @@ suite("Editor", () => {
             editor.session.on("connected", (id) => {
                 assert.equal(id, 123);
                 if (editor.session) {
+                    const conn = editor.session.connection as TestConnection;
+                    assert.equal(conn.seq, 3);
                     assert.equal(editor.session.participantId, id);
-                    assert.deepEqual(editor.session.seq, 3);
                     assert.deepEqual(editor.session.clientSeq, 0);
                 } else {
                     assert.ok(false);

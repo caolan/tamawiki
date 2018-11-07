@@ -1,6 +1,6 @@
 import { assert } from "chai";
 import { ContentElement } from "../content";
-import { Delete, Document, Insert, Operation } from "../protocol";
+import { Delete, Document, Edit, Insert, Operation, ServerEvent } from "../protocol";
 
 suite("ContentElement", () => {
 
@@ -16,7 +16,8 @@ suite("ContentElement", () => {
     test("emit change: Insert operation", function(done) {
         const content = new ContentElement();
         this.tmp.appendChild(content);
-        content.events.on("change", (operations: Operation[]) => {
+        content.events.on("change", (parentSeq: number, operations: Operation[]) => {
+            assert.equal(parentSeq, 0);
             assert.deepEqual(operations, [
                 new Insert(0, "test"),
             ]);
@@ -34,7 +35,8 @@ suite("ContentElement", () => {
             content: "Hello, world!",
             participants: [],
         }));
-        content.events.on("change", (operations: Operation[]) => {
+        content.events.on("change", (parentSeq: number, operations: Operation[]) => {
+            assert.equal(parentSeq, 3);
             assert.deepEqual(operations, [
                 new Delete(5, 13),
             ]);
@@ -53,7 +55,8 @@ suite("ContentElement", () => {
             content: "Hello, world!",
             participants: [],
         }));
-        content.events.on("change", (operations: Operation[]) => {
+        content.events.on("change", (parentSeq: number, operations: Operation[]) => {
+            assert.equal(parentSeq, 3);
             assert.deepEqual(operations, [
                 new Delete(8, 12),
                 new Insert(8, "galaxy"),
@@ -64,6 +67,31 @@ suite("ContentElement", () => {
         const start = doc.posFromIndex(8);
         const end = doc.posFromIndex(12);
         doc.replaceRange("galaxy", start, end);
+    });
+
+    test("applyEvent updates parentSeq on emitted changes", function(done) {
+        const content = new ContentElement();
+        this.tmp.appendChild(content);
+        content.loadDocument(2, Document.fromJSON({
+            content: "",
+            participants: [
+                { id: 1, cursor_pos: 0 },
+                { id: 2, cursor_pos: 0 },
+            ],
+        }));
+        content.applyEvent(3, new Edit(1, [
+            new Insert(0, "Hello"),
+        ]));
+        content.events.on("change", (parentSeq: number, operations: Operation[]) => {
+            assert.equal(parentSeq, 3);
+            assert.deepEqual(operations, [
+                new Insert(5, ", world!"),
+            ]);
+            done();
+        });
+        const doc = content.codemirror.getDoc();
+        const pos = doc.posFromIndex(5);
+        doc.replaceRange(", world!", pos);
     });
 
 });

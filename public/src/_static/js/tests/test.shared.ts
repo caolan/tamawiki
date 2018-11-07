@@ -18,16 +18,18 @@ suite("shared/apply.json", function() {
         test(t.name as string, function() {
             const doc = protocol.Document.fromJSON(t.initial);
             const events = (t.events as any[]).map(protocol.Event.fromJSON);
+            let seq = 3;
 
             // setup ContentElement
             const content = new ContentElement();
             this.tmp.appendChild(content);
-            content.loadDocument(3, doc);
+            content.loadDocument(seq, doc);
 
             // apply the events
             for (const ev of events) {
+                seq++;
                 try {
-                    content.applyEvent(ev);
+                    content.applyEvent(seq, ev);
                     // make sure we were not expecting an error
                     assert.equal(t.error, null);
                 } catch (e) {
