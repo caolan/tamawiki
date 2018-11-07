@@ -31,8 +31,7 @@ export class Editor extends HTMLElement {
         this.textContent = "";
 
         this.session = new Session(
-            new this.ConnectionType(window.location.pathname, seq),
-            seq,
+            new this.ConnectionType(window.location.pathname, seq)
         );
 
         // initialize participants window
