@@ -46,10 +46,28 @@ export class ContentElement extends HTMLElement {
                         start,
                         inserted,
                     ));
+                    this.clearEditMarkers(
+                        change.from,
+                        doc.posFromIndex(start + inserted.length)
+                    );
                 }
             }
             if (operations.length) {
                 this.events.emit("change", this.seq, operations);
+            }
+        });
+    }
+
+    private clearEditMarkers(from: CodeMirror.Position, to: CodeMirror.Position): void {
+        const doc = this.codemirror.getDoc();
+        doc.findMarks(from, to).forEach(function(mark) {
+            var range = mark.find();
+            mark.clear();
+            if (CodeMirror.cmpPos(range.from, from) < 0) {
+                doc.markText(range.from, from, { className: 'edit' });
+            }
+            if (CodeMirror.cmpPos(to, range.to) < 0) {
+                doc.markText(to, range.to, { className: 'edit' });
             }
         });
     }
@@ -204,8 +222,8 @@ export class ContentElement extends HTMLElement {
 
         if (op instanceof protocol.Insert) {
             var start = doc.posFromIndex(op.pos);
-            var end = doc.posFromIndex(op.pos + op.content.length);
             doc.replaceRange(op.content, start);
+            var end = doc.posFromIndex(op.pos + op.content.length);
             doc.markText(start, end, { className: 'edit' });
             this.setParticipantPosition(
                 author,
