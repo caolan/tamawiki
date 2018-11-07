@@ -94,4 +94,25 @@ suite("ContentElement", () => {
         doc.replaceRange(", world!", pos);
     });
 
+    test("bookmark is inserted for participant's cursor", function() {
+        const content = new ContentElement();
+        this.tmp.appendChild(content);
+        content.loadDocument(4, Document.fromJSON({
+            content: "Hello",
+            participants: [
+                { id: 1, cursor_pos: 0 },
+            ],
+        }));
+        content.setParticipantPosition(1, 3);
+        const doc = content.codemirror.getDoc();
+        const pos = doc.posFromIndex(3);
+        const markers = doc.findMarksAt(pos);
+        assert.equal(markers.length, 1);
+        assert.equal(markers[0], content.participants[1].marker);
+        assert.equal(
+            (markers[0] as any).replacedWith.className,
+            "participant-cursor",
+        );
+    });
+
 });
