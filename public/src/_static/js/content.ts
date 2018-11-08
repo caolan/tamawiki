@@ -168,7 +168,7 @@ export class ContentElement extends HTMLElement {
         var cursorCoords = this.codemirror.cursorCoords(pos);
         var el = document.createElement('span');
         el.className = 'participant-cursor';
-        el.style.top = `${cursorCoords.bottom}px`;
+        el.style.height = `${(cursorCoords.bottom - cursorCoords.top)}px`;
         participant.marker = doc.setBookmark(pos, {
             widget: el
         });
