@@ -36,7 +36,7 @@
     },
     "scripts": {
         "bundle": "npx webpack",
-        "lint": "npx tslint --project tsconfig.json public/src/_static/js/**/*.ts",
+        "lint": "npx tslint --project tsconfig.json public/src/_static/js/*.ts public/src/_static/js/**/*.ts",
         "test": "karma start --single-run --browsers FirefoxHeadless karma.conf.js"
     }
 }

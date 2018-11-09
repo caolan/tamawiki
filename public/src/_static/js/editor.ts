@@ -24,14 +24,14 @@ export class Editor extends HTMLElement {
         this.ConnectionType = ConnectionType || WebSocketConnection;
     }
 
-    connectedCallback(): void {
-        const seq = Number(this.getAttribute("initial-seq") || "0");
+    public connectedCallback(): void {
+        const initialSeq = Number(this.getAttribute("initial-seq") || "0");
         const participantsData = JSON.parse(this.getAttribute("participants") || "[]");
         const text = this.textContent || "";
         this.textContent = "";
 
         this.session = new Session(
-            new this.ConnectionType(window.location.pathname, seq)
+            new this.ConnectionType(window.location.pathname, initialSeq),
         );
 
         // initialize participants window
@@ -58,7 +58,7 @@ export class Editor extends HTMLElement {
         // initialize content editor
         this.appendChild(this.content);
         this.content.loadDocument(
-            seq,
+            initialSeq,
             new protocol.Document(text, participantsData),
         );
         // TODO: how to handle change events that occur before
@@ -67,7 +67,7 @@ export class Editor extends HTMLElement {
             "change",
             (parentSeq: number, operations: protocol.Operation[]) => {
                 (this.session as Session).send(parentSeq, operations);
-            }
+            },
         );
     }
 }

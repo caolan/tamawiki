@@ -53,7 +53,7 @@ export class Session extends EventEmitter {
         if (msg instanceof protocol.ServerEvent) {
             if (!this.participantId) {
                 throw new Error(
-                    "participantId must be defined before transforming ServerEvents."
+                    "participantId must be defined before transforming ServerEvents.",
                 );
             }
             if (msg.event instanceof protocol.Edit) {
@@ -67,7 +67,7 @@ export class Session extends EventEmitter {
                 for (const clientEdit of this.sent) {
                     msg.event.transform(new protocol.Edit(
                         this.participantId,
-                        clientEdit.operations
+                        clientEdit.operations,
                     ));
                 }
             }

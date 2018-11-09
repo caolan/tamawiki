@@ -1,6 +1,6 @@
 import "@webcomponents/custom-elements";
-import * as protocol from "./protocol";
 import "../css/participants.css";
+import * as protocol from "./protocol";
 
 export class ParticipantsElement extends HTMLElement {
     private participants: protocol.Participant[];
@@ -12,12 +12,39 @@ export class ParticipantsElement extends HTMLElement {
         this.participants = [];
     }
 
-    connectedCallback(): void {
+    public connectedCallback(): void {
         if (!this.ul) {
             this.ul = document.createElement("ul");
             this.appendChild(this.ul);
         }
         this.renderList();
+    }
+
+    public addParticipant(participant: protocol.Participant): void {
+        this.participants.push(participant);
+        this.renderList();
+    }
+
+    public removeParticipant(id: number): void {
+        this.participants = this.participants.filter((p) => {
+            return p.id !== id;
+        });
+        this.renderList();
+    }
+
+    public setParticipants(data: protocol.Participant[]): void {
+        this.participants = data;
+        this.renderList();
+    }
+
+    public setLocalParticipantId(id: number): void {
+        this.localId = id;
+        this.addParticipant(new protocol.Participant(id, 0));
+        this.renderList();
+    }
+
+    public getLocalParticipantId(): number | undefined {
+        return this.localId;
     }
 
     private renderList(): void {
@@ -32,33 +59,6 @@ export class ParticipantsElement extends HTMLElement {
                 this.ul.appendChild(li);
             }
         }
-    }
-
-    addParticipant(participant: protocol.Participant): void {
-        this.participants.push(participant);
-        this.renderList();
-    }
-
-    removeParticipant(id: number): void {
-        this.participants = this.participants.filter((p) => {
-            return p.id !== id;
-        });
-        this.renderList();
-    }
-
-    setParticipants(data: protocol.Participant[]): void {
-        this.participants = data;
-        this.renderList();
-    }
-
-    setLocalParticipantId(id: number): void {
-        this.localId = id;
-        this.addParticipant(new protocol.Participant(id, 0));
-        this.renderList();
-    }
-
-    getLocalParticipantId(): number | undefined {
-        return this.localId;
     }
 }
 
