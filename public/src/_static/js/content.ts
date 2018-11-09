@@ -69,7 +69,7 @@ export class ContentElement extends HTMLElement {
     public addParticipant(seq: number, p: protocol.Participant): void {
         this.seq = seq;
         this.otherParticipants[p.id] = {};
-        this.setParticipantPosition(p.id, p.cursor_pos);
+        this.setParticipantPosition(p.id, p.cursorPos);
     }
 
     public removeParticipant(seq: number, id: number): void {

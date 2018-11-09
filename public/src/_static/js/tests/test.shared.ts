@@ -52,7 +52,7 @@ suite("shared/apply.json", function() {
             for (const p of expected.participants) {
                 assert.equal(
                     content.getParticipantPosition(p.id),
-                    p.cursor_pos,
+                    p.cursorPos,
                 );
             }
         });
