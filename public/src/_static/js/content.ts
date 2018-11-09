@@ -120,6 +120,26 @@ export class ContentElement extends HTMLElement {
         this.applyingEvent = false;
     }
 
+    public setParticipantPosition(id: number, index: number): void {
+        const doc = this.codemirror.getDoc();
+        const pos = doc.posFromIndex(index);
+        const participant = this.otherParticipants[id];
+        if (participant.marker) {
+            participant.marker.clear();
+            delete participant.marker;
+        }
+        if (index === null) {
+            return;
+        }
+        const cursorCoords = this.codemirror.cursorCoords(pos);
+        const el = document.createElement("span");
+        el.className = "participant-cursor";
+        el.style.height = `${(cursorCoords.bottom - cursorCoords.top)}px`;
+        participant.marker = doc.setBookmark(pos, {
+            widget: el,
+        });
+    }
+
     private canApplyEvent(event: protocol.Event): void {
         if (event instanceof protocol.Join) {
             if (this.otherParticipants[event.id]) {
@@ -151,26 +171,6 @@ export class ContentElement extends HTMLElement {
             if (CodeMirror.cmpPos(to, range.to) < 0) {
                 doc.markText(to, range.to, { className: "edit" });
             }
-        });
-    }
-
-    private setParticipantPosition(id: number, index: number): void {
-        const doc = this.codemirror.getDoc();
-        const pos = doc.posFromIndex(index);
-        const participant = this.otherParticipants[id];
-        if (participant.marker) {
-            participant.marker.clear();
-            delete participant.marker;
-        }
-        if (index === null) {
-            return;
-        }
-        const cursorCoords = this.codemirror.cursorCoords(pos);
-        const el = document.createElement("span");
-        el.className = "participant-cursor";
-        el.style.height = `${(cursorCoords.bottom - cursorCoords.top)}px`;
-        participant.marker = doc.setBookmark(pos, {
-            widget: el,
         });
     }
 

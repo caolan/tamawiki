@@ -97,7 +97,7 @@ suite("ContentElement", () => {
     function bookmarkClassNamesAt(doc: CodeMirror.Doc, index: number): Set<string> {
         const pos = doc.posFromIndex(index);
         const markers = doc.findMarksAt(pos);
-        const classNames = new Set();
+        const classNames = new Set<string>();
         for (const marker of (markers as any[])) {
             classNames.add(marker.replacedWith.className);
         }
@@ -108,7 +108,7 @@ suite("ContentElement", () => {
         const start = doc.posFromIndex(from);
         const end = doc.posFromIndex(to);
         const markers = doc.findMarks(start, end);
-        const classNames = new Set();
+        const classNames = new Set<string>();
         for (const marker of (markers as any[])) {
             classNames.add(marker.className);
         }
