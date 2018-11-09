@@ -1,5 +1,5 @@
 import { assert } from "chai";
-import { Connected, Delete, Edit, Insert, ServerEvent } from "../protocol";
+import { Connected, Delete, Edit, Event, Insert, ServerEvent, ServerMessage } from "../protocol";
 import { Session } from "../session";
 import { TestConnection } from "./utils";
 
@@ -9,8 +9,10 @@ suite("Session", () => {
         const edits: Event[] = [];
         const conn = new TestConnection("path", 1);
         const session = new Session(conn);
-        session.on("edit", (_seq, event) => {
-            edits.push(event);
+        session.on("message", (msg: ServerMessage) => {
+            if (msg instanceof ServerEvent) {
+                edits.push(msg.event);
+            }
         });
         conn.emit("message", new Connected(2));
         conn.emit("message", new ServerEvent(

@@ -35,24 +35,10 @@ export class Editor extends HTMLElement {
         );
 
         // initialize participants window
-        this.participants.setParticipants(participantsData);
         this.appendChild(this.participants);
-        this.session.on("connected", (id) => {
-            this.participants.setLocalParticipantId(id);
-        });
-        this.session.on("join", (seq, participant) => {
-            this.participants.addParticipant(participant);
-            this.content.addParticipant(seq, participant);
-        });
-        this.session.on("leave", (seq, id) => {
-            this.participants.removeParticipant(id);
-            this.content.removeParticipant(seq, id);
-        });
-        this.session.on("edit", (seq, event) => {
-            // NOTE: this must be applied synchronously, as the
-            // transforms applied on the server event are for the
-            // *current* state of the editor.
-            this.content.applyEvent(seq, event);
+        this.participants.setParticipants(participantsData);
+        this.session.on("message", (msg: protocol.ServerMessage) => {
+            this.participants.applyMessage(msg);
         });
 
         // initialize content editor
@@ -61,6 +47,12 @@ export class Editor extends HTMLElement {
             initialSeq,
             new protocol.Document(text, participantsData),
         );
+        this.session.on("message", (msg: protocol.ServerMessage) => {
+            // NOTE: this must be applied synchronously, as the
+            // transforms applied on the server event are for the
+            // *current* state of the editor.
+            this.content.applyMessage(msg);
+        });
         // TODO: how to handle change events that occur before
         // Connected message arrives?
         this.content.events.on(

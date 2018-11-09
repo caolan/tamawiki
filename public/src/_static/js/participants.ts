@@ -20,6 +20,20 @@ export class ParticipantsElement extends HTMLElement {
         this.renderList();
     }
 
+    public applyMessage(msg: protocol.ServerMessage): void {
+        if (msg instanceof protocol.Connected) {
+            this.setLocalParticipantId(msg.id);
+        } else if (msg instanceof protocol.ServerEvent) {
+            if (msg.event instanceof protocol.Join) {
+                this.addParticipant(
+                    new protocol.Participant(msg.event.id, 0),
+                );
+            } else if (msg.event instanceof protocol.Leave) {
+                this.removeParticipant(msg.event.id);
+            }
+        }
+    }
+
     public addParticipant(participant: protocol.Participant): void {
         this.participants.push(participant);
         this.renderList();

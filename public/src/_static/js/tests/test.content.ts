@@ -69,7 +69,7 @@ suite("ContentElement", () => {
         doc.replaceRange("galaxy", start, end);
     });
 
-    test("applyEvent updates parentSeq on emitted changes", function(done) {
+    test("applyMessage updates parentSeq on emitted changes", function(done) {
         const content = new ContentElement();
         this.tmp.appendChild(content);
         content.loadDocument(2, Document.fromJSON({
@@ -79,9 +79,9 @@ suite("ContentElement", () => {
                 { id: 2, cursor_pos: 0 },
             ],
         }));
-        content.applyEvent(3, new Edit(1, [
+        content.applyMessage(new ServerEvent(3, 0, new Edit(1, [
             new Insert(0, "Hello"),
-        ]));
+        ])));
         content.events.on("change", (parentSeq: number, operations: Operation[]) => {
             assert.equal(parentSeq, 3);
             assert.deepEqual(operations, [
@@ -139,7 +139,7 @@ suite("ContentElement", () => {
                 { id: 2, cursor_pos: 0 },
             ],
         }));
-        content.applyEvent(3, new Edit(1, [
+        content.applyEvent(new Edit(1, [
             new Insert(0, "ab"),
         ]));
         const doc = content.codemirror.getDoc();

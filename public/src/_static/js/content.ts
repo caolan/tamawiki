@@ -62,18 +62,16 @@ export class ContentElement extends HTMLElement {
         this.seq = seq;
         this.codemirror.setValue(doc.content);
         for (const p of doc.participants) {
-            this.addParticipant(seq, p);
+            this.addParticipant(p);
         }
     }
 
-    public addParticipant(seq: number, p: protocol.Participant): void {
-        this.seq = seq;
+    public addParticipant(p: protocol.Participant): void {
         this.otherParticipants[p.id] = {};
         this.setParticipantPosition(p.id, p.cursorPos);
     }
 
-    public removeParticipant(seq: number, id: number): void {
-        this.seq = seq;
+    public removeParticipant(id: number): void {
         const participant = this.otherParticipants[id];
         if (participant && participant.marker) {
             participant.marker.clear();
@@ -100,18 +98,23 @@ export class ContentElement extends HTMLElement {
         return null;
     }
 
-    public applyEvent(seq: number, event: protocol.Event): void {
+    public applyMessage(msg: protocol.ServerMessage): void {
+        if (msg instanceof protocol.ServerEvent) {
+            this.applyEvent(msg.event);
+            this.seq = msg.seq;
+        }
+    }
+
+    public applyEvent(event: protocol.Event): void {
         // check the event can be applied cleanly before making any
         // changes to the document
         this.canApplyEvent(event);
-        this.seq = seq;
 
         this.applyingEvent = true;
         if (event instanceof protocol.Join) {
-            this.otherParticipants[event.id] = {};
-            this.setParticipantPosition(event.id, 0);
+            this.addParticipant(new protocol.Participant(event.id, 0));
         } else if (event instanceof protocol.Leave) {
-            delete this.otherParticipants[event.id];
+            this.removeParticipant(event.id);
         } else if (event instanceof protocol.Edit) {
             for (const op of event.operations) {
                 this.applyOperation(event.author, op);

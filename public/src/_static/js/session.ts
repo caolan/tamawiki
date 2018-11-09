@@ -16,26 +16,9 @@ export class Session extends EventEmitter {
 
     constructor(public connection: Connection) {
         super();
-
         this.sent = [];
         this.clientSeq = 0;
-
-        this.connection.on("message", (msg) => {
-            if (msg instanceof protocol.Connected) {
-                this.participantId = msg.id;
-                this.emit("connected", msg.id);
-            } else {
-                this.transform(msg);
-                if (msg.event instanceof protocol.Join) {
-                    const p = new protocol.Participant(msg.event.id, 0);
-                    this.emit("join", msg.seq, p);
-                } else if (msg.event instanceof protocol.Leave) {
-                    this.emit("leave", msg.seq, msg.event.id);
-                } else if (msg.event instanceof protocol.Edit) {
-                    this.emit("edit", msg.seq, msg.event);
-                }
-            }
-        });
+        this.connection.on("message", (msg) => this.receive(msg));
     }
 
     // NOTE: this must be called synchronously when an edit occurs
@@ -48,6 +31,20 @@ export class Session extends EventEmitter {
         this.sent.push(msg);
     }
 
+    private receive(msg: protocol.ServerMessage): void {
+        if (msg instanceof protocol.Connected) {
+            this.participantId = msg.id;
+        } else if (msg instanceof protocol.ServerEvent) {
+            // clear buffered ClientEdits which have now been
+            // acknowledged by the server
+            this.sent = this.sent.filter((clientEdit) => {
+                return clientEdit.clientSeq > msg.clientSeq;
+            });
+        }
+        this.transform(msg);
+        this.emit("message", msg);
+    }
+
     // Transforms a ServerEvent to accommodate concurrent local events.
     private transform(msg: protocol.ServerMessage): void {
         if (msg instanceof protocol.ServerEvent) {
@@ -57,13 +54,9 @@ export class Session extends EventEmitter {
                 );
             }
             if (msg.event instanceof protocol.Edit) {
-                // clear buffered ClientEdits which have now been
-                // acknowledged by the server
-                this.sent = this.sent.filter((clientEdit) => {
-                    return clientEdit.clientSeq > msg.clientSeq;
-                });
                 // transform ServerMessage to accommodate remaining
-                // ClientEdits not yet acknowledged
+                // ClientEdits not yet acknowledged (and therefore
+                // removed in receive() call)
                 for (const clientEdit of this.sent) {
                     msg.event.transform(new protocol.Edit(
                         this.participantId,

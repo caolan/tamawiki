@@ -43,17 +43,17 @@ suite("Editor", () => {
         editor.setAttribute("participants", "[]");
         this.tmp.appendChild(editor);
         if (editor.session) {
-            editor.session.on("connected", (id) => {
-                assert.equal(id, 123);
-                if (editor.session) {
-                    const conn = editor.session.connection as TestConnection;
-                    assert.equal(conn.seq, 3);
-                    assert.equal(editor.session.participantId, id);
-                    assert.deepEqual(editor.session.clientSeq, 0);
-                } else {
-                    assert.ok(false);
+            editor.session.on("message", (msg) => {
+                if (msg instanceof protocol.Connected) {
+                    assert.equal(msg.id, 123);
+                    if (editor.session) {
+                        const conn = editor.session.connection as TestConnection;
+                        assert.equal(conn.seq, 3);
+                        assert.equal(editor.session.participantId, msg.id);
+                        assert.deepEqual(editor.session.clientSeq, 0);
+                        done();
+                    }
                 }
-                done();
             });
             editor.session.connection.emit(
                 "message",
