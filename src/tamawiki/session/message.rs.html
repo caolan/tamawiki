@@ -178,6 +178,7 @@
 <span id="178">178</span>
 <span id="179">179</span>
 <span id="180">180</span>
+<span id="181">181</span>
 </pre><pre class="rust ">
 <span class="doccomment">//! Defines messages for client/server communication during an EditSession</span>
 
@@ -200,6 +201,7 @@
     <span class="ident">Event</span>(<span class="ident">ServerEventMessage</span>),
 }
 
+<span class="doccomment">/// Wraps an Event with client and server sequence id information</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ServerEventMessage</span> {
     <span class="doccomment">/// The most recently applied client SequenceId</span>
