@@ -160,7 +160,6 @@ suite("Editor", () => {
             Object.keys(editor.content.otherParticipants),
             ["1", "2"],
         );
-        assert.equal(editor.content.seq, 3);
     });
 
     test("Leave event removes participant from Content element", function() {
@@ -185,7 +184,6 @@ suite("Editor", () => {
                 Object.keys(editor.content.otherParticipants),
                 ["2"],
             );
-            assert.equal(editor.content.seq, 4);
         } else {
             assert.ok(false);
         }
@@ -213,7 +211,6 @@ suite("Editor", () => {
                 Object.keys(editor.content.otherParticipants),
                 ["1", "2", "4"],
             );
-            assert.equal(editor.content.seq, 4);
         } else {
             assert.ok(false);
         }

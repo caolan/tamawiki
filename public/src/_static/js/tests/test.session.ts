@@ -8,7 +8,7 @@ suite("Session", () => {
     test("transform incoming messages", function() {
         const edits: Event[] = [];
         const conn = new TestConnection("path", 1);
-        const session = new Session(conn);
+        const session = new Session(1, conn);
         session.on("message", (msg: ServerMessage) => {
             if (msg instanceof ServerEvent) {
                 edits.push(msg.event);
@@ -22,8 +22,8 @@ suite("Session", () => {
                 new Insert(0, "Hello"),
             ]),
         ));
-        session.send(2, [new Delete(1, 5)]);
-        session.send(2, [new Insert(1, "i")]);
+        session.send([new Delete(1, 5)]);
+        session.send([new Insert(1, "i")]);
         conn.emit("message", new ServerEvent(
             2,
             0,
@@ -50,10 +50,10 @@ suite("Session", () => {
 
     test("clear buffered ClientEdits once acknowledged by server", function() {
         const conn = new TestConnection("path", 1);
-        const session = new Session(conn);
+        const session = new Session(1, conn);
         conn.emit("message", new Connected(2));
-        session.send(2, [new Delete(1, 5)]);
-        session.send(2, [new Delete(0, 1)]);
+        session.send([new Delete(1, 5)]);
+        session.send([new Delete(0, 1)]);
         assert.equal(session.sent.length, 2);
         conn.emit("message", new ServerEvent(
             2,
@@ -79,7 +79,7 @@ suite("Session", () => {
             ]),
         ));
         assert.equal(session.sent.length, 0);
-        session.send(2, [new Insert(3, "d")]);
+        session.send([new Insert(3, "d")]);
         assert.equal(session.sent.length, 1);
     });
 

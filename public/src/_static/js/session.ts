@@ -6,6 +6,9 @@ export class Session extends EventEmitter {
     // The local sequence ID for the last event sent by this client.
     public clientSeq: number;
 
+    // The last received server sequence ID.
+    public seq: number;
+
     // The participant Id given to this client by the server.
     public participantId?: number;
 
@@ -14,19 +17,20 @@ export class Session extends EventEmitter {
     // local events.
     public sent: protocol.ClientEdit[];
 
-    constructor(public connection: Connection) {
+    constructor(seq: number, public connection: Connection) {
         super();
         this.sent = [];
         this.clientSeq = 0;
+        this.seq = seq;
         this.connection.on("message", (msg) => this.receive(msg));
     }
 
     // NOTE: this must be called synchronously when an edit occurs
     // otherwise a received ServerEvent may not be transformed to
     // accommodate the current state of the content in the editor.
-    public send(parentSeq: number, operations: protocol.Operation[]) {
+    public send(operations: protocol.Operation[]) {
         this.clientSeq++;
-        const msg = new protocol.ClientEdit(parentSeq, this.clientSeq, operations);
+        const msg = new protocol.ClientEdit(this.seq, this.clientSeq, operations);
         this.connection.send(msg);
         this.sent.push(msg);
     }
@@ -35,6 +39,7 @@ export class Session extends EventEmitter {
         if (msg instanceof protocol.Connected) {
             this.participantId = msg.id;
         } else if (msg instanceof protocol.ServerEvent) {
+            this.seq = msg.seq;
             // clear buffered ClientEdits which have now been
             // acknowledged by the server
             this.sent = this.sent.filter((clientEdit) => {

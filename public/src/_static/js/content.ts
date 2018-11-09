@@ -9,12 +9,10 @@ export class ContentElement extends HTMLElement {
     public codemirror: CodeMirror.Editor;
     public events: EventEmitter;
     public otherParticipants: { [id: number]: { marker?: CodeMirror.TextMarker } };
-    public seq: number;
     private applyingEvent: boolean;
 
     constructor() {
         super();
-        this.seq = 0;
         this.events = new EventEmitter();
         this.otherParticipants = [];
         this.applyingEvent = false;
@@ -53,13 +51,12 @@ export class ContentElement extends HTMLElement {
                 }
             }
             if (operations.length) {
-                this.events.emit("change", this.seq, operations);
+                this.events.emit("change", operations);
             }
         });
     }
 
-    public loadDocument(seq: number, doc: protocol.Document) {
-        this.seq = seq;
+    public loadDocument(doc: protocol.Document) {
         this.codemirror.setValue(doc.content);
         for (const p of doc.participants) {
             this.addParticipant(p);
@@ -101,7 +98,6 @@ export class ContentElement extends HTMLElement {
     public applyMessage(msg: protocol.ServerMessage): void {
         if (msg instanceof protocol.ServerEvent) {
             this.applyEvent(msg.event);
-            this.seq = msg.seq;
         }
     }
 

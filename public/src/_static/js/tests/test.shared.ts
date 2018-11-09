@@ -22,7 +22,7 @@ suite("shared/apply.json", function() {
             // setup ContentElement
             const content = new ContentElement();
             this.tmp.appendChild(content);
-            content.loadDocument(3, doc);
+            content.loadDocument(doc);
 
             // apply the events
             for (const ev of events) {

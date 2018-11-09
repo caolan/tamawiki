@@ -31,6 +31,7 @@ export class Editor extends HTMLElement {
         this.textContent = "";
 
         this.session = new Session(
+            initialSeq,
             new this.ConnectionType(window.location.pathname, initialSeq),
         );
 
@@ -44,7 +45,6 @@ export class Editor extends HTMLElement {
         // initialize content editor
         this.appendChild(this.content);
         this.content.loadDocument(
-            initialSeq,
             new protocol.Document(text, participantsData),
         );
         this.session.on("message", (msg: protocol.ServerMessage) => {
@@ -55,12 +55,9 @@ export class Editor extends HTMLElement {
         });
         // TODO: how to handle change events that occur before
         // Connected message arrives?
-        this.content.events.on(
-            "change",
-            (parentSeq: number, operations: protocol.Operation[]) => {
-                (this.session as Session).send(parentSeq, operations);
-            },
-        );
+        this.content.events.on("change", (operations: protocol.Operation[]) => {
+            (this.session as Session).send(operations);
+        });
     }
 }
 

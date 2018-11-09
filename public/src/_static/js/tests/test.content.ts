@@ -16,8 +16,7 @@ suite("ContentElement", () => {
     test("emit change: Insert operation", function(done) {
         const content = new ContentElement();
         this.tmp.appendChild(content);
-        content.events.on("change", (parentSeq: number, operations: Operation[]) => {
-            assert.equal(parentSeq, 0);
+        content.events.on("change", (operations: Operation[]) => {
             assert.deepEqual(operations, [
                 new Insert(0, "test"),
             ]);
@@ -31,12 +30,11 @@ suite("ContentElement", () => {
     test("emit change: Delete operation", function(done) {
         const content = new ContentElement();
         this.tmp.appendChild(content);
-        content.loadDocument(3, Document.fromJSON({
+        content.loadDocument(Document.fromJSON({
             content: "Hello, world!",
             participants: [],
         }));
-        content.events.on("change", (parentSeq: number, operations: Operation[]) => {
-            assert.equal(parentSeq, 3);
+        content.events.on("change", (operations: Operation[]) => {
             assert.deepEqual(operations, [
                 new Delete(5, 13),
             ]);
@@ -51,12 +49,11 @@ suite("ContentElement", () => {
     test("emit change: replace range, Delete + Insert operations", function(done) {
         const content = new ContentElement();
         this.tmp.appendChild(content);
-        content.loadDocument(3, Document.fromJSON({
+        content.loadDocument(Document.fromJSON({
             content: "Hello, world!",
             participants: [],
         }));
-        content.events.on("change", (parentSeq: number, operations: Operation[]) => {
-            assert.equal(parentSeq, 3);
+        content.events.on("change", (operations: Operation[]) => {
             assert.deepEqual(operations, [
                 new Delete(8, 12),
                 new Insert(8, "galaxy"),
@@ -67,31 +64,6 @@ suite("ContentElement", () => {
         const start = doc.posFromIndex(8);
         const end = doc.posFromIndex(12);
         doc.replaceRange("galaxy", start, end);
-    });
-
-    test("applyMessage updates parentSeq on emitted changes", function(done) {
-        const content = new ContentElement();
-        this.tmp.appendChild(content);
-        content.loadDocument(2, Document.fromJSON({
-            content: "",
-            participants: [
-                { id: 1, cursor_pos: 0 },
-                { id: 2, cursor_pos: 0 },
-            ],
-        }));
-        content.applyMessage(new ServerEvent(3, 0, new Edit(1, [
-            new Insert(0, "Hello"),
-        ])));
-        content.events.on("change", (parentSeq: number, operations: Operation[]) => {
-            assert.equal(parentSeq, 3);
-            assert.deepEqual(operations, [
-                new Insert(5, ", world!"),
-            ]);
-            done();
-        });
-        const doc = content.codemirror.getDoc();
-        const pos = doc.posFromIndex(5);
-        doc.replaceRange(", world!", pos);
     });
 
     function bookmarkClassNamesAt(doc: CodeMirror.Doc, index: number): Set<string> {
@@ -118,7 +90,7 @@ suite("ContentElement", () => {
     test("bookmark is inserted for participant's cursor", function() {
         const content = new ContentElement();
         this.tmp.appendChild(content);
-        content.loadDocument(4, Document.fromJSON({
+        content.loadDocument(Document.fromJSON({
             content: "Hello",
             participants: [
                 { id: 1, cursor_pos: 0 },
@@ -132,7 +104,7 @@ suite("ContentElement", () => {
     test("adjust edit markers after local Insert", function() {
         const content = new ContentElement();
         this.tmp.appendChild(content);
-        content.loadDocument(2, Document.fromJSON({
+        content.loadDocument(Document.fromJSON({
             content: "",
             participants: [
                 { id: 1, cursor_pos: 0 },
