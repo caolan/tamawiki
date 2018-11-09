@@ -46,7 +46,7 @@ suite("shared/apply.json", function() {
             const expected = protocol.Document.fromJSON(t.expected);
             assert.equal(content.getValue(), expected.content);
             assert.equal(
-                Object.keys(content.participants).length,
+                Object.keys(content.otherParticipants).length,
                 expected.participants.length,
             );
             for (const p of expected.participants) {

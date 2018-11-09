@@ -19,6 +19,7 @@ pub enum ServerMessage {
     Event(ServerEventMessage),
 }
 
+/// Wraps an Event with client and server sequence id information
 #[derive(Serialize, Debug, PartialEq)]
 pub struct ServerEventMessage {
     /// The most recently applied client SequenceId

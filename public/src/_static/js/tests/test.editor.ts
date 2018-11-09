@@ -1,24 +1,9 @@
 import { assert } from "chai";
-import { Connection } from "../connection";
 import { Editor } from "../editor";
 import * as protocol from "../protocol";
+import { TestConnection } from "./utils";
 
 suite("Editor", () => {
-
-    class TestConnection extends Connection {
-        public sent: protocol.ClientMessage[];
-
-        constructor(
-            public path: string,
-            public seq: number) {
-            super();
-            this.sent = [];
-        }
-
-        public send(msg: protocol.ClientMessage): void {
-            this.sent.push(msg);
-        }
-    }
 
     setup(function() {
         this.tmp = document.createElement("div");
@@ -107,18 +92,24 @@ suite("Editor", () => {
         ]));
         this.tmp.appendChild(editor);
         if (editor.session) {
+            editor.session.connection.emit(
+                "message",
+                new protocol.Connected(2),
+            );
             const before = editor.participants.querySelectorAll("li");
             assert.equal(before[0].textContent, "Participant 1");
-            assert.equal(before.length, 1);
+            assert.equal(before[1].textContent, "Participant 2");
+            assert.equal(before.length, 2);
 
             editor.session.connection.emit(
                 "message",
-                new protocol.ServerEvent(4, 0, new protocol.Join(2)),
+                new protocol.ServerEvent(4, 0, new protocol.Join(3)),
             );
             const after = editor.participants.querySelectorAll("li");
             assert.equal(after[0].textContent, "Participant 1");
             assert.equal(after[1].textContent, "Participant 2");
-            assert.equal(after.length, 2);
+            assert.equal(after[2].textContent, "Participant 3");
+            assert.equal(after.length, 3);
         } else {
             assert.ok(false);
         }
@@ -133,10 +124,15 @@ suite("Editor", () => {
         ]));
         this.tmp.appendChild(editor);
         if (editor.session) {
+            editor.session.connection.emit(
+                "message",
+                new protocol.Connected(3),
+            );
             const before = editor.participants.querySelectorAll("li");
             assert.equal(before[0].textContent, "Participant 1");
             assert.equal(before[1].textContent, "Participant 2");
-            assert.equal(before.length, 2);
+            assert.equal(before[2].textContent, "Participant 3");
+            assert.equal(before.length, 3);
 
             editor.session.connection.emit(
                 "message",
@@ -144,7 +140,8 @@ suite("Editor", () => {
             );
             const after = editor.participants.querySelectorAll("li");
             assert.equal(after[0].textContent, "Participant 2");
-            assert.equal(after.length, 1);
+            assert.equal(after[1].textContent, "Participant 3");
+            assert.equal(after.length, 2);
         } else {
             assert.ok(false);
         }
@@ -160,7 +157,7 @@ suite("Editor", () => {
         editor.textContent = "Hello";
         this.tmp.appendChild(editor);
         assert.deepEqual(
-            Object.keys(editor.content.participants),
+            Object.keys(editor.content.otherParticipants),
             ["1", "2"],
         );
         assert.equal(editor.content.seq, 3);
@@ -178,10 +175,14 @@ suite("Editor", () => {
         if (editor.session) {
             editor.session.connection.emit(
                 "message",
+                new protocol.Connected(3),
+            );
+            editor.session.connection.emit(
+                "message",
                 new protocol.ServerEvent(4, 0, new protocol.Leave(1)),
             );
             assert.deepEqual(
-                Object.keys(editor.content.participants),
+                Object.keys(editor.content.otherParticipants),
                 ["2"],
             );
             assert.equal(editor.content.seq, 4);
@@ -202,11 +203,15 @@ suite("Editor", () => {
         if (editor.session) {
             editor.session.connection.emit(
                 "message",
-                new protocol.ServerEvent(4, 0, new protocol.Join(3)),
+                new protocol.Connected(3),
+            );
+            editor.session.connection.emit(
+                "message",
+                new protocol.ServerEvent(4, 0, new protocol.Join(4)),
             );
             assert.deepEqual(
-                Object.keys(editor.content.participants),
-                ["1", "2", "3"],
+                Object.keys(editor.content.otherParticipants),
+                ["1", "2", "4"],
             );
             assert.equal(editor.content.seq, 4);
         } else {
@@ -249,6 +254,10 @@ suite("Editor", () => {
         if (editor.session) {
             editor.session.connection.emit(
                 "message",
+                new protocol.Connected(2),
+            );
+            editor.session.connection.emit(
+                "message",
                 new protocol.ServerEvent(
                     2,
                     0,
@@ -275,6 +284,10 @@ suite("Editor", () => {
         editor.textContent = "";
         this.tmp.appendChild(editor);
         if (editor.session) {
+            editor.session.connection.emit(
+                "message",
+                new protocol.Connected(2),
+            );
             editor.session.connection.emit(
                 "message",
                 new protocol.ServerEvent(
@@ -305,6 +318,10 @@ suite("Editor", () => {
         editor.textContent = "";
         this.tmp.appendChild(editor);
         if (editor.session) {
+            editor.session.connection.emit(
+                "message",
+                new protocol.Connected(2),
+            );
             editor.session.connection.emit(
                 "message",
                 new protocol.ServerEvent(

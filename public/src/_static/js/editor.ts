@@ -49,6 +49,9 @@ export class Editor extends HTMLElement {
             this.content.removeParticipant(seq, id);
         });
         this.session.on("edit", (seq, event) => {
+            // NOTE: this must be applied synchronously, as the
+            // transforms applied on the server event are for the
+            // *current* state of the editor.
             this.content.applyEvent(seq, event);
         });
 

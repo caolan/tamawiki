@@ -8,7 +8,7 @@ import "codemirror/lib/codemirror.css";
 export class ContentElement extends HTMLElement {
     public codemirror: CodeMirror.Editor;
     public events: EventEmitter;
-    public participants: { [id: number]: { marker?: CodeMirror.TextMarker } };
+    public otherParticipants: { [id: number]: { marker?: CodeMirror.TextMarker } };
     public seq: number;
     private applyingEvent: boolean;
 
@@ -16,7 +16,7 @@ export class ContentElement extends HTMLElement {
         super();
         this.seq = 0;
         this.events = new EventEmitter();
-        this.participants = [];
+        this.otherParticipants = [];
         this.applyingEvent = false;
         this.codemirror = CodeMirror(this, {
             lineWrapping: true,
@@ -82,17 +82,17 @@ export class ContentElement extends HTMLElement {
 
     addParticipant(seq: number, p: protocol.Participant): void {
         this.seq = seq;
-        this.participants[p.id] = {};
+        this.otherParticipants[p.id] = {};
         this.setParticipantPosition(p.id, p.cursor_pos);
     }
 
     removeParticipant(seq: number, id: number): void {
         this.seq = seq;
-        const participant = this.participants[id];
+        const participant = this.otherParticipants[id];
         if (participant && participant.marker) {
             participant.marker.clear();
         }
-        delete this.participants[id];
+        delete this.otherParticipants[id];
     }
 
     getValue(): string {
@@ -104,15 +104,15 @@ export class ContentElement extends HTMLElement {
 
     canApplyEvent(event: protocol.Event): void {
         if (event instanceof protocol.Join) {
-            if (this.participants[event.id]) {
+            if (this.otherParticipants[event.id]) {
                 throw new Error("InvalidOperation");
             }
         } else if (event instanceof protocol.Leave) {
-            if (!this.participants[event.id]) {
+            if (!this.otherParticipants[event.id]) {
                 throw new Error("InvalidOperation");
             }
         } else if (event instanceof protocol.Edit) {
-            if (!this.participants[event.author]) {
+            if (!this.otherParticipants[event.author]) {
                 throw new Error("InvalidOperation");
             }
             let length = this.codemirror.getDoc().getValue().length;
@@ -130,10 +130,10 @@ export class ContentElement extends HTMLElement {
 
         this.applyingEvent = true;
         if (event instanceof protocol.Join) {
-            this.participants[event.id] = {};
+            this.otherParticipants[event.id] = {};
             this.setParticipantPosition(event.id, 0);
         } else if (event instanceof protocol.Leave) {
-            delete this.participants[event.id];
+            delete this.otherParticipants[event.id];
         } else if (event instanceof protocol.Edit) {
             for (const op of event.operations) {
                 this.applyOperation(event.author, op);
@@ -143,7 +143,7 @@ export class ContentElement extends HTMLElement {
     }
 
     getParticipantPosition(id: number): number | null {
-        const participant = this.participants[id];
+        const participant = this.otherParticipants[id];
         if (participant && participant.marker) {
             const doc = this.codemirror.getDoc();
             // sometimes .find() returns a Position instead of {to:
@@ -157,7 +157,7 @@ export class ContentElement extends HTMLElement {
     setParticipantPosition(id: number, index: number): void {
         let doc = this.codemirror.getDoc();
         var pos = doc.posFromIndex(index);
-        var participant = this.participants[id];
+        var participant = this.otherParticipants[id];
         if (participant.marker) {
             participant.marker.clear();
             delete participant.marker;
@@ -183,8 +183,8 @@ export class ContentElement extends HTMLElement {
         let doc = this.codemirror.getDoc();
         var marks = doc.findMarks(start, end);
         for (const mark of marks) {
-            for (const id in this.participants) {
-                const p = this.participants[id];
+            for (const id in this.otherParticipants) {
+                const p = this.otherParticipants[id];
                 if (p.marker && p.marker === mark) {
                     results.push(Number(id));
                 }

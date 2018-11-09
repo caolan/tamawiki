@@ -8,7 +8,13 @@
         "no-console": false,
         "space-before-function-paren": false,
         "max-classes-per-file": false,
-        "only-arrow-functions": false
+        "only-arrow-functions": false,
+        "variable-name": [
+            true,
+            "check-format",
+            "allow-pascal-case",
+            "allow-leading-underscore"
+        ]
     },
     "rulesDirectory": []
 }
