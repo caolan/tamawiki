@@ -58,11 +58,16 @@ impl Document {
                                 length += content.chars().count();
                             }
                         }
-                        Operation::Delete(Delete { start, end, .. }) => {
+                        Operation::Delete(Delete { start, end }) => {
                             if start > length || end > length {
                                 return Err(EditError::OutsideDocument);
                             } else {
                                 length -= end - start;
+                            }
+                        }
+                        Operation::MoveCursor(MoveCursor { pos }) => {
+                            if pos > length {
+                                return Err(EditError::OutsideDocument);
                             }
                         }
                     }
@@ -144,6 +149,13 @@ impl Document {
                     }
                 }
             }
+            Operation::MoveCursor(ref op) => {
+                for (id, participant) in self.participants.entries.iter_mut() {
+                    if *id == author {
+                        participant.cursor_pos = op.pos;
+                    }
+                }
+            }
         }
     }
 }
@@ -169,6 +181,7 @@ impl Operation {
         match self {
             Operation::Insert(_) => true,
             Operation::Delete(Delete { start, end, .. }) => end >= start,
+            Operation::MoveCursor(_) => true,
         }
     }
 }
@@ -235,6 +248,9 @@ impl Edit {
                             }
                             new_operations.push(Op::Insert(this));
                         }
+                        Op::MoveCursor(_) => {
+                            new_operations.push(Op::Insert(this));
+                        }
                     },
                     Op::Delete(mut this) => {
                         match *con {
@@ -296,20 +312,45 @@ impl Edit {
                                 this.end -= chars_deleted_before + chars_deleted_inside;
                                 new_operations.push(Op::Delete(this));
                             }
+                            Op::MoveCursor(_) => {
+                                new_operations.push(Op::Delete(this));
+                            }
                         }
                     }
+                    Op::MoveCursor(mut this) => match *con {
+                        Op::Insert(ref other) => {
+                            if other.pos < this.pos {
+                                this.pos += other.content.chars().count();
+                            }
+                            new_operations.push(Op::MoveCursor(this));
+                        }
+                        Op::Delete(ref other) => {
+                            if other.start < this.pos {
+                                let end = cmp::min(this.pos, other.end);
+                                this.pos -= end - other.start;
+                            }
+                            new_operations.push(Op::MoveCursor(this));
+                        }
+                        Op::MoveCursor(_) => {
+                            new_operations.push(Op::MoveCursor(this));
+                        }
+                    },
                 }
             }
             self.operations.append(&mut new_operations);
             // NOTE: at this point it is possible operations which no
             // longer affect a documents content (e.g. Deletes where
-            // start == end, or Inserts with content = "") are
-            // included in the operations list. This is valid because
-            // those operations may modify the cursor position of
+            // start == end, or Inserts with content = "") are included
+            // in the operations list. This is valid because those
+            // operations may modify the cursor position of
             // participants and would have been accepted if applied in
             // a different order. To make sure the cursor positions
             // converge, these otherwise useless operations must be
             // retained.
+
+            // TODO: perhaps use the new MoveCursor operation to
+            // replace the empty operations described in the above
+            // comment and have empty operations fail validation
         }
     }
 }
@@ -461,21 +502,6 @@ mod tests {
         let mut doc2 = doc.clone();
         a1.transform(&b1);
         b2.transform(&a2);
-
-        // assert_eq!(a2, Event::Edit(Edit {
-        //     author: 1,
-        //     operations: vec![Operation::Delete(Delete {
-        //         start: 1,
-        //         end: 2
-        //     })]
-        // }));
-        // assert_eq!(b2, Event::Edit(Edit {
-        //     author: 2,
-        //     operations: vec![Operation::Insert(Insert {
-        //         pos: 0,
-        //         content: String::from("c")
-        //     })]
-        // }));
 
         // doc1 (insert then delete)
 
@@ -682,6 +708,20 @@ mod tests {
         }
     }
 
+    impl GenerateStrategy for MoveCursor {
+        fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation> {
+            (
+                Range {
+                    start: 0,
+                    end: doc_size,
+                },
+                ".{1,100}",
+            )
+                .prop_map(|v| Operation::MoveCursor(MoveCursor { pos: v.0 }))
+                .boxed()
+        }
+    }
+
     fn generate_document_data() -> BoxedStrategy<String> {
         ".{1,100}"
             .prop_filter(
@@ -745,6 +785,18 @@ mod tests {
             }
 
         #[test]
+        fn insert_delete_order_of_application
+            ((ref initial, ref op1, ref op2) in conflicting_operations::<Insert, Delete>()) {
+                check_order_of_application(initial, op1, op2);
+            }
+
+        #[test]
+        fn insert_move_cursor_order_of_application
+            ((ref initial, ref op1, ref op2) in conflicting_operations::<Insert, MoveCursor>()) {
+                check_order_of_application(initial, op1, op2);
+            }
+
+        #[test]
         fn delete_delete_order_of_application
             ((ref initial, ref op1, ref op2) in conflicting_operations::<Delete, Delete>()) {
                 check_order_of_application(initial, op1, op2);
@@ -757,10 +809,30 @@ mod tests {
             }
 
         #[test]
-        fn insert_delete_order_of_application
-            ((ref initial, ref op1, ref op2) in conflicting_operations::<Insert, Delete>()) {
+        fn delete_move_cursor_order_of_application
+            ((ref initial, ref op1, ref op2) in conflicting_operations::<Delete, MoveCursor>()) {
                 check_order_of_application(initial, op1, op2);
             }
+
+        #[test]
+        fn move_cursor_delete_order_of_application
+            ((ref initial, ref op1, ref op2) in conflicting_operations::<MoveCursor, Delete>()) {
+                check_order_of_application(initial, op1, op2);
+            }
+
+        #[test]
+        fn move_cursor_insert_order_of_application
+            ((ref initial, ref op1, ref op2) in conflicting_operations::<MoveCursor, Insert>()) {
+                check_order_of_application(initial, op1, op2);
+            }
+
+        #[test]
+        fn move_cursor_move_cursor_order_of_application
+            ((ref initial, ref op1, ref op2) in conflicting_operations::<MoveCursor, MoveCursor>()) {
+                check_order_of_application(initial, op1, op2);
+            }
+
+
 
     }
 

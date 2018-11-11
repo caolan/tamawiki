@@ -1146,5 +1146,79 @@
                 }
             ]
         }
+    },
+    {
+        "name": "apply_move_cursor",
+        "initial": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "MoveCursor": {
+                                "pos": 4
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": null,
+        "expected": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 4
+                }
+            ]
+        }
+    },
+    {
+        "name": "apply_move_cursor_outside_of_bounds",
+        "initial": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        },
+        "events": [
+            {
+                "Edit": {
+                    "author": 1,
+                    "operations": [
+                        {
+                            "MoveCursor": {
+                                "pos": 7
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "error": {
+            "type": "OutsideDocument"
+        },
+        "expected": {
+            "content": "foobar",
+            "participants": [
+                {
+                    "id": 1,
+                    "cursor_pos": 0
+                }
+            ]
+        }
     }
 ]

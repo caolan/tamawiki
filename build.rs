@@ -240,6 +240,11 @@ impl ToTokens for Operation {
                 data.to_tokens(&mut inner);
                 tokens.append(Group::new(Delimiter::Parenthesis, inner));
             }
+            Operation::MoveCursor(ref data) => {
+                tokens.append(Ident::new("MoveCursor", Span::call_site()));
+                data.to_tokens(&mut inner);
+                tokens.append(Group::new(Delimiter::Parenthesis, inner));
+            }
         }
     }
 }
@@ -268,6 +273,15 @@ impl ToTokens for Delete {
         field(&mut fields, "start", |tokens| self.start.to_tokens(tokens));
         field(&mut fields, "end", |tokens| self.end.to_tokens(tokens));
         tokens.append(Ident::new("Delete", Span::call_site()));
+        tokens.append(Group::new(Delimiter::Brace, fields));
+    }
+}
+
+impl ToTokens for MoveCursor {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let mut fields = TokenStream::new();
+        field(&mut fields, "pos", |tokens| self.pos.to_tokens(tokens));
+        tokens.append(Ident::new("MoveCursor", Span::call_site()));
         tokens.append(Group::new(Delimiter::Brace, fields));
     }
 }

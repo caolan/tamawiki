@@ -740,5 +740,258 @@
                 {"Insert": {"pos": 5, "content": "test"}}
             ]
         }}
+    },
+    {
+        "name": "transform_insert_move_cursor",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 0, "content": "test"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 9}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_and_move_cursor_at_same_point_checks_priority1",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "foo"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"MoveCursor": {"pos": 5}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "foo"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_insert_and_move_cursor_at_same_point_checks_priority2",
+        "initial": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "foo"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 1,
+                "operations": [
+                    {"MoveCursor": {"pos": 5}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Insert": {"pos": 5, "content": "foo"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_move_cursor_insert",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 10, "content": "test"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"MoveCursor": {"pos": 5}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 10, "content": "test"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_delete_move_cursor",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 0, "end": 2}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 3}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_move_cursor_delete",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 10, "end": 12}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"MoveCursor": {"pos": 5}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Delete": {"start": 10, "end": 12}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_move_cursor_and_insert_at_same_point_checks_priority1",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Insert": {"pos": 5, "content": "foo"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_move_cursor_and_insert_at_same_point_checks_priority2",
+        "initial": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 1,
+                "operations": [
+                    {"Insert": {"pos": 5, "content": "foo"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_move_cursor_delete_overlapping_start",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 0, "end": 10}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 0}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_move_cursor_delete_non_overlapping_after",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 10, "end": 15}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_move_cursor_move_cursor",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"MoveCursor": {"pos": 10}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"MoveCursor": {"pos": 5}}
+            ]
+        }}
     }
 ]

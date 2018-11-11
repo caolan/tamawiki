@@ -213,8 +213,13 @@ export class ContentElement extends HTMLElement {
                 throw new Error("OutsideDocument");
             }
             return length - (op.end - op.start);
+        } else if (op instanceof protocol.MoveCursor) {
+            if (op.pos > length) {
+                throw new Error("OutsideDocument");
+            }
+            return length;
         } else {
-            throw new Error(`Unknown Operation type: ${op}`);
+            throw new Error(`Unknown Operation type`);
         }
     }
 
@@ -243,6 +248,10 @@ export class ContentElement extends HTMLElement {
                 author,
                 op.start,
             );
+        } else if (op instanceof protocol.MoveCursor) {
+            this.setParticipantPosition(author, op.pos);
+        } else {
+            throw new Error("Unknown Operation type");
         }
     }
 }

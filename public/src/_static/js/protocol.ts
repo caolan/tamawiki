@@ -132,6 +132,8 @@ export abstract class Operation {
             return Insert.fromJSON(data);
         } else if (data.Delete) {
             return Delete.fromJSON(data);
+        } else if (data.MoveCursor) {
+            return MoveCursor.fromJSON(data);
         } else {
             throw new Error("Unknown Operation type");
         }
@@ -165,8 +167,10 @@ export class Insert extends Operation {
                 const end = Math.min(this.pos, other.end);
                 this.pos -= end - other.start;
             }
+        } else if (other instanceof MoveCursor) {
+            // no change
         } else {
-            throw new Error("Unknown operation type");
+            throw new Error("Unknown Operation type");
         }
         return [this];
     }
@@ -216,6 +220,42 @@ export class Delete extends Operation {
             }
             this.start -= charsDeletedBefore;
             this.end -= charsDeletedBefore + charsDeletedInside;
+        } else if (other instanceof MoveCursor) {
+            // no change
+        } else {
+            throw new Error("Unknown Operation type");
+        }
+        return [this];
+    }
+}
+
+export class MoveCursor extends Operation {
+    public static fromJSON(data: any): MoveCursor {
+        return new MoveCursor(data.MoveCursor.pos);
+    }
+
+    constructor(public pos: number) {
+        super();
+    }
+
+    public toJSON(): any {
+        return { MoveCursor: { pos: this.pos } };
+    }
+
+    public transform(other: Operation, hasPriority: boolean): [MoveCursor] {
+        if (other instanceof Insert) {
+            if (other.pos < this.pos) {
+                this.pos += other.content.length;
+            }
+        } else if (other instanceof Delete) {
+            if (other.start < this.pos) {
+                const end = Math.min(this.pos, other.end);
+                this.pos -= end - other.start;
+            }
+        } else if (other instanceof MoveCursor) {
+            // no change
+        } else {
+            throw new Error("Unknown Operation type");
         }
         return [this];
     }

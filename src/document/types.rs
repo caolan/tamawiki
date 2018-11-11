@@ -128,6 +128,15 @@ pub struct Delete {
     pub end: usize,
 }
 
+/// Updates the cursor position of a participant
+#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+pub struct MoveCursor {
+    /// Cursor position as number of Unicode Scalar Values preceeding
+    /// it, from the beginning of the document (not byte position, or
+    /// number of grapheme clusters)
+    pub pos: usize,
+}
+
 /// Describes an event corresponding to a single Document.
 #[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
 pub enum Event {
@@ -148,6 +157,8 @@ pub enum Operation {
     Insert(Insert),
     /// Remove content from the Document
     Delete(Delete),
+    /// Move participant's cursor
+    MoveCursor(MoveCursor),
 }
 
 /// A new participant has joined the DocumentSession

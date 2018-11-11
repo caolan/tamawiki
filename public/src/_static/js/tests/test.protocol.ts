@@ -114,6 +114,15 @@ suite("protocol", () => {
         assert.ok(deserialized instanceof protocol.Delete);
     });
 
+    test("MoveCursor.fromJSON / toJSON", function() {
+        const mv = new protocol.MoveCursor(10);
+        const serialized = mv.toJSON();
+        const deserialized = protocol.MoveCursor.fromJSON(serialized);
+        assert.deepEqual(serialized, { MoveCursor: { pos: 10 } });
+        assert.deepEqual(deserialized, mv);
+        assert.ok(deserialized instanceof protocol.MoveCursor);
+    });
+
     test("Operation.fromJSON / toJSON", function() {
         const ins = new protocol.Insert(10, "hello");
         const deserializedIns = protocol.Operation.fromJSON(ins.toJSON());
@@ -124,6 +133,11 @@ suite("protocol", () => {
         const deserializedDel = protocol.Operation.fromJSON(del.toJSON());
         assert.deepEqual(deserializedDel, del);
         assert.ok(deserializedDel instanceof protocol.Delete);
+
+        const mv = new protocol.MoveCursor(10);
+        const deserializedMv = protocol.Operation.fromJSON(mv.toJSON());
+        assert.deepEqual(deserializedMv, mv);
+        assert.ok(deserializedMv instanceof protocol.MoveCursor);
 
         assert.throws(() => {
             protocol.Operation.fromJSON({ Foo: { operation: "unknown" } });
