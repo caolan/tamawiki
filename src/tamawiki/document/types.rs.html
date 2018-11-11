@@ -188,6 +188,17 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
 </pre><pre class="rust ">
 <span class="comment">// NOTE: this file is shared between build.rs and the document module,</span>
 <span class="comment">// it should contain the minimal definitions of each type - just</span>
@@ -319,6 +330,15 @@
     <span class="kw">pub</span> <span class="ident">end</span>: <span class="ident">usize</span>,
 }
 
+<span class="doccomment">/// Updates the cursor position of a participant</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MoveCursor</span> {
+    <span class="doccomment">/// Cursor position as number of Unicode Scalar Values preceeding</span>
+    <span class="doccomment">/// it, from the beginning of the document (not byte position, or</span>
+    <span class="doccomment">/// number of grapheme clusters)</span>
+    <span class="kw">pub</span> <span class="ident">pos</span>: <span class="ident">usize</span>,
+}
+
 <span class="doccomment">/// Describes an event corresponding to a single Document.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span> {
@@ -339,6 +359,8 @@
     <span class="ident">Insert</span>(<span class="ident">Insert</span>),
     <span class="doccomment">/// Remove content from the Document</span>
     <span class="ident">Delete</span>(<span class="ident">Delete</span>),
+    <span class="doccomment">/// Move participant&#39;s cursor</span>
+    <span class="ident">MoveCursor</span>(<span class="ident">MoveCursor</span>),
 }
 
 <span class="doccomment">/// A new participant has joined the DocumentSession</span>
