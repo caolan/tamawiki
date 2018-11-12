@@ -20,6 +20,7 @@ export class ContentElement extends HTMLElement {
             lineWrapping: true,
             mode: "text",
             value: "",
+            viewportMargin: Infinity,
         });
 
         this.codemirror.on("cursorActivity", () => {

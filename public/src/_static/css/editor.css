@@ -12,3 +12,7 @@
 tw-editor {
     font-family: monospace;
 }
+
+.CodeMirror {
+    height: auto;
+}
