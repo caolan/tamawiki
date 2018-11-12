@@ -19,6 +19,7 @@ tungstenite = "0.6"
 base64 = "0.9"
 sha-1 = "0.7"
 tokio = "0.1"
+clap = "2.32"
 
 [dev-dependencies]
 proptest = "0.8"
