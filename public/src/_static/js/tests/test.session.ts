@@ -16,7 +16,7 @@ import {
 
 suite("Session", () => {
 
-    test("transform incoming messages", function() {
+    test("transform incoming messages using sent ClientEdits", function() {
         const edits: Event[] = [];
         const conn = new TestConnection("path", 1);
         const session = new Session(1, conn);
@@ -57,6 +57,36 @@ suite("Session", () => {
                 new Edit(1, [new Insert(0, "Hello")]),
                 new Edit(1, [new Insert(2, ", world")]),
                 new Edit(1, [new Insert(10, "!")]),
+            ]),
+        );
+    });
+
+    test("transform incoming messages for operations waiting in outbox", function() {
+        const edits: Event[] = [];
+        const conn = new TestConnection("path", 1);
+        const session = new Session(1, conn);
+        session.on("message", (msg: ServerMessage) => {
+            if (msg instanceof ServerEvent) {
+                edits.push(msg.event);
+            }
+        });
+        conn.emit("message", new Connected(2));
+        // this will be in sent
+        session.write([new Insert(0, "Hello")]);
+        session.flush();
+        // this will be in outbox because flush() not called
+        session.write([new Insert(5, ", world")]);
+        conn.emit("message", new ServerEvent(
+            2,
+            0,
+            new Edit(1, [
+                new Insert(0, "!"),
+            ]),
+        ));
+        assert.deepEqual(
+            JSON.stringify(edits),
+            JSON.stringify([
+                new Edit(1, [new Insert(12, "!")]),
             ]),
         );
     });

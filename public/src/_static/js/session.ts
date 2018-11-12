@@ -19,7 +19,9 @@ export class Session extends EventEmitter {
 
     // Operations waiting to be sent out in the next ClientEdit. These
     // will be normalized before sending, eliminating any unecessary
-    // Operations.
+    // Operations. Incoming messages are also transformed to
+    // accommodate these operations (after being transformed for the
+    // ClientEdit's in 'sent').
     private outbox: protocol.Operation[];
 
     // The last local operation sent to the server. Used to detect
@@ -114,15 +116,23 @@ export class Session extends EventEmitter {
                 );
             }
             if (msg.event instanceof protocol.Edit) {
-                // transform ServerMessage to accommodate remaining
-                // ClientEdits not yet acknowledged (and therefore
-                // removed in receive() call)
+                // Transform ServerMessage to accommodate remaining
+                // ClientEdits sent to the server, but not yet
+                // acknowledged (otherwise they'd have been removed in
+                // receive() call).
                 for (const clientEdit of this.sent) {
                     msg.event.transform(new protocol.Edit(
                         this.participantId,
                         clientEdit.operations,
                     ));
                 }
+                // Transform ServerMessage to accommodate operations
+                // that have happened locally but are still waiting to
+                // be sent to the server.
+                msg.event.transform(new protocol.Edit(
+                    this.participantId,
+                    this.outbox,
+                ));
             }
         }
     }
