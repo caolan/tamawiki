@@ -37,11 +37,11 @@ fn main() {
     };
 
     let bind_to: SocketAddr = (address, port).into();
-    println!("Starting server at http://{}", bind_to);
 
     let server = Server::bind(&bind_to)
         .serve(TamaWiki::new(store, "public/dist"))
         .map_err(|err| eprintln!("Server error: {}", err));
 
+    println!("Server running at http://{}", bind_to);
     hyper::rt::run(server);
 }
