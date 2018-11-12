@@ -134,7 +134,7 @@ impl<T: Store + Sync> TamaWiki<T> {
                             TERA.render(
                                 "editor.html",
                                 &json!({
-                                "title": "Document (empty)",
+                                "title": "Document",
                                 "content": "",
                                 "participants": [],
                                 "seq": 0

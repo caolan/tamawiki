@@ -8,3 +8,7 @@
     padding: 0;
     z-index: 0;
 }
+
+tw-editor {
+    font-family: monospace;
+}

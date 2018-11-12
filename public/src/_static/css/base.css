@@ -1,3 +1,14 @@
 html {
     font-family: sans-serif;
+    font-size: 12pt;
+}
+
+.page-content {
+    margin: 0;
+    padding: 4px;
+    white-space: pre-wrap;
+}
+
+#actions {
+    margin-bottom: 2em;
 }

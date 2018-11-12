@@ -14,7 +14,7 @@
             {% endblock actions %}
         </div>
         <main>
-            <h1>{{ title }}</h1>
+            {% block heading %}<h1>{{ title }}</h1>{% endblock heading %}
             {% block content %}{% endblock content %}
         </main>
         <footer>
