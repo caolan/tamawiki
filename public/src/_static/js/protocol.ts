@@ -142,6 +142,8 @@ export abstract class Operation {
     public abstract transform(other: Operation, hasPriority: boolean): Operation[];
 
     public abstract toJSON(): any;
+
+    public abstract cursorPositionAfter(): number;
 }
 
 export class Insert extends Operation {
@@ -155,6 +157,10 @@ export class Insert extends Operation {
 
     public toJSON(): any {
         return { Insert: { pos: this.pos, content: this.content } };
+    }
+
+    public cursorPositionAfter(): number {
+        return this.pos + this.content.length;
     }
 
     public transform(other: Operation, hasPriority: boolean): [Insert] {
@@ -187,6 +193,10 @@ export class Delete extends Operation {
 
     public toJSON(): any {
         return { Delete: { start: this.start, end: this.end } };
+    }
+
+    public cursorPositionAfter(): number {
+        return this.start;
     }
 
     public transform(other: Operation, _hasPriority: boolean): Delete[] {
@@ -240,6 +250,10 @@ export class MoveCursor extends Operation {
 
     public toJSON(): any {
         return { MoveCursor: { pos: this.pos } };
+    }
+
+    public cursorPositionAfter(): number {
+        return this.pos;
     }
 
     public transform(other: Operation, hasPriority: boolean): [MoveCursor] {

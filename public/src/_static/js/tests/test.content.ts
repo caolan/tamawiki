@@ -1,6 +1,15 @@
 import { assert } from "chai";
 import { ContentElement } from "../content";
-import { Delete, Document, Edit, Insert, Operation, ServerEvent } from "../protocol";
+
+import {
+    Delete,
+    Document,
+    Edit,
+    Insert,
+    MoveCursor,
+    Operation,
+    ServerEvent,
+} from "../protocol";
 
 suite("ContentElement", () => {
 
@@ -125,6 +134,26 @@ suite("ContentElement", () => {
         assert.ok(markerClassNames(doc, 2, 3).has("edit"));
         // the middle char should not have the 'edit' class
         assert.ok(!(markerClassNames(doc, 1, 2).has("edit")));
+    });
+
+    test("emit MoveCursor events", function(done) {
+        const content = new ContentElement();
+        this.tmp.appendChild(content);
+        content.loadDocument(Document.fromJSON({
+            content: "Hello, world!",
+            participants: [
+                { id: 1, cursor_pos: 0 },
+            ],
+        }));
+        content.events.on("change", (operations: Operation[]) => {
+            assert.deepEqual(operations, [
+                new MoveCursor(10),
+            ]);
+            done();
+        });
+        const doc = content.codemirror.getDoc();
+        const pos = doc.posFromIndex(10);
+        doc.setCursor(pos);
     });
 
 });

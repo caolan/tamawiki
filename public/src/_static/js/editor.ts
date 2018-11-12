@@ -56,7 +56,7 @@ export class Editor extends HTMLElement {
         // TODO: how to handle change events that occur before
         // Connected message arrives?
         this.content.events.on("change", (operations: protocol.Operation[]) => {
-            (this.session as Session).send(operations);
+            (this.session as Session).write(operations);
         });
     }
 }

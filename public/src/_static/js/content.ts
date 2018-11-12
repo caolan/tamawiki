@@ -22,6 +22,16 @@ export class ContentElement extends HTMLElement {
             value: "",
         });
 
+        this.codemirror.on("cursorActivity", () => {
+            // don't emit changes when applying event from server
+            if (this.applyingEvent) {
+                return;
+            }
+            const doc = this.codemirror.getDoc();
+            const pos = doc.indexFromPos(doc.getCursor("head"));
+            this.events.emit("change", [new protocol.MoveCursor(pos)]);
+        });
+
         this.codemirror.on("changes", (_instance, changes) => {
             // don't emit changes when applying event from server
             if (this.applyingEvent) {
@@ -233,7 +243,7 @@ export class ContentElement extends HTMLElement {
             doc.markText(start, end, { className: "edit" });
             this.setParticipantPosition(
                 author,
-                op.pos + op.content.length,
+                op.cursorPositionAfter(),
             );
         } else if (op instanceof protocol.Delete) {
             const start = doc.posFromIndex(op.start);
@@ -246,10 +256,13 @@ export class ContentElement extends HTMLElement {
             }
             this.setParticipantPosition(
                 author,
-                op.start,
+                op.cursorPositionAfter(),
             );
         } else if (op instanceof protocol.MoveCursor) {
-            this.setParticipantPosition(author, op.pos);
+            this.setParticipantPosition(
+                author,
+                op.cursorPositionAfter(),
+            );
         } else {
             throw new Error("Unknown Operation type");
         }

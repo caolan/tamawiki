@@ -225,19 +225,20 @@ suite("Editor", () => {
         ]));
         editor.textContent = "Hello";
         this.tmp.appendChild(editor);
-        if (editor.session) {
-            const doc = editor.content.codemirror.getDoc();
-            const pos = doc.posFromIndex(5);
-            doc.replaceRange(", world!", pos);
-            const conn = editor.session.connection as TestConnection;
-            assert.deepEqual(conn.sent, [
-                new protocol.ClientEdit(3, 1, [
-                    new protocol.Insert(5, ", world!"),
-                ]),
-            ]);
-        } else {
+        if (!editor.session) {
             assert.ok(false);
+            return;
         }
+        const doc = editor.content.codemirror.getDoc();
+        const pos = doc.posFromIndex(5);
+        doc.replaceRange(", world!", pos);
+        editor.session.flush();
+        const conn = editor.session.connection as TestConnection;
+        assert.deepEqual(conn.sent, [
+            new protocol.ClientEdit(3, 1, [
+                new protocol.Insert(5, ", world!"),
+            ]),
+        ]);
     });
 
     test("Apply edits received over connection", function() {
@@ -312,7 +313,6 @@ suite("Editor", () => {
         editor.setAttribute("participants", JSON.stringify([
             { id: 1, cursor_pos: 0 },
         ]));
-        editor.textContent = "";
         this.tmp.appendChild(editor);
         if (editor.session) {
             editor.session.connection.emit(
@@ -336,6 +336,7 @@ suite("Editor", () => {
             const doc = editor.content.codemirror.getDoc();
             const pos = doc.posFromIndex(5);
             doc.replaceRange(", world", pos);
+            editor.session.flush();
             assert.equal(
                 editor.content.getValue(),
                 "Hello, world",
@@ -357,6 +358,7 @@ suite("Editor", () => {
             const start = doc.posFromIndex(7);
             const end = doc.posFromIndex(12);
             doc.replaceRange("galaxy", start, end);
+            editor.session.flush();
             assert.equal(
                 editor.content.getValue(),
                 "Hello, galaxy!",

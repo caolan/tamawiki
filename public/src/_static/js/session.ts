@@ -17,9 +17,20 @@ export class Session extends EventEmitter {
     // local events.
     public sent: protocol.ClientEdit[];
 
+    // Operations waiting to be sent out in the next ClientEdit. These
+    // will be normalized before sending, eliminating any unecessary
+    // Operations.
+    private outbox: protocol.Operation[];
+
+    // The last local operation sent to the server. Used to detect
+    // subsequent MoveCursor events in the outbox that have no
+    // meaningful effect.
+    private lastOperation?: protocol.Operation;
+
     constructor(seq: number, public connection: Connection) {
         super();
         this.sent = [];
+        this.outbox = [];
         this.clientSeq = 0;
         this.seq = seq;
         this.connection.on("message", (msg) => this.receive(msg));
@@ -28,11 +39,52 @@ export class Session extends EventEmitter {
     // NOTE: this must be called synchronously when an edit occurs
     // otherwise a received ServerEvent may not be transformed to
     // accommodate the current state of the content in the editor.
-    public send(operations: protocol.Operation[]) {
+    public write(operations: protocol.Operation[]) {
+        if (!this.outbox.length) {
+            setTimeout(() => this.flush(), 0);
+        }
+        this.outbox = this.outbox.concat(operations);
+    }
+
+    public flush(): void {
+        if (!this.outbox.length) {
+            return;
+        }
+        let last = this.lastOperation;
+        const prepared = [];
+        for (let i = 0, len = this.outbox.length; i < len; i++) {
+            const op = this.outbox[i];
+            const moreOperations = i < len - 1;
+            let keep = false;
+            if (this.isContentChange(op)) {
+                keep = true;
+            } else if (!moreOperations) {
+                keep = !last ||
+                    op.cursorPositionAfter() !== last.cursorPositionAfter();
+            }
+            if (keep) {
+                prepared.push(op);
+                last = op;
+            }
+        }
+        if (!prepared.length) {
+            return;
+        }
+        this.outbox = [];
         this.clientSeq++;
-        const msg = new protocol.ClientEdit(this.seq, this.clientSeq, operations);
+        this.lastOperation = last;
+        const msg = new protocol.ClientEdit(this.seq, this.clientSeq, prepared);
         this.connection.send(msg);
         this.sent.push(msg);
+    }
+
+    private isContentChange(op: protocol.Operation): boolean {
+        if (op instanceof protocol.Insert) {
+            return op.content.length > 0;
+        } else if (op instanceof protocol.Delete) {
+            return op.start !== op.end;
+        }
+        return false;
     }
 
     private receive(msg: protocol.ServerMessage): void {
@@ -46,7 +98,10 @@ export class Session extends EventEmitter {
                 return clientEdit.clientSeq > msg.clientSeq;
             });
         }
+        // TODO: incoming events need to be transformed for operations
+        // in the outbox, not just in 'sent'
         this.transform(msg);
+        delete this.lastOperation;
         this.emit("message", msg);
     }
 

@@ -22,6 +22,7 @@ module.exports = function (config) {
                 // change Karma's debug.html to the mocha web reporter
                 reporter: 'html',
                 ui: 'tdd'
+                // asyncOnly: true
             }
         }
     });
