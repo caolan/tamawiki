@@ -12,6 +12,8 @@
         "resolveJsonModule": true,
         "allowSyntheticDefaultImports": true,
         "moduleResolution": "node",
-        "target": "es2015"
+        "module": "es2015",
+        "target": "es2015",
+        "outDir": "./public/dist"
     }
 }

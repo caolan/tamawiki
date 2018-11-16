@@ -33,6 +33,7 @@ cache:
     - node_modules
 before_deploy:
   - cargo doc --verbose --no-deps
+  - npm run doc
 deploy:
   provider: pages
   skip-cleanup: true

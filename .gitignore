@@ -2,5 +2,5 @@
 **/*.rs.bk
 /node_modules
 /public/dist
-/public/docs
+/public/doc
 /coverage
