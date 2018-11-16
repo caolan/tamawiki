@@ -239,6 +239,7 @@ export class ContentElement extends HTMLElement {
 
         if (op instanceof protocol.Insert) {
             const start = doc.posFromIndex(op.pos);
+            const atLocalCursor = op.pos === doc.indexFromPos(doc.getCursor());
             doc.replaceRange(op.content, start);
             const end = doc.posFromIndex(op.pos + op.content.length);
             doc.markText(start, end, { className: "edit" });
@@ -246,6 +247,12 @@ export class ContentElement extends HTMLElement {
                 author,
                 op.cursorPositionAfter(),
             );
+            if (atLocalCursor) {
+                // Need to move the local cursor back to original
+                // position in the case where the remote Insert event
+                // happened at the same location.
+                doc.setCursor(start);
+            }
         } else if (op instanceof protocol.Delete) {
             const start = doc.posFromIndex(op.start);
             const end = doc.posFromIndex(op.end);

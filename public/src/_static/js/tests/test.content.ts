@@ -11,6 +11,12 @@ import {
     ServerEvent,
 } from "../protocol";
 
+// not sure why this isn't available when targetting es2015
+declare class Set<T> {
+    has(value: T): boolean;
+    add(value: T): void;
+}
+
 suite("ContentElement", () => {
 
     setup(function() {
@@ -78,7 +84,7 @@ suite("ContentElement", () => {
     function bookmarkClassNamesAt(doc: CodeMirror.Doc, index: number): Set<string> {
         const pos = doc.posFromIndex(index);
         const markers = doc.findMarksAt(pos);
-        const classNames = new Set<string>();
+        const classNames: Set<string> = new Set();
         for (const marker of (markers as any[])) {
             classNames.add(marker.replacedWith.className);
         }
@@ -89,7 +95,7 @@ suite("ContentElement", () => {
         const start = doc.posFromIndex(from);
         const end = doc.posFromIndex(to);
         const markers = doc.findMarks(start, end);
-        const classNames = new Set<string>();
+        const classNames: Set<string> = new Set();
         for (const marker of (markers as any[])) {
             classNames.add(marker.className);
         }
@@ -154,6 +160,57 @@ suite("ContentElement", () => {
         const doc = content.codemirror.getDoc();
         const pos = doc.posFromIndex(10);
         doc.setCursor(pos);
+    });
+
+    test("Insert event at position of local cursor", function() {
+        const content = new ContentElement();
+        this.tmp.appendChild(content);
+        content.loadDocument(Document.fromJSON({
+            content: "foo",
+            participants: [
+                { id: 1, cursor_pos: 0 },
+            ],
+        }));
+        const doc = content.codemirror.getDoc();
+        const pos = doc.posFromIndex(3);
+        doc.setCursor(pos);
+        content.applyEvent(new Edit(1, [new Insert(3, "bar")]));
+        assert(doc.getValue(), "foobar");
+        assert.equal(doc.indexFromPos(doc.getCursor()), 3);
+    });
+
+    test("Insert event before position of local cursor", function() {
+        const content = new ContentElement();
+        this.tmp.appendChild(content);
+        content.loadDocument(Document.fromJSON({
+            content: "foo",
+            participants: [
+                { id: 1, cursor_pos: 0 },
+            ],
+        }));
+        const doc = content.codemirror.getDoc();
+        const pos = doc.posFromIndex(3);
+        doc.setCursor(pos);
+        content.applyEvent(new Edit(1, [new Insert(0, "bar")]));
+        assert(doc.getValue(), "barfoo");
+        assert.equal(doc.indexFromPos(doc.getCursor()), 6);
+    });
+
+    test("Insert event after position of local cursor", function() {
+        const content = new ContentElement();
+        this.tmp.appendChild(content);
+        content.loadDocument(Document.fromJSON({
+            content: "foo",
+            participants: [
+                { id: 1, cursor_pos: 0 },
+            ],
+        }));
+        const doc = content.codemirror.getDoc();
+        const pos = doc.posFromIndex(2);
+        doc.setCursor(pos);
+        content.applyEvent(new Edit(1, [new Insert(3, "bar")]));
+        assert(doc.getValue(), "foobar");
+        assert.equal(doc.indexFromPos(doc.getCursor()), 2);
     });
 
 });
