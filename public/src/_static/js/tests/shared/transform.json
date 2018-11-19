@@ -993,5 +993,56 @@
                 {"MoveCursor": {"pos": 5}}
             ]
         }}
+    },
+    {
+        "name": "transform_multiple_operations_single_edit_1",
+        "initial": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "A"}},
+                {"Delete": {"start": 0, "end": 2}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 2,
+                "operations": [
+                    {"Delete": {"start": 1, "end": 2}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 1,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "A"}},
+                {"Delete": {"start": 0, "end": 2}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_multiple_operations_single_edit_2",
+        "initial": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "A"}},
+                {"Insert": {"pos": 1, "content": "A"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 1,
+                "operations": [
+                    {"Insert": {"pos": 0, "content": "B"}},
+                    {"Insert": {"pos": 1, "content": "B"}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Insert": {"pos": 0, "content": "A"}},
+                {"Insert": {"pos": 1, "content": "A"}}
+            ]
+        }}
     }
 ]
