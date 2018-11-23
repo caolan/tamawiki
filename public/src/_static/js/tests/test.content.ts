@@ -13,8 +13,8 @@ import {
 
 // not sure why this isn't available when targetting es2015
 declare class Set<T> {
-    has(value: T): boolean;
-    add(value: T): void;
+    public has(value: T): boolean;
+    public add(value: T): void;
 }
 
 suite("ContentElement", () => {

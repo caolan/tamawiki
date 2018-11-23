@@ -224,133 +224,221 @@ impl Edit {
     /// Modifies the `operations` inside the Edit struct to
     /// accommodate a concurrent Edit entry whose operations have
     /// already been applied locally.
-    fn transform(&mut self, concurrent: &Edit) {
-        use self::Operation as Op;
-        let mut new_operations = vec![];
+    fn transform(&mut self, other: &Edit) {
+        let mut concurrent = other.operations.clone();
+        let mut next_ops = vec![];
+        let mut group = vec![];
+        let mut next_group = vec![];
+        let mut con_group = vec![];
+        let mut next_con_group = vec![];
+        let mut next_concurrent = vec![];
 
-        for con in &concurrent.operations {
-            for operation in self.operations.drain(..) {
-                match operation {
-                    Op::Insert(mut this) => match *con {
-                        Op::Insert(ref other) => {
-                            if other.pos < this.pos
-                                || (other.pos == this.pos
-                                    && Edit::has_priority(concurrent.author, self.author))
-                            {
-                                this.pos += other.content.chars().count();
-                            }
-                            new_operations.push(Op::Insert(this));
-                        }
-                        Op::Delete(ref other) => {
-                            if other.start < this.pos {
-                                let end = cmp::min(this.pos, other.end);
-                                this.pos -= end - other.start;
-                            }
-                            new_operations.push(Op::Insert(this));
-                        }
-                        Op::MoveCursor(_) => {
-                            new_operations.push(Op::Insert(this));
-                        }
-                    },
-                    Op::Delete(mut this) => {
-                        match *con {
-                            Op::Insert(ref other) => {
-                                if other.pos < this.start {
-                                    let len = other.content.chars().count();
-                                    this.start += len;
-                                    this.end += len;
-                                    new_operations.push(Op::Delete(this));
-                                } else if other.pos < this.end && this.end - this.start > 0 {
-                                    // need to split the delete into two parts
-                                    // to avoid clobbering the new insert
-                                    // (only split when the delete has a range
-                                    // greater than 0, otherwise it can only
-                                    // produce a duplicate event)
+        for op in self.operations.drain(..) {
+            group.push(op);
+            for con in concurrent.drain(..) {
+                for g in &group {
+                    // clone here because we need the previous values
+                    // when transforming `con` later
+                    g.clone()
+                        .transform(self.author, &con, other.author, &mut next_group);
+                }
 
-                                    // create a new operation for the first
-                                    // part of the range
-                                    let before = Op::Delete(Delete {
-                                        start: this.start,
-                                        end: other.pos,
-                                    });
-
-                                    // adjust the current operation to cover
-                                    // the end second part of the range
-                                    let len = other.content.chars().count();
-                                    this.start = other.pos + len;
-                                    this.end = this.end + len;
-                                    new_operations.push(Op::Delete(this));
-
-                                    // push the operation covering the first
-                                    // part of the range to new_operations.
-                                    // This means it's applied after the
-                                    // second part of the range and the cursor
-                                    // ends in the correct position.
-                                    new_operations.push(before);
-                                } else {
-                                    new_operations.push(Op::Delete(this));
-                                }
-                            }
-                            Op::Delete(ref other) => {
-                                let mut chars_deleted_before = if other.start < this.start {
-                                    let end = cmp::min(this.start, other.end);
-                                    end - other.start
-                                } else {
-                                    0
-                                };
-                                let mut chars_deleted_inside = 0;
-                                if other.start < this.start {
-                                    if other.end > this.start {
-                                        let end = cmp::min(this.end, other.end);
-                                        chars_deleted_inside = end - this.start;
-                                    }
-                                } else if other.start < this.end {
-                                    let end = cmp::min(this.end, other.end);
-                                    chars_deleted_inside = end - other.start;
-                                }
-                                this.start -= chars_deleted_before;
-                                this.end -= chars_deleted_before + chars_deleted_inside;
-                                new_operations.push(Op::Delete(this));
-                            }
-                            Op::MoveCursor(_) => {
-                                new_operations.push(Op::Delete(this));
-                            }
-                        }
+                // transform con for last value of group (i.e. not `next_group`)
+                con_group.push(con);
+                for g in &group {
+                    for c in con_group.drain(..) {
+                        c.transform(other.author, g, self.author, &mut next_con_group);
                     }
-                    Op::MoveCursor(mut this) => match *con {
-                        Op::Insert(ref other) => {
-                            if other.pos < this.pos {
-                                this.pos += other.content.chars().count();
-                            }
-                            new_operations.push(Op::MoveCursor(this));
-                        }
-                        Op::Delete(ref other) => {
-                            if other.start < this.pos {
-                                let end = cmp::min(this.pos, other.end);
-                                this.pos -= end - other.start;
-                            }
-                            new_operations.push(Op::MoveCursor(this));
-                        }
-                        Op::MoveCursor(_) => {
-                            new_operations.push(Op::MoveCursor(this));
-                        }
-                    },
+                    con_group.append(&mut next_con_group);
+                }
+
+                // store transformed concurrent operation for use with
+                // next `op` value
+                next_concurrent.append(&mut con_group);
+
+                // need to clear group because items were cloned from
+                // it earlier instead of using drain(..)
+                group.clear();
+                group.append(&mut next_group);
+            }
+            concurrent.append(&mut next_concurrent);
+            next_ops.append(&mut group);
+        }
+
+        self.operations.append(&mut next_ops);
+
+        // NOTE: at this point it is possible operations which no
+        // longer affect a documents content (e.g. Deletes where
+        // start == end, or Inserts with content = "") are included
+        // in the new_operations vector. This is valid because those
+        // operations may modify the cursor position of
+        // participants and would have been accepted if applied in
+        // a different order. To make sure the cursor positions
+        // converge, these otherwise useless operations must be
+        // retained.
+
+        // TODO: perhaps use the new MoveCursor operation to
+        // replace the empty operations described in the above
+        // comment and have empty operations fail validation
+    }
+}
+
+impl Operation {
+    fn transform(
+        self,
+        author: ParticipantId,
+        other_op: &Operation,
+        other_author: ParticipantId,
+        output: &mut Vec<Operation>,
+    ) {
+        println!("transforming: {:?} for {:?}", self, other_op);
+        match self {
+            Operation::Insert(this) => this.transform(author, other_op, other_author, output),
+            Operation::Delete(this) => this.transform(author, other_op, other_author, output),
+            Operation::MoveCursor(this) => this.transform(author, other_op, other_author, output),
+        }
+    }
+}
+
+impl Insert {
+    /// The `scratch` and `result` arguments must be empty vectors. The
+    /// output of the transform will be written to `result` and
+    /// `scratch` will be cleared before returning.
+    fn transform(
+        mut self,
+        author: ParticipantId,
+        other_op: &Operation,
+        other_author: ParticipantId,
+        output: &mut Vec<Operation>,
+    ) {
+        match *other_op {
+            Operation::Insert(ref other) => {
+                if other.pos < self.pos
+                    || (other.pos == self.pos && Edit::has_priority(other_author, author))
+                {
+                    self.pos += other.content.chars().count();
+                }
+                output.push(Operation::Insert(self));
+            }
+            Operation::Delete(ref other) => {
+                if other.start < self.pos {
+                    let end = cmp::min(self.pos, other.end);
+                    self.pos -= end - other.start;
+                }
+                output.push(Operation::Insert(self));
+            }
+            Operation::MoveCursor(_) => {
+                output.push(Operation::Insert(self));
+            }
+        }
+    }
+}
+
+impl Delete {
+    /// The `scratch` and `result` arguments must be empty vectors. The
+    /// output of the transform will be written to `result` and
+    /// `scratch` will be cleared before returning.
+    fn transform(
+        mut self,
+        _author: ParticipantId,
+        other_op: &Operation,
+        _other_author: ParticipantId,
+        output: &mut Vec<Operation>,
+    ) {
+        match *other_op {
+            Operation::Insert(ref other) => {
+                if other.pos < self.start {
+                    let len = other.content.chars().count();
+                    self.start += len;
+                    self.end += len;
+                    output.push(Operation::Delete(self));
+                } else if other.pos < self.end && self.end - self.start > 0 {
+                    // need to split the delete into two parts
+                    // to avoid clobbering the new insert
+                    // (only split when the delete has a range
+                    // greater than 0, otherwise it can only
+                    // produce a duplicate event)
+
+                    // create a new operation for the first
+                    // part of the range
+                    let before = Delete {
+                        start: self.start,
+                        end: other.pos,
+                    };
+
+                    // adjust the current operation to cover
+                    // the end second part of the range
+                    let len = other.content.chars().count();
+                    self.start = other.pos + len;
+                    self.end = self.end + len;
+
+                    // push the operation covering the first
+                    // part of the range to transformed.
+                    // This means it's applied after the
+                    // second part of the range and the cursor
+                    // ends in the correct position.
+                    output.push(Operation::Delete(self));
+                    output.push(Operation::Delete(before));
+                } else {
+                    output.push(Operation::Delete(self));
                 }
             }
-            self.operations.append(&mut new_operations);
-            // NOTE: at this point it is possible operations which no
-            // longer affect a documents content (e.g. Deletes where
-            // start == end, or Inserts with content = "") are included
-            // in the operations list. This is valid because those
-            // operations may modify the cursor position of
-            // participants and would have been accepted if applied in
-            // a different order. To make sure the cursor positions
-            // converge, these otherwise useless operations must be
-            // retained.
+            Operation::Delete(ref other) => {
+                let mut chars_deleted_before = if other.start < self.start {
+                    let end = cmp::min(self.start, other.end);
+                    end - other.start
+                } else {
+                    0
+                };
+                let mut chars_deleted_inside = 0;
+                if other.start < self.start {
+                    if other.end > self.start {
+                        let end = cmp::min(self.end, other.end);
+                        chars_deleted_inside = end - self.start;
+                    }
+                } else if other.start < self.end {
+                    let end = cmp::min(self.end, other.end);
+                    chars_deleted_inside = end - other.start;
+                }
+                self.start -= chars_deleted_before;
+                self.end -= chars_deleted_before + chars_deleted_inside;
+                output.push(Operation::Delete(self));
+            }
+            Operation::MoveCursor(_) => {
+                output.push(Operation::Delete(self));
+            }
+        }
+    }
+}
 
-            // TODO: perhaps use the new MoveCursor operation to
-            // replace the empty operations described in the above
-            // comment and have empty operations fail validation
+impl MoveCursor {
+    /// The `scratch` and `result` arguments must be empty vectors. The
+    /// output of the transform will be written to `result` and
+    /// `scratch` will be cleared before returning.
+    fn transform(
+        mut self,
+        _author: ParticipantId,
+        other_op: &Operation,
+        _other_author: ParticipantId,
+        output: &mut Vec<Operation>,
+    ) {
+        match *other_op {
+            Operation::Insert(ref other) => {
+                if other.pos < self.pos {
+                    self.pos += other.content.chars().count();
+                }
+                output.push(Operation::MoveCursor(self));
+            }
+            Operation::Delete(ref other) => {
+                if other.start < self.pos {
+                    let end = cmp::min(self.pos, other.end);
+                    self.pos -= end - other.start;
+                }
+                output.push(Operation::MoveCursor(self));
+            }
+            Operation::MoveCursor(_) => {
+                output.push(Operation::MoveCursor(self));
+            }
         }
     }
 }
@@ -662,37 +750,31 @@ mod tests {
     }
 
     trait GenerateStrategy {
-        fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation>;
+        fn generate_strategy() -> BoxedStrategy<Operation>;
     }
 
     impl GenerateStrategy for Operation {
-        fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation> {
+        fn generate_strategy() -> BoxedStrategy<Operation> {
             prop_oneof![
-                Insert::generate_strategy(doc_size),
-                Delete::generate_strategy(doc_size),
-                MoveCursor::generate_strategy(doc_size),
+                Insert::generate_strategy(),
+                Delete::generate_strategy(),
+                MoveCursor::generate_strategy(),
             ].boxed()
         }
     }
 
     impl GenerateStrategy for Delete {
-        fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation> {
-            (0..(doc_size + 1), 0..(doc_size + 1))
-                .prop_filter(
-                    "Delete operation start index must be smaller than end index".to_owned(),
-                    |v| v.0 < v.1,
-                ).prop_map(|v| {
-                    Operation::Delete(Delete {
-                        start: v.0,
-                        end: v.1,
-                    })
-                }).boxed()
+        fn generate_strategy() -> BoxedStrategy<Operation> {
+            (0usize..10usize)
+                .prop_flat_map(move |start| (Just(start), start..(10usize + 1usize)).boxed())
+                .prop_map(|(start, end)| Operation::Delete(Delete { start, end }))
+                .boxed()
         }
     }
 
     impl GenerateStrategy for Insert {
-        fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation> {
-            (0..(doc_size + 1), ".{1,10}")
+        fn generate_strategy() -> BoxedStrategy<Operation> {
+            (0usize..(10usize + 1usize), ".{1,10}")
                 .prop_map(|v| {
                     Operation::Insert(Insert {
                         pos: v.0,
@@ -703,15 +785,16 @@ mod tests {
     }
 
     impl GenerateStrategy for MoveCursor {
-        fn generate_strategy(doc_size: usize) -> BoxedStrategy<Operation> {
-            (0..(doc_size + 1))
+        fn generate_strategy() -> BoxedStrategy<Operation> {
+            (0usize..(10usize + 1usize))
                 .prop_map(|v| Operation::MoveCursor(MoveCursor { pos: v }))
                 .boxed()
         }
     }
 
-    fn generate_document_data() -> BoxedStrategy<String> {
-        ".{1,10}"
+    fn generate_document_data(min_size: usize) -> BoxedStrategy<String> {
+        proptest::collection::vec(proptest::char::any(), min_size..(min_size + 10))
+            .prop_map(|v| -> String { v.into_iter().collect() })
             .prop_filter(
                 "Document must contain at least one unicode scalar value".to_owned(),
                 |v| v.chars().count() > 0,
@@ -721,49 +804,45 @@ mod tests {
     // NOTE: only use this to generate a small number of operations,
     // and they will be in reverse order, with first to be applied at
     // the end of the vector
-    fn operations_strategy(doc_size: usize, num: usize) -> BoxedStrategy<Vec<Operation>> {
+    fn operations_strategy(num: usize) -> BoxedStrategy<(Vec<Operation>, usize)> {
         if num == 0 {
-            Just(vec![]).boxed()
+            (Just(vec![]), Just(0)).boxed()
         } else {
-            Operation::generate_strategy(doc_size)
+            Operation::generate_strategy()
                 .prop_flat_map(move |op| {
-                    let len = match op {
-                        Operation::Insert(ref data) =>
-                            doc_size + data.content.chars().count(),
-                        Operation::Delete(ref data) =>
-                            doc_size - (data.end - data.start),
-                        Operation::MoveCursor(_) =>
-                            doc_size,
-                    };
-                    operations_strategy(len, num - 1)
-                        .prop_map(move |mut rest| {
-                            rest.push(op.clone());
-                            rest
-                        })
-                })
-                .boxed()
+                    operations_strategy(num - 1).prop_map(move |(mut ops, req_size)| {
+                        let next_req_size = match op {
+                            Operation::Insert(ref data) => {
+                                let len = data.content.chars().count();
+                                let tmp = if len < req_size { req_size - len } else { 0 };
+                                cmp::max(tmp, data.pos)
+                            }
+                            Operation::Delete(ref data) => {
+                                let removed = data.end - data.start;
+                                cmp::max(req_size + removed, data.end)
+                            }
+                            Operation::MoveCursor(ref data) => cmp::max(req_size, data.pos),
+                        };
+                        ops.push(op.clone());
+                        (ops, next_req_size)
+                    })
+                }).boxed()
         }
     }
 
-    fn conflicting_operations(max: usize) ->
-        BoxedStrategy<(String, Vec<Operation>, Vec<Operation>)>
-    {
-        generate_document_data()
-            .prop_flat_map(move |initial| {
-                let len = initial.chars().count();
-                (Just(initial),
-                 (1..(max + 1)).prop_flat_map(move |num| operations_strategy(len, num)),
-                 (1..(max + 1)).prop_flat_map(move |num| operations_strategy(len, num)),
-                ).boxed()
-            })
-            .prop_map(|mut v| {
-                // put the operations in the correct order, with first
-                // to be applied at the *start* of the vector.
-                v.1.reverse();
-                v.2.reverse();
-                v
-            })
-            .boxed()
+    fn conflicting_operations(
+        max: usize,
+    ) -> BoxedStrategy<(String, Vec<Operation>, Vec<Operation>)> {
+        (
+            (1..(max + 1)).prop_flat_map(|num| operations_strategy(num)),
+            (1..(max + 1)).prop_flat_map(|num| operations_strategy(num)),
+        )
+            .prop_flat_map(move |((mut ops1, req_size1), (mut ops2, req_size2))| {
+                let req_size = cmp::max(req_size1, req_size2);
+                ops1.reverse();
+                ops2.reverse();
+                (generate_document_data(req_size), Just(ops1), Just(ops2))
+            }).boxed()
     }
 
     proptest! {
@@ -826,14 +905,6 @@ mod tests {
             // apply transformed operations on top
             doc1.apply(&a1).unwrap();
             doc2.apply(&b2).unwrap();
-
-            // TODO: remove this debugging info
-            if doc1 != doc2 {
-                println!("doc1: {:?}", b1);
-                println!("doc1: {:?}", a1);
-                println!("doc2: {:?}", a2);
-                println!("doc2: {:?}", b2);
-            }
             // check the results converge
             prop_assert_eq!(doc1, doc2);
         }

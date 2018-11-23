@@ -737,7 +737,7 @@
             "operations": [
                 {"Delete": {"start": 10, "end": 13}},
                 {"Delete": {"start": 5, "end": 7}},
-                {"Insert": {"pos": 5, "content": "test"}}
+                {"Insert": {"pos": 8, "content": "test"}}
             ]
         }}
     },
@@ -1042,6 +1042,58 @@
             "operations": [
                 {"Insert": {"pos": 0, "content": "A"}},
                 {"Insert": {"pos": 1, "content": "A"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_multiple_operations_single_edit_3",
+        "initial": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Delete": {"start": 1, "end": 3}},
+                {"Insert": {"pos": 1, "content": "a"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 1,
+                "operations": [
+                    {"Delete": {"start": 0, "end": 1}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Delete": {"start": 0, "end": 2}},
+                {"Insert": {"pos": 0, "content": "a"}}
+            ]
+        }}
+    },
+    {
+        "name": "transform_multiple_operations_single_edit_4",
+        "initial": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Delete": {"start": 0, "end": 1}},
+                {"Insert": {"pos": 1, "content": "a"}}
+            ]
+        }},
+        "concurrent": [
+            {"Edit": {
+                "author": 1,
+                "operations": [
+                    {"Insert": {"pos": 0, "content": "1234567"}},
+                    {"Delete": {"start": 0, "end": 5}}
+                ]
+            }}
+        ],
+        "expected": {"Edit": {
+            "author": 2,
+            "operations": [
+                {"Delete": {"start": 2, "end": 3}},
+                {"Delete": {"start": 0, "end": 0}},
+                {"Insert": {"pos": 3, "content": "a"}}
             ]
         }}
     }
