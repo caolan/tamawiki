@@ -15,7 +15,21 @@ module.exports = function (config) {
         // singleRun: false, // Karma captures browsers, runs the tests and exits
         concurrency: Infinity,
         karmaTypescriptConfig: {
-            compilerOptions: require('./tsconfig.json').compilerOptions
+            compilerOptions: {
+                sourceMap: true,
+                strict: true,
+                noImplicitAny: true,
+                noImplicitThis: true,
+                alwaysStrict: true,
+                noUnusedLocals: false,
+                noUnusedParameters: false,
+                noImplicitReturns: true,
+                noFallthroughCasesInSwitch: true,
+                resolveJsonModule: true,
+                allowSyntheticDefaultImports: true,
+                moduleResolution: "node",
+                target: "es2015"
+            }
         },
         client: {
             mocha: {
