@@ -1,0 +1,35 @@
+image: debian/stretch
+sources:
+  - https://git.sr.ht/~caolan/tamawiki
+packages:
+  - chromium
+  - firefox-esr
+  - curl
+  - nodejs
+  - pkg-config
+tasks:
+  - node: |
+      curl -sL https://deb.nodesource.com/setup_10.x > node-installer.sh
+      sudo bash node-installer.sh
+      sudo apt-get install nodejs
+  - rust: |
+      curl https://sh.rustup.rs -sSf > rust-installer.sh
+      sh rust-installer.sh -y
+  - build: |
+      source $HOME/.cargo/env
+      cd tamawiki
+      cargo build --verbose --all
+      npm install
+      npm run bundle
+  - test: |
+      source $HOME/.cargo/env
+      cd tamawiki
+      cargo test --verbose --all
+      npx karma start --single-run --browsers FirefoxHeadless karma.conf.js
+      npx karma start --single-run --browsers ChromeHeadless karma.conf.js
+  - lint: |
+      source $HOME/.cargo/env
+      rustup component add rustfmt-preview
+      cd tamawiki
+      cargo fmt --all -- --check
+      npm run lint
