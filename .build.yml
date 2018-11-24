@@ -11,7 +11,7 @@ tasks:
   - node: |
       curl -sL https://deb.nodesource.com/setup_10.x > node-installer.sh
       sudo bash node-installer.sh
-      sudo apt-get install nodejs
+      sudo apt-get install nodejs -y
   - rust: |
       curl https://sh.rustup.rs -sSf > rust-installer.sh
       sh rust-installer.sh -y
